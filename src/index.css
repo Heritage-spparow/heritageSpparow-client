@@ -1,0 +1,44 @@
+@import "tailwindcss";
+:root {
+  /* Typography */
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  /* font-weight: 400; */
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Theme variables: change these two to retheme site */
+  --color-bg: #737144;   /* Background */
+  --color-text: #F2E2C4; /* Text */
+  --color-bgt:#F2E2C4;
+  --color-textbg: #A18C3D;
+  --color-surface: rgba(242, 226, 196, 0.08);
+  --color-bt:#917c30;
+  --color-border: rgba(242, 226, 196, 0.25);
+
+  /* OS color scheme hint (kept, not used for theming) */
+  color-scheme: light;
+}
+
+html, body, #root {
+  background-color: #f9f6ef;
+  color: var(--color-text);
+  min-height: 100%;
+}
+
+/* a { color: var(--color-text); } */
+
+/* Optional: give cards/panels a subtle surface */
+.surface {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.baloo-paaji-2 {
+  font-family: "Baloo Paaji 2", sans-serif;
+  font-optical-sizing: auto;
+  /* font-weight: 400; */
+  font-style: normal;
+}

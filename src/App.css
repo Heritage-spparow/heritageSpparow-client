@@ -1,0 +1,83 @@
+body , html , #root {
+    height: 100%;
+}
+.font-size{
+    font-size: D-DIN Regular;
+}
+*{
+   font-family: 'D-DIN';
+   /* font-weight: 400; */
+}
+@font-face {
+  font-family: 'D-DIN';
+  src: url('../assets/fonts/d-din/d-din-regular.woff2') format('woff2'),
+       url('../assets/fonts/d-din/d-din-regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+.quicksand-custom {
+  font-family: "Quicksand", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+.navbar a {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.navbar a:hover {
+  color: #cfc9c9;
+}
+
+input{
+  color: #737144;
+}
+/* 🕊️ Eleven Eleven Flying Sparrow Loader */
+.loader {
+  display: inline-grid;
+  width: 80px;
+  aspect-ratio: 1;
+  position: relative;
+}
+
+.loader::before,
+.loader::after {
+  content: "";
+  grid-area: 1 / 1;
+  border-radius: 50%;
+  animation: sparrow-spin-outer 2.2s alternate infinite ease-in-out;
+}
+
+/* Outer ring — muted olive + cream tones */
+.loader::before {
+  margin: 25%;
+  background: repeating-conic-gradient(#737144 0 60deg, #DAD7C5 0 120deg);
+  translate: 0 45%;
+  rotate: -150deg;
+}
+
+/* Inner ring — softer cream + olive inverse */
+.loader::after {
+  padding: 10%;
+  margin: -10%;
+  background: repeating-conic-gradient(#DAD7C5 0 30deg, #737144 0 60deg);
+  mask: linear-gradient(#0000 50%, #000 0) content-box exclude,
+        linear-gradient(#0000 50%, #000 0);
+  rotate: -75deg;
+  animation-name: sparrow-spin-inner;
+}
+
+@keyframes sparrow-spin-outer {
+  to {
+    rotate: 150deg;
+  }
+}
+
+@keyframes sparrow-spin-inner {
+  to {
+    rotate: 75deg;
+  }
+}
+
