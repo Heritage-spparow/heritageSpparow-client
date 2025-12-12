@@ -110,13 +110,12 @@ const Navbar = () => {
   return (
     <nav
       style={dinStyle}
-      className={`w-full bg-[var(--color-bg)] h-[7%] shadow-sm fixed top-0 left-0 z-50 border-b border-[var(--color-border)] `}
+      className={`w-full bg-[var(--color-bg)] h-[10%] sm:h-[9%] md:h-[9%] shadow-sm fixed top-0 left-0 z-50 border-b border-[var(--color-border)] `}
     >
       {/* Desktop Navigation */}
       <div className="hidden md:flex  h-full w-full items-center justify-between px-6 py-4 text-white font-size">
         <div className="flex h-full w-full justify-between items-center space-x-8">
           <Link
-            to="#"
             className="hover:underline font-medium relative"
             onMouseEnter={() => setIsShopMenuOpen(true)}
             onMouseLeave={() => setIsShopMenuOpen(false)}

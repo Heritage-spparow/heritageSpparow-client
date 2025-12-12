@@ -74,7 +74,7 @@ export default function Footer() {
               </a>
             </li>
             <li>
-              <a href="#" className=" ">
+              <a href="/shipping-returns-refund" className=" ">
                 Shipping / Returns / Refund Policy
               </a>
             </li>
@@ -112,14 +112,14 @@ export default function Footer() {
           </h3>
           <ul className="space-y-2 text-sm text-white">
             <li>
-              <a href="#" className=" ">
+              <Link to = "/terms-and-conditions" className=" ">
                 Terms & Conditions
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="#" className=" ">
+              <Link to = "/privacy-policy" className=" ">
                 Privacy Policy
-              </a>
+              </Link>
             </li>
           </ul>
         </div>

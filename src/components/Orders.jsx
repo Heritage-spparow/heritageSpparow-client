@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { orderAPI } from "../services/api";
+import { useNavigate } from "react-router-dom";
 import {
   Package,
   Calendar,
@@ -9,10 +10,11 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  ChevronDown, 
+  ChevronDown,
   MessageSquare,
   Star,
 } from "lucide-react";
+
 const SkeletonOrderCard = () => (
   <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm overflow-hidden relative">
     <div className="skeleton-shimmer absolute inset-0"></div>
@@ -50,8 +52,8 @@ const SkeletonOrderCard = () => (
   </div>
 );
 
-
 const Orders = () => {
+  const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -68,7 +70,7 @@ const Orders = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const res = await orderAPI.getMyOrders({ page: currentPage, limit: 5 }); // Reduced limit for better view
+      const res = await orderAPI.getMyOrders({ page: currentPage, limit: 5 });
       if (res.data.success) {
         setOrders(res.data.orders);
         setPagination(res.data.pagination);
@@ -82,17 +84,16 @@ const Orders = () => {
 
   const cancelOrder = async (orderId) => {
     try {
-      // You might want to add a confirmation modal here in a real app
       await orderAPI.cancel(orderId);
-      fetchOrders(); // Refetch orders to show the updated status
+      fetchOrders();
     } catch (err) {
       setError("Failed to cancel order. Please try again.");
     }
   };
-  
-  // --- NO CHANGES TO STATUS STYLES & ICONS ---
+
   const getStatusStyle = (status) => {
-    const base = "inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium";
+    const base =
+      "inline-flex items-center gap-2 px-3 py-1  text-sm font-medium";
     const styles = {
       pending: "bg-yellow-100 text-yellow-800",
       processing: "bg-blue-100 text-blue-800",
@@ -105,16 +106,21 @@ const Orders = () => {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case "pending": return <Clock className="h-4 w-4" />;
-      case "processing": return <Package className="h-4 w-4" />;
-      case "shipped": return <Truck className="h-4 w-4" />;
-      case "delivered": return <CheckCircle className="h-4 w-4" />;
-      case "cancelled": return <XCircle className="h-4 w-4" />;
-      default: return <Package className="h-4 w-4" />;
+      case "pending":
+        return <Clock className="h-4 w-4" />;
+      case "processing":
+        return <Package className="h-4 w-4" />;
+      case "shipped":
+        return <Truck className="h-4 w-4" />;
+      case "delivered":
+        return <CheckCircle className="h-4 w-4" />;
+      case "cancelled":
+        return <XCircle className="h-4 w-4" />;
+      default:
+        return <Package className="h-4 w-4" />;
     }
   };
 
-  // --- NO CHANGES TO ACCESS DENIED VIEW ---
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)]">
@@ -131,58 +137,94 @@ const Orders = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] py-12 relative">
-      {/* --- NO CHANGES TO SHIMMER STYLES --- */}
+    <div className="min-h-screen bg-[#f9f6ef] py-12 relative">
       <style>{`
-          .skeleton-shimmer::after { content: ''; position: absolute; inset: 0; background: linear-gradient( 110deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100% ); animation: shimmer 1.5s infinite; transform: translateX(-100%); }
+          .skeleton-shimmer::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(110deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%);
+            animation: shimmer 1.5s infinite;
+            transform: translateX(-100%);
+          }
           @keyframes shimmer { 100% { transform: translateX(100%); } }
       `}</style>
-      
+
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* --- NO CHANGES TO HEADER --- */}
-        <div className="mb-10 ">
-          <h1 className="text-4xl font-bold text-[#f9f6ef] tracking-wide">Order Archives</h1>
+        <div className="mb-10">
+          <h1 className="flex items-start flex-col justify-start  font-semibold
+                       border-l-[5px] border-solid px-3  text-[var(--color-bg)]
+                       text-lg sm:text-2xl tracking-wide ">
+            ORDER ARCHIVES
+          </h1>
         </div>
 
-        {/* --- NO CHANGES TO ERROR & LOADING STATES --- */}
-        {error && <div className="mb-8 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">{error}</div>}
+        {error && (
+          <div className="mb-8 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+            {error}
+          </div>
+        )}
+
         {loading ? (
           <div className="space-y-8">
-            {[...Array(3)].map((_, i) => <SkeletonOrderCard key={i} />)}
+            {[...Array(3)].map((_, i) => (
+              <SkeletonOrderCard key={i} />
+            ))}
           </div>
         ) : orders.length === 0 ? (
           <div className="bg-white border border-gray-100 rounded-2xl p-12 text-center shadow-sm">
             <Package className="h-14 w-14 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-gray-700 mb-2">No Orders Yet</h3>
-            <p className="text-gray-500">Start shopping to see your orders here.</p>
+            <h3 className="text-xl font-medium text-gray-700 mb-2">
+              No Orders Yet
+            </h3>
+            <p className="text-gray-500">
+              Start shopping to see your orders here.
+            </p>
           </div>
         ) : (
-          // ==================================================================
-          // START OF REDESIGNED ORDER LIST
-          // ==================================================================
           <div className="space-y-6">
             {orders.map((order) => (
-              <div key={order._id} className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+              <div
+                key={order._id}
+                className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
+              >
                 {/* Order Header */}
                 <div className="bg-gray-50 px-6 py-3 border-b border-gray-200 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div>
-                    <p className="text-xs text-gray-500 uppercase">Order Placed</p>
-                    <p className="text-gray-800 font-medium">{new Date(order.createdAt).toLocaleDateString()}</p>
+                    <p className="text-xs text-gray-500 uppercase">
+                      Order Placed
+                    </p>
+                    <p className="text-[var(--color-bg)]  font-medium">
+                      {new Date(order.createdAt).toLocaleDateString()}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 uppercase">Total</p>
-                    <p className="text-gray-800 font-medium">${order.totalPrice.toFixed(2)}</p>
+                    <p className="text-[var(--color-bg)]  font-medium">
+                      ${order.totalPrice.toFixed(2)}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 uppercase">Ship To</p>
-                    <a href="#" className="text-green-700 hover:underline font-medium flex items-center">
-                      {user?.name || 'Customer'} <ChevronDown className="h-4 w-4 ml-1" />
+                    <a
+                      href="#"
+                      className="text-[var(--color-bg)] hover:underline font-medium flex items-center"
+                    >
+                      {user?.name || "Customer"}{" "}
+                      <ChevronDown className="h-4 w-4 ml-1" />
                     </a>
                   </div>
                   <div className="text-left md:text-right">
-                    <p className="text-xs text-gray-500 uppercase">Order # {order.orderNumber}</p>
+                    <p className="text-xs text-gray-500 uppercase">
+                      Order # {order.orderNumber}
+                    </p>
                     <div className="flex items-center gap-2 justify-start md:justify-end">
-                      <a href="#" className="text-green-700 hover:underline font-medium">View order details</a>
+                      <a
+                        href="#"
+                        className="text-green-700 hover:underline font-medium"
+                      >
+                        View order details
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -190,33 +232,52 @@ const Orders = () => {
                 {/* Order Body */}
                 <div className="p-6">
                   <div className="flex flex-col md:flex-row gap-6">
-                    {/* Left side: Items List */}
                     <div className="flex-grow">
                       <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-gray-800 capitalize">
-                           {order.status === 'delivered' ? `Delivered on ${new Date(order.deliveredAt).toLocaleDateString()}` : `${order.status}`}
+                        <h3 className="text-lg font-semibold text-[var(--color-bg)]  capitalize">
+                          {order.status === "delivered"
+                            ? `Delivered on ${new Date(
+                                order.deliveredAt
+                              ).toLocaleDateString()}`
+                            : `${order.status}`}
                         </h3>
                         <span className={getStatusStyle(order.status)}>
                           {getStatusIcon(order.status)}
                           <span className="capitalize">{order.status}</span>
                         </span>
                       </div>
-                      
+
                       <div className="space-y-4">
                         {order.orderItems.map((item, idx) => (
                           <div key={idx} className="flex items-center gap-4">
                             <div className="w-20 h-20 bg-white border border-gray-200 rounded-md flex-shrink-0">
-                              <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="w-full h-full object-cover"
+                              />
                             </div>
+
                             <div className="flex-1 min-w-0">
-                              <h4 className="text-base font-medium text-green-800 hover:underline cursor-pointer">
+                              <h4
+                                onClick={() =>
+                                  navigate(`/feature/${item.product?._id}`)
+                                }
+                                className="text-base font-medium text-[var(--color-bg)] hover:underline cursor-pointer"
+                              >
                                 {item.name}
                               </h4>
                               <p className="text-sm text-gray-500 mt-1">
                                 Qty: {item.quantity}
                               </p>
+
                               <div className="mt-2">
-                                <button className="px-4 py-1 text-sm bg-[var(--color-bg)] text-[var(--color-text)] rounded-md hover:bg-gray-200">
+                                <button
+                                  onClick={() =>
+                                    navigate(`/feature/${item.product?._id}`)
+                                  }
+                                  className="py-2 px-4 text-sm font-light tracking-wide border border-neutral-300 bg-white text-[#555] hover:border-[#737144]/60 hover:text-[#737144] transition-all duration-300 rounded-md"
+                                >
                                   Buy it again
                                 </button>
                               </div>
@@ -226,71 +287,82 @@ const Orders = () => {
                       </div>
                     </div>
 
-                    {/* Right side: Actions */}
+                    {/* Actions */}
                     <div className="flex-shrink-0 md:w-56 space-y-3">
-                       <button className="w-full px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition duration-200 flex items-center justify-center gap-2">
-                         <Truck className="h-4 w-4" />
-                         Track Package
-                       </button>
-                       <button className="w-full px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-200 flex items-center justify-center gap-2">
-                         <MessageSquare className="h-4 w-4" />
-                         Get product support
-                       </button>
-                       <button className="w-full px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-200 flex items-center justify-center gap-2">
-                         <Star className="h-4 w-4" />
-                         Write a product review
-                       </button>
-                       {order.status === "pending" && (
-                         <button
-                           onClick={() => cancelOrder(order._id)}
-                           className="w-full px-4 py-2.5 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition duration-200 flex items-center justify-center gap-2"
-                         >
-                           <XCircle className="h-4 w-4" />
-                           Cancel Order
-                         </button>
-                       )}
+                      <button className="w-full py-2 px-4 text-sm font-light tracking-wide border border-neutral-300 bg-white text-[#555] hover:border-[#737144]/60 hover:text-[#737144] transition-all duration-300 rounded-md flex items-center justify-center gap-2">
+                        <Truck className="h-4 w-4" />
+                        Track Package
+                      </button>
+                      <button className="w-full py-2 px-4 text-sm font-light tracking-wide border border-neutral-300 bg-white text-[#555] hover:border-[#737144]/60 hover:text-[#737144] transition-all duration-300 rounded-md flex items-center justify-center gap-2">
+                        <MessageSquare className="h-4 w-4" />
+                        Get product support
+                      </button>
+                      <button className="w-full py-2 px-4 text-sm font-light tracking-wide border border-neutral-300 bg-white text-[#555] hover:border-[#737144]/60 hover:text-[#737144] transition-all duration-300 rounded-md flex items-center justify-center gap-2">
+                        <Star className="h-4 w-4" />
+                        Write a product review
+                      </button>
+
+                      {order.status === "pending" && (
+                        <button
+                          onClick={() => cancelOrder(order._id)}
+                          className="w-full py-2 px-4 text-sm font-light tracking-wide border border-red-300 text-red-600 bg-white hover:bg-red-50 hover:border-red-400 transition-all duration-300 rounded-md flex items-center justify-center gap-2"
+                        >
+                          <XCircle className="h-4 w-4" />
+                          Cancel Order
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
               </div>
             ))}
           </div>
-          // ==================================================================
-          // END OF REDESIGNED ORDER LIST
-          // ==================================================================
         )}
 
-        {/* --- NO CHANGES TO PAGINATION --- */}
+        {/* Pagination */}
         {pagination.pages > 1 && (
-          <div className="mt-10 flex justify-center gap-2">
+          <div className="mt-10 flex justify-center flex-wrap gap-3">
+            {/* Previous Button */}
             <button
               onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 rounded-md border text-sm text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`relative py-2 px-3 text-sm font-light tracking-wide border transition-all duration-300 ${
+                currentPage === 1
+                  ? "opacity-40 cursor-not-allowed border-neutral-300 bg-neutral-100 text-neutral-400"
+                  : "border-neutral-300 bg-white text-[#555] hover:border-[#737144]/60 hover:text-[#737144]"
+              }`}
             >
               Previous
             </button>
+
+            {/* Page Buttons */}
             {Array.from({ length: pagination.pages }, (_, i) => i + 1).map(
               (page) => (
                 <button
                   key={page}
                   onClick={() => setCurrentPage(page)}
-                  className={`px-4 py-2 rounded-md border text-sm font-medium ${
+                  className={`relative py-2 px-3 text-sm font-light tracking-wide border transition-all duration-300 ${
                     currentPage === page
-                      ? "bg-green-700 text-white border-green-700"
-                      : "bg-white text-gray-700 hover:bg-gray-50"
+                      ? "border-[#737144] bg-[#737144]/10 text-[#737144] shadow-inner"
+                      : "border-neutral-300 bg-white text-[#555] hover:border-[#737144]/60 hover:text-[#737144]"
                   }`}
                 >
                   {page}
                 </button>
               )
             )}
+
+            {/* Next Button */}
             <button
               onClick={() =>
                 setCurrentPage((p) => Math.min(p + 1, pagination.pages))
               }
               disabled={currentPage === pagination.pages}
-              className="px-4 py-2 rounded-md border text-sm text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`relative py-2 px-3 text-sm font-light tracking-wide border transition-all duration-300 ${
+                currentPage === pagination.pages
+                  ? "opacity-40 cursor-not-allowed border-neutral-300 bg-neutral-100 text-neutral-400"
+                  : "border-neutral-300 bg-white text-[#555] hover:border-[#737144]/60 hover:text-[#737144]"
+              }`}
             >
               Next
             </button>

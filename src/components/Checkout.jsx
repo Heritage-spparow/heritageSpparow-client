@@ -155,7 +155,7 @@ export default function Checkout() {
           {items.map((item) => (
             <div
               key={item._id}
-              className="bg-white  shadow-sm border border-gray-200/80 p-6 transition"
+              className="bg-[#f9f6ef] shadow-sm border border-gray-200/80 p-6 transition"
             >
               <div className="flex flex-col sm:flex-row gap-6">
                 {/* Image */}
@@ -170,13 +170,13 @@ export default function Checkout() {
                 {/* Details */}
                 <div className="flex-1 flex flex-col justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-[#737144]">
+                    <h3 className="text-lg font-semibold text-[var(--color-bg)]">
                       {item.product.name || "Unnamed Product"}
                     </h3>
                     <p className="text-md mt-1 font-medium text-[#737144]">
                       {item.product.discountPrice ? (
                         <>
-                          <span className="line-through text-gray-500 mr-2">
+                          <span className="line-through text-[var(--color-bg)] mr-2">
                             {convert(item.product.price)}
                           </span>
                           <span className="text-green-700 font-semibold">
@@ -189,8 +189,8 @@ export default function Checkout() {
                     </p>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-gray-600">
-                    <span>
+                  <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-[var(--color-bg)]">
+                    {/* <span>
                       Color:{" "}
                       <span
                         className="inline-block w-4 h-4 rounded-full border border-gray-400 ml-1"
@@ -201,7 +201,7 @@ export default function Checkout() {
                       <span className="capitalize ml-1">
                         {item.color || "N/A"}
                       </span>
-                    </span>
+                    </span> */}
                     <span>
                       Size:{" "}
                       <span className="font-medium">{item.size || "N/A"}</span>
@@ -210,8 +210,8 @@ export default function Checkout() {
 
                   <div className="flex items-center justify-between mt-5">
                     <div className="flex items-center gap-3">
-                      <span className="text-sm text-gray-600">Quantity:</span>
-                      <div className="flex items-center border border-gray-300 rounded-md">
+                      <span className="text-sm text-[var(--color-bg)]">Quantity:</span>
+                      <div className="flex items-center text-[var(--color-bg)] border border-gray-300 rounded-md glass-card">
                         <button
                           onClick={() =>
                             handleQuantityChange(
@@ -263,7 +263,7 @@ export default function Checkout() {
         </div>
 
         {/* Order Summary */}
-        <div className="lg:col-span-1 bg-white  shadow-sm border border-gray-200/80 p-6 h-fit sticky top-24">
+        <div className="lg:col-span-1 bg-[#f9f6ef] shadow-sm border border-gray-200/80 p-6 h-fit sticky top-24">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-[#737144] uppercase tracking-wider">
               Order Summary

@@ -7,7 +7,7 @@ const PrivateRoute = ({ children }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-[var(--color-bg)] p-4">
+      <div className="min-h-screen w-full flex items-center justify-center bg-[#f9f6ef] p-4">
         {/* The animate-pulse class from Tailwind CSS creates the loading effect */}
         <div className="w-full max-w-lg animate-pulse">
           <div className="w-full space-y-5 p-8 bg-white/5 backdrop-blur-md rounded-2xl">
@@ -25,7 +25,7 @@ const PrivateRoute = ({ children }) => {
               <div className="h-4 bg-gray-300/50 rounded-md w-full"></div>
               <div className="h-4 bg-gray-300/50 rounded-md w-full"></div>
               <div className="h-4 bg-gray-300/50 rounded-md w-5/6"></div>
-            </div>
+            </div> 
           </div>
         </div>
       </div>

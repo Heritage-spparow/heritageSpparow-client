@@ -103,7 +103,7 @@ export default function ProductWindow() {
 
     fetchData();
   }, [name, fetchProducts]);
-
+ 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     if (name === "priceMin" || name === "priceMax") {

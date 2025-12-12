@@ -81,6 +81,14 @@ export const orderAPI = {
   getById: (id) => api.get(`/orders/${id}`),
   updateToPaid: (id, paymentData) => api.put(`/orders/${id}/pay`, paymentData),
   cancel: (id) => api.put(`/orders/${id}/cancel`),
+  invoice: (id) => api.get(`/orders/${id}/invoice`, { responseType: 'blob' }),
+
+  createRazorpayOrder: (amount) =>
+    api.post('/orders/razorpay', { amount }),
+
+  verifyRazorpayPayment: (data) =>
+    api.post('/orders/razorpay/verify', data),
 };
+
 
 export default api;

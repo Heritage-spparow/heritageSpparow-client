@@ -16,6 +16,10 @@ import Orders from "./components/Orders";
 import PrivateRoute from "./components/PrivateRoute";
 import Footer from "./components/Footer";
 import About from "./components/About";
+import CraftPage from "./components/craft";
+import PrivacyPolicyPage from "./policies/PrivacyPolicyPage";
+import TermsConditionsPage from "./policies/TermsConditionsPage";
+import ShippingReturnsRefundPage from "./policies/ShippingReturnsRefundPage";
 
 function AppContent() {
   const location = useLocation();
@@ -34,6 +38,10 @@ function AppContent() {
           <Route path="/search" element={<Search />} />
           <Route path="/product/:name" element={<ProductWindow />} />
           <Route path="/about" element={<About/>}/>
+          <Route path="/craft" element={<CraftPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms-and-conditions" element={<TermsConditionsPage />} />
+          <Route path="/shipping-returns-refund" element={<ShippingReturnsRefundPage />} />
           <Route
             path="/profile"
             element={

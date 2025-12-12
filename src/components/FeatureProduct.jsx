@@ -44,38 +44,33 @@ export default function FeatureProduct() {
   }, [fetchProducts]);
 
   const handleAddToCart = async () => {
-  if (!isAuthenticated || !user) {
-    alert("Please log in to add products to your cart.");
-    navigate("/login", { state: { from: `/feature/${id}` } });
-    return;
-  }
-  if (!selectedColor || !selectedSize) {
-    alert("Please select both color and size before adding to cart.");
-    return;
-  }
-
-  setIsAddingToCart(true);
-  try {
-    const response = await addToCart(
-      currentProduct,
-      selectedColor,
-      selectedSize,
-      1
-    );
-    if (response.success) {
-      setAddedToCart(true);
-      alert("Product added to cart successfully!");
-    } else {
-      alert(response.error || "Failed to add to cart");
+    if (!isAuthenticated || !user) {
+      navigate("/login", { state: { from: `/feature/${id}` } });
+      return;
     }
-  } catch (err) {
-    alert("An error occurred while adding to cart.");
-  } finally {
-    setIsAddingToCart(false);
-  }
-};
+    if (!selectedColor || !selectedSize) {
+      return;
+    }
 
-
+    setIsAddingToCart(true);
+    try {
+      const response = await addToCart(
+        currentProduct,
+        selectedColor,
+        selectedSize,
+        1
+      );
+      if (response.success) {
+        setAddedToCart(true);
+      } else {
+        alert(response.error || "Failed to add to cart");
+      }
+    } catch (err) {
+      alert("An error occurred while adding to cart.");
+    } finally {
+      setIsAddingToCart(false);
+    }
+  };
   const handleViewCart = () => {
     if (error) {
       alert(error);
@@ -115,12 +110,13 @@ export default function FeatureProduct() {
       </div>
     );
   }
+  const currentProductId = currentProduct._id || currentProduct.id;
 
   const relatedProducts = products.filter(
     (item) =>
-      item.id !== currentProduct.id && item.category === currentProduct.category
+      (item._id || item.id) !== currentProductId &&
+      item.category === currentProduct.category
   );
-
   return (
     <div style={dinStyle} className="min-h-screen bg-[#f9f6ef]">
       <div className="px-8 py-12">
@@ -148,8 +144,6 @@ export default function FeatureProduct() {
                 </button>
               ))}
             </div>
-
-            {/* Main product image */}
             <div className="flex-1 flex items-center justify-center">
               <div className="relative w-full max-w-lg aspect-[3/4] overflow-hidden  bg-[#f5f5f5] group">
                 <img
@@ -356,7 +350,7 @@ export default function FeatureProduct() {
                     <p>
                       {currentProduct.specifications?.care ||
                         "Dry clean only. Store in a cool, dry place away from direct sunlight."}
-                    </p>
+                    </p> 
                   )}
                 </div>
               </div>
@@ -367,7 +361,8 @@ export default function FeatureProduct() {
               {addedToCart ? (
                 <button
                   onClick={handleViewCart}
-                  className="w-full py-4 px-6 bg-[#737144] text-white text-sm tracking-[0.15em] uppercase font-light  transition-all duration-300 hover:bg-[#5f5d3d] hover:shadow-[0_4px_10px_rgba(0,0,0,0.15)]"
+                  className="w-full py-4 px-6 bg-[#737144] text-white text-sm  tracking-[0.15em] uppercase font-light  
+                  transition-all duration-300 hover:bg-[#5f5d3d] hover:shadow-[0_4px_10px_rgba(0,0,0,0.15)]"
                 >
                   Proceed to Checkout
                 </button>
@@ -405,9 +400,9 @@ export default function FeatureProduct() {
 
       {/* Related Products */}
       {relatedProducts.length > 0 && (
-        <div className="bg-gray-50 py-16">
-          <div className="max-w-6xl mx-auto px-8">
-            <h2 className="text-lg font-medium text-gray-900 mb-8 tracking-wide">
+        <div className="w-full py-16">
+          <div className=" mx-auto px-8">
+            <h2 className="text-lg font-bold text-[#737144] tracking-wide mb-6">
               RELATED PRODUCTS
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -415,7 +410,7 @@ export default function FeatureProduct() {
                 <div
                   key={rel.id}
                   className="group cursor-pointer"
-                  onClick={() => navigate(`/feature/${rel.id}`)}
+                  onClick={() => navigate(`/feature/${rel._id}`)}
                 >
                   <div className="aspect-[3/4] bg-gray-100 mb-3 overflow-hidden">
                     <img
@@ -424,11 +419,13 @@ export default function FeatureProduct() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
-                  <div className="text-center text-sm text-gray-700 tracking-wide">
-                    {rel.name}
-                  </div>
-                  <div className="text-center text-sm text-gray-500 mt-1">
-                    INR {Number(rel.price).toLocaleString()}
+                  <div className="text-sm font-medium text-[#737144] uppercase tracking-wide mb-1">
+                    <div className="text-center text-sm tracking-wide">
+                      {rel.name}
+                    </div>
+                    <div className="text-center text-sm  mt-1">
+                      INR {Number(rel.price).toLocaleString()}
+                    </div>
                   </div>
                 </div>
               ))}

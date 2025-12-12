@@ -363,7 +363,7 @@ const Profile = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] py-10">
+    <div className="min-h-screen bg-[#f9f6ef] py-10">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-8">
         <Sidebar />
         <div className="flex-1">
