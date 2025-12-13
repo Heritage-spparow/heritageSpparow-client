@@ -87,22 +87,30 @@ const Login = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }; 
-
+  };
+  const handleGoogleSignup = () => {
+    const baseURL =
+      import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+    window.location.href = `${baseURL}/auth/google`;
+  };
   return (
     <div className="min-h-screen bg-[var(--color-bg)] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <h2
         className="flex items-start flex-col justify-start  font-semibold
                        border-l-[5px] border-solid px-3 ml-[3%] text-white
                        text-lg sm:text-2xl tracking-wide "
-     
       >
         <img
           src={favicon}
           alt="Logo"
           className="w-4 h-4 sm:w-6 sm:h-6 object-contain cursor-pointer transform scale-[2.5] origin-left"
         />
-        <span className="whitespace-nowrap cursor-pointer" onClick={() => navigate("/")}>HERITAGE SPARROW</span>
+        <span
+          className="whitespace-nowrap cursor-pointer"
+          onClick={() => navigate("/")}
+        >
+          HERITAGE SPARROW
+        </span>
       </h2>
 
       <div className="min-h-screen flex items-center justify-center  p-4">
@@ -230,8 +238,13 @@ const Login = () => {
             </form>
             <hr className="my-6 border-gray-300" />
             {/* Google Sign-In Button */}
-            <button className="w-full py-2.5 px-4 bg-[var(--color-bg)] text-[var(--color-white)] rounded-lg font-medium cursor-pointer transition duration-200">
-              Continue with <FcGoogle className="inline ml-2 mb-1" />
+            <button
+              type="button"
+              onClick={handleGoogleSignup}
+              className="w-full py-2.5 px-4 bg-white text-gray-700 border border-gray-300 rounded-lg font-medium cursor-pointer transition duration-200 flex items-center justify-center space-x-2 shadow-sm hover:bg-gray-50"
+            >
+              <FcGoogle className="h-5 w-5" />
+              <span>Continue with Google</span>
             </button>
           </div>
 

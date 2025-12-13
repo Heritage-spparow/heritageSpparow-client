@@ -52,6 +52,7 @@ export const authAPI = {
   updateAddress: (addressId, addressData) => api.put(`/auth/addresses/${addressId}`, addressData),
   deleteAddress: (addressId) => api.delete(`/auth/addresses/${addressId}`),
   setDefaultAddress: (addressId) => api.put(`/auth/addresses/${addressId}/default`),
+  registerWithGoogle: () => api.get('/auth/google'),
 };
 
 // Product API calls

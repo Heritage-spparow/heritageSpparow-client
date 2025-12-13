@@ -9,7 +9,7 @@ import {
   User,
   Phone,
   AlertCircle,
-  CheckCircle2,
+  CheckCircle2, 
 } from "lucide-react";
 import logo from "../assets/img.png";
 import { FcGoogle } from "react-icons/fc";
@@ -118,6 +118,11 @@ const Signup = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleGoogleSignup = () => {
+    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+    window.location.href = `${baseURL}/auth/google`;
   };
 
   return (
@@ -397,8 +402,13 @@ const Signup = () => {
             <hr className="my-6 border-gray-300" />
 
             {/* Google Sign-Up */}
-            <button className="w-full py-2.5 px-4 bg-[var(--color-bg)] text-[var(--color-white)] rounded-lg font-medium cursor-pointer transition duration-200">
-              Continue with <FcGoogle className="inline ml-2 mb-1" />
+            <button 
+                type="button" 
+                onClick={handleGoogleSignup}
+                className="w-full py-2.5 px-4 bg-white text-gray-700 border border-gray-300 rounded-lg font-medium cursor-pointer transition duration-200 flex items-center justify-center space-x-2 shadow-sm hover:bg-gray-50"
+            >
+              <FcGoogle className="h-5 w-5" />
+              <span>Continue with Google</span>
             </button>
           </div>
 
