@@ -321,7 +321,7 @@ const Navbar = () => {
           </button>
           <h1
             onClick={() => navigate("/")}
-            className="text-sm md:text-base text-white tracking-[0.18em] font-medium"
+            className="text-sm md:text-base text-white tracking-[0.18em] ml-[19px] font-medium"
           >
             HERITAGE SPARROW
           </h1>
