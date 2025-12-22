@@ -74,7 +74,7 @@ export default function FashionLanding() {
 
             <button
               onClick={() => handleShopNow(collection.title)}
-              className="group inline-flex items-center space-x-3 backdrop-blur-md bg-white/20 border border-white/30 text-white px-8 py-4 text-sm tracking-widest font-medium shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] transition-all duration-500 transform hover:scale-105 hover:bg-white/30 hover:border-white/50"
+              className="group inline-flex items-center space-x-3 backdrop-blur-md bg-white/20 border border-white/30 text-white px-8 py-4 text-sm tracking-widest font-medium  transition-all duration-500 transform hover:scale-105 hover:bg-white/30 hover:border-white/50"
             >
               <span className="drop-shadow-lg">SHOP NOW</span>
               <ArrowRight

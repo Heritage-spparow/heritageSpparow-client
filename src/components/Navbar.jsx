@@ -109,11 +109,15 @@ const Navbar = () => {
 
   return (
     <nav
-      style={dinStyle}
-      className={`w-full bg-[var(--color-bg)] h-[10%] sm:h-[9%] md:h-[9%] shadow-sm fixed top-0 left-0 z-50 border-b border-[var(--color-border)] `}
+      style={{
+        ...dinStyle,
+        WebkitFontSmoothing: "antialiased",
+        MozOsxFontSmoothing: "grayscale",
+      }}
+      className="w-full bg-[var(--color-bg)] h-[56px] md:h-[64px] fixed top-0 left-0 z-50 border-b border-[var(--color-border)]"
     >
       {/* Desktop Navigation */}
-      <div className="hidden md:flex  h-full w-full items-center justify-between px-6 py-4 text-white font-size">
+    <div className="hidden md:flex h-full w-full text-white items-center justify-between px-6">
         <div className="flex h-full w-full justify-between items-center space-x-8">
           <Link
             className="hover:underline font-medium relative"
@@ -317,9 +321,9 @@ const Navbar = () => {
           </button>
           <h1
             onClick={() => navigate("/")}
-            className="text-xxl font-extrabold text-white cursor-pointer"
+            className="text-sm md:text-base text-white tracking-[0.18em] font-medium"
           >
-            Heritage Sparrow
+            HERITAGE SPARROW
           </h1>
           <div className="flex items-center space-x-3">
             <button onClick={() => navigate("/search")} className="text-white">
@@ -333,12 +337,6 @@ const Navbar = () => {
                 </span>
               )}
             </button>
-            <button
-              onClick={isAuthenticated ? handleProfile : handleLogin}
-              className="text-white"
-            >
-              <User size={20} />
-            </button>
           </div>
         </div>
 
@@ -351,7 +349,7 @@ const Navbar = () => {
             <button onClick={toggleMenu} className="text-white">
               <X size={28} />
             </button>
-            <h1 className="text-2xl font-bold text-white">Heritage Sparrow</h1>
+            <h1 className="text-sm md:text-base text-white tracking-[0.18em] font-medium">HERITAGE SPARROW</h1>
             <div className="w-7"></div>
           </div>
 
