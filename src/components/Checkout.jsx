@@ -308,12 +308,6 @@ export default function Checkout() {
               Continue Shopping
             </button>
           </div>
-
-          <div className="mt-6 text-xs text-gray-600">
-            <p>• Free shipping on orders over ₹1,500</p>
-            <p>• Secure checkout with SSL encryption</p>
-            <p>• 30-day return policy</p>
-          </div>
         </div>
       </div>
     </div>
