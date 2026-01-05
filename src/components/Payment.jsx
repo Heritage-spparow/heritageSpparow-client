@@ -106,7 +106,7 @@ export default function Payment() {
           city: selectedAddress.city,
           state: selectedAddress.state,
           postalCode: selectedAddress.zipCode,
-          country: "India",
+          country: "India", 
         };
 
         try {
@@ -116,7 +116,7 @@ export default function Payment() {
         }
       }
       const itemsPrice = totalPrice;
-      const taxPrice = itemsPrice * 0.08;
+      const taxPrice = itemsPrice * 1;
       const shippingPrice = itemsPrice > 100 ? 0 : 10;
       const finalTotal = itemsPrice + taxPrice + shippingPrice;
 
