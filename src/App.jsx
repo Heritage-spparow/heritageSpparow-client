@@ -1,7 +1,12 @@
-// src/App.jsx
 import React from "react";
 import "./App.css";
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
+
 import Navbar from "./components/Navbar";
 import Landing from "./components/Landing";
 import Search from "./components/Search";
@@ -17,6 +22,11 @@ import PrivateRoute from "./components/PrivateRoute";
 import Footer from "./components/Footer";
 import About from "./components/About";
 import CraftPage from "./components/craft";
+import GoogleAuthCallback from "./components/GoogleAuthCallback";
+import CampaignPage from "./components/Campaign";
+import ScrollToTop from "./tool/ScrollToTop";
+// ✅ Policy imports
+import PolicyLayout from "./policies/PolicyLayout";
 import PrivacyPolicyPage from "./policies/PrivacyPolicyPage";
 import TermsConditionsPage from "./policies/TermsConditionsPage";
 import ShippingReturnsRefundPage from "./policies/ShippingReturnsRefundPage";
@@ -26,22 +36,35 @@ function AppContent() {
 
   // Routes where Navbar should be hidden
   const hideNavbarRoutes = ["/login", "/signup"];
-
   const shouldHideNavbar = hideNavbarRoutes.includes(location.pathname);
 
   return (
     <>
       {!shouldHideNavbar && <Navbar />}
-      <div className={shouldHideNavbar? "mt-0" : "mt-14"}>
+
+      <div className={shouldHideNavbar ? "mt-0" : "mt-14"}>
         <Routes>
+          {/* Public pages */}
           <Route path="/" element={<Landing />} />
           <Route path="/search" element={<Search />} />
           <Route path="/product/:name" element={<ProductWindow />} />
-          <Route path="/about" element={<About/>}/>
+          <Route path="/about" element={<About />} />
           <Route path="/craft" element={<CraftPage />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-          <Route path="/terms-and-conditions" element={<TermsConditionsPage />} />
-          <Route path="/shipping-returns-refund" element={<ShippingReturnsRefundPage />} />
+          <Route path="/campaign" element={<CampaignPage />} />
+          <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
+
+          {/* ✅ POLICY ROUTES (NESTED) */}
+          <Route path="/policies" element={<PolicyLayout />}>
+            <Route index element={<PrivacyPolicyPage />} />
+            <Route path="privacy" element={<PrivacyPolicyPage />} />
+            <Route path="terms" element={<TermsConditionsPage />} />
+            <Route
+              path="shipping-returns-refund"
+              element={<ShippingReturnsRefundPage />}
+            />
+          </Route>
+
+          {/* Protected pages */}
           <Route
             path="/profile"
             element={
@@ -67,8 +90,6 @@ function AppContent() {
               </PrivateRoute>
             }
           />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
           <Route
             path="/orders"
             element={
@@ -77,19 +98,45 @@ function AppContent() {
               </PrivateRoute>
             }
           />
+
+          {/* Auth */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
         </Routes>
       </div>
-      <Footer/>
+
+      {/* WhatsApp floating button */}
+      <a
+        href="https://wa.me/919122253096"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Chat with us on WhatsApp"
+        className="
+          fixed bottom-8 right-4 z-[1000]
+          flex items-center justify-center
+          w-14 h-14 md:w-16 md:h-16
+          rounded-full bg-[#25d3668f]
+          shadow-lg hover:scale-110 hover:shadow-xl
+          transition-transform duration-200
+        "
+      >
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+          alt="WhatsApp"
+          className="w-7 h-7 md:w-9 md:h-9"
+        />
+      </a>
+
+      <Footer />
     </>
   );
 }
 
-function App() {
+export default function App() {
   return (
     <Router>
+      <ScrollToTop />
       <AppContent />
     </Router>
   );
 }
-
-export default App;

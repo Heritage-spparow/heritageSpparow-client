@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContex";
 import { useProduct } from "../context/ProductContext";
 import img from "../assets/demo3.jpg";
 import { useAuth } from "../context/AuthContext";
+import sizeChart from "../assets/SizeChart-01.png";
 
 export default function FeatureProduct() {
   const { id } = useParams();
@@ -25,13 +26,55 @@ export default function FeatureProduct() {
   const [addedToCart, setAddedToCart] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
   const { user, isAuthenticated, logout } = useAuth();
+  const [open, setOpen] = useState(false);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+  const imageContainerRef = useRef(null);
+
+  //  const currentProduct = {
+  //   name: "Traditional Embroidered Juttis",
+  //   images: [
+  //     "https://images.unsplash.com/photo-1603487742131-4160ec999306?w=800&h=1000&fit=crop",
+  //     "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=800&h=1000&fit=crop",
+  //     "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=800&h=1000&fit=crop",
+  //     "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=800&h=1000&fit=crop"
+  //   ]
+  // };
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e) => {
+    setTouchEnd(0);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      setActiveImage((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    }
+
+    if (isRightSwipe) {
+      setActiveImage((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    }
+  };
 
   useEffect(() => {
     const loadProduct = async () => {
       const response = await fetchProductById(id);
+      console.log(response);
+
       if (response.success && response.product) {
         setSelectedColor(response.product.colors?.[0]?.name || "");
-        setSelectedSize(response.product.sizes?.[0]?.name || "");
+        setSelectedSize(response.product.sizes?.[0]?.size || "");
       } else {
         alert(response.error || "Product not found");
       }
@@ -43,23 +86,23 @@ export default function FeatureProduct() {
     fetchProducts();
   }, [fetchProducts]);
 
+  const images = [
+    currentProduct?.coverImage?.url,
+    ...(currentProduct?.galleryImages || []).map((img) => img.url),
+  ].filter(Boolean);
+
   const handleAddToCart = async () => {
     if (!isAuthenticated || !user) {
       navigate("/login", { state: { from: `/feature/${id}` } });
       return;
     }
-    if (!selectedColor || !selectedSize) {
+    if (!selectedSize) {
       return;
     }
 
     setIsAddingToCart(true);
     try {
-      const response = await addToCart(
-        currentProduct,
-        selectedColor,
-        selectedSize,
-        1
-      );
+      const response = await addToCart(currentProduct, selectedSize, 1);
       if (response.success) {
         setAddedToCart(true);
       } else {
@@ -118,50 +161,92 @@ export default function FeatureProduct() {
       item.category === currentProduct.category
   );
   return (
-    <div style={dinStyle} className="min-h-screen bg-[#f9f6ef]">
-      <div className="px-8 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-          {/* Product Image */}
-          {/* Product Gallery */}
-          <div className="flex flex-col md:flex-row gap-6">
-            {/* Thumbnail column */}
-            <div className="flex md:flex-col gap-2 md:overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-thumb-[#737144]/50 scrollbar-track-transparent">
-              {currentProduct.images?.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setActiveImage(index)}
-                  className={`relative w-20 h-24 flex-shrink-0 overflow-hidden border transition-all duration-300 ${
-                    activeImage === index
-                      ? "border-[#737144] shadow-[0_0_6px_rgba(115,113,68,0.4)]"
-                      : "border-transparent opacity-70 hover:opacity-100"
-                  }`}
-                >
-                  <img
-                    src={img}
-                    alt={`${currentProduct.name}-${index}`}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
-            <div className="flex-1 flex items-center justify-center">
-              <div className="relative w-full max-w-lg aspect-[3/4] overflow-hidden  bg-[#f5f5f5] group">
-                <img
-                  src={img}
-                  alt={currentProduct.name}
-                  className="w-full h-full object-cover transition-transform duration-700 "
-                />
+    <div style={dinStyle} className="bg-[#f9f6ef]">
+      <div className=" min-h-screen ">
+        <div className="grid grid-cols-1 lg:grid-cols-2 ">
+          <div className="w-full  md:p-8">
+            <div className="max-w-6xl mx-auto">
+              <div className="flex flex-col md:flex-row gap-6">
+                {/* Thumbnail column (desktop only) */}
+                <div className="hidden md:flex md:flex-col gap-2 md:overflow-y-auto scrollbar-thin scrollbar-thumb-[#737144]/50 scrollbar-track-transparent">
+                  {images?.map((image, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setActiveImage(index)}
+                      className={`relative w-20 h-24 overflow-hidden border transition-all duration-600 ${
+                        activeImage === index
+                          ? "border-[#737144] shadow-[0_0_6px_rgba(115,113,68,0.4)]"
+                          : "border-transparent opacity-70 hover:opacity-100"
+                      }`}
+                    >
+                      <img
+                        src={image}
+                        alt={`${currentProduct.name}-${index}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
 
-                {/* Subtle scroll indicator for mobile */}
-                <div className="absolute bottom-3 right-3 text-xs text-[#737144]/70 bg-white/60 backdrop-blur-sm px-2 py-1 rounded-md md:hidden">
-                  Swipe →
+                {/* Main image */}
+                <div className="flex-1 flex items-center justify-center">
+                  <div
+                    ref={imageContainerRef}
+                    className=" relative w-full  md:max-w-full bg-white overflow-hidden flex items-center justify-center touch-pan-y "
+                    onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={onTouchEnd}
+                  >
+                    <img
+                      src={images[activeImage]}
+                      alt={currentProduct.name}
+                      className="
+              w-full
+              h-full
+              object-contain
+              transition-transform
+              duration-700
+            "
+                    />
+
+                    {/* Image counter */}
+                    <div className="absolute top-4 right-4 bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs text-gray-700">
+                      {activeImage + 1} / {images.length}
+                    </div>
+
+                    {/* Swipe arrows (mobile only) */}
+                    <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-4 pointer-events-none md:hidden">
+                      {activeImage > 0 && (
+                        <div className="text-white/70 text-2xl">‹</div>
+                      )}
+                      {activeImage < images.length - 1 && (
+                        <div className="text-white/70 text-2xl ml-auto">›</div>
+                      )}
+                    </div>
+
+                    {/* Dot indicators (overlay on image – mobile only) */}
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 md:hidden">
+                      {images.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setActiveImage(index)}
+                          className={`h-2 rounded-full transition-all duration-300 ${
+                            activeImage === index
+                              ? "bg-white w-6"
+                              : "bg-white/50 w-2"
+                          }`}
+                          aria-label={`Go to image ${index + 1}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Product Details */}
-          <div className="space-y-8 max-w-lg">
+          <div className="space-y-8 px-8 py-12 lg:max-w-lg max-w-none">
             {/* Product Name */}
             <div>
               <h1 className="text-lg font-bold text-[#737144] tracking-wide mb-6">
@@ -170,34 +255,27 @@ export default function FeatureProduct() {
 
               {/* Price */}
               <div className="flex items-center gap-3 mt-2">
-                {currentProduct.discountPrice ? (
+                {currentProduct.comparePrice &&
+                currentProduct.comparePrice < currentProduct.price ? (
                   <>
-                    {/* Discounted Price */}
                     <span className="text-xl font-medium text-[#737144]">
-                      INR{" "}
-                      {Number(currentProduct.discountPrice).toLocaleString()}
+                      INR {Number(currentProduct.comparePrice).toLocaleString()}
                     </span>
 
-                    {/* Original Price (struck through) */}
                     <span className="text-base text-neutral-500 line-through">
                       INR {Number(currentProduct.price).toLocaleString()}
                     </span>
 
-                    {/* Discount Percentage (optional, subtle badge) */}
-                    {currentProduct.price > currentProduct.discountPrice && (
-                      <span className="text-xs text-[#737144] bg-[#f4f3ed] px-2 py-0.5 rounded-md tracking-wider">
-                        {Math.round(
-                          ((currentProduct.price -
-                            currentProduct.discountPrice) /
-                            currentProduct.price) *
-                            100
-                        )}
-                        % OFF
-                      </span>
-                    )}
+                    <span className="text-xs text-[#737144] bg-[#f4f3ed] px-2 py-0.5 rounded-md tracking-wider">
+                      {Math.round(
+                        ((currentProduct.price - currentProduct.comparePrice) /
+                          currentProduct.price) *
+                          100
+                      )}
+                      % OFF
+                    </span>
                   </>
                 ) : (
-                  // No discount — show normal price
                   <span className="text-xl font-medium text-[#737144]">
                     INR {Number(currentProduct.price).toLocaleString()}
                   </span>
@@ -257,18 +335,48 @@ export default function FeatureProduct() {
                       {selectedSize}
                     </span>
                   </h3>
-                  <button className="text-xs text-[#737144] underline underline-offset-4 hover:text-[#5f5d3d] transition-colors">
+                  <button
+                    className="text-xs text-[#737144] underline underline-offset-4 hover:text-[#5f5d3d] transition-colors"
+                    onClick={() => setOpen(true)}
+                  >
                     Size Chart
                   </button>
                 </div>
+                {open && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+                    {/* Modal Box */}
+                    <div className="relative bg-[#f6edd3] rounded-xl shadow-xl max-w-3xl w-full p-4">
+                      {/* Close Button */}
+                      <button
+                        onClick={() => setOpen(false)}
+                        className="absolute top-3 right-3 text-xl font-bold text-gray-600 hover:text-black"
+                      >
+                        ✕
+                      </button>
 
+                      {/* Image */}
+                      <div className="flex justify-center">
+                        <img
+                          src={sizeChart}
+                          alt="Size Chart"
+                          className="
+                  max-h-[80vh]
+                  w-auto
+                  max-w-full
+                  object-contain
+                "
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {/* Size Buttons */}
                 <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
                   {currentProduct.sizes.map((size) => (
                     <button
                       key={size._id}
                       onClick={() => {
-                        setSelectedSize(size.name);
+                        setSelectedSize(size.size);
                         setAddedToCart(false);
                       }}
                       disabled={size.stock === 0}
@@ -276,12 +384,12 @@ export default function FeatureProduct() {
             ${
               size.stock === 0
                 ? "opacity-40 cursor-not-allowed border-neutral-300 bg-neutral-100 text-neutral-400"
-                : selectedSize === size.name
+                : selectedSize === size.size
                 ? "border-[#737144] bg-[#737144]/10 text-[#737144] shadow-inner"
                 : "border-neutral-300 bg-white text-[#555] hover:border-[#737144]/60 hover:text-[#737144]"
             }`}
                     >
-                      {size.name}
+                      {size.size}
                     </button>
                   ))}
                 </div>
@@ -295,7 +403,7 @@ export default function FeatureProduct() {
                   {[
                     { key: "description", label: "DESCRIPTION" },
                     { key: "shipping", label: "SHIPPING" },
-                    { key: "dimension", label: "DIMENSION" },
+                    // { key: "dimension", label: "DIMENSION" },
                     { key: "care", label: "CARE" },
                   ].map((tab) => (
                     <button
@@ -321,14 +429,6 @@ export default function FeatureProduct() {
                     <div className="space-y-4">
                       <p>{currentProduct.description}</p>
                       <p>
-                        {currentProduct.material ||
-                          "Crafted from premium silk, this saree features intricate handwoven patterns that reflect traditional artistry."}
-                      </p>
-                      <p>
-                        {currentProduct.style ||
-                          "Perfect for weddings, festivals, and special occasions, this saree adds a touch of elegance to any ensemble."}
-                      </p>
-                      <p>
                         {currentProduct.origin ||
                           "Made in India with love and care."}
                       </p>
@@ -342,15 +442,15 @@ export default function FeatureProduct() {
                     </p>
                   )}
 
-                  {activeTab === "dimension" && (
+                  {/* {activeTab === "dimension" && (
                     <p>{currentProduct.dimensions?.size || "long"}</p>
-                  )}
+                  )} */}
 
                   {activeTab === "care" && (
                     <p>
                       {currentProduct.specifications?.care ||
                         "Dry clean only. Store in a cool, dry place away from direct sunlight."}
-                    </p> 
+                    </p>
                   )}
                 </div>
               </div>
@@ -414,7 +514,7 @@ export default function FeatureProduct() {
                 >
                   <div className="aspect-[3/4] bg-gray-100 mb-3 overflow-hidden">
                     <img
-                      src={rel.images?.[0]?.url || img}
+                      src={rel.coverImage?.url || img}
                       alt={rel.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />

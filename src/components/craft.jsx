@@ -1,36 +1,31 @@
 import React from "react";
+import videoSketch from "../assets/craft/IMG_6233.mp4";
+import videoTrace from "../assets/craft/IMG_6242.mov";
+import videoEmbroider from "../assets/craft/IMG_6249.jpg";
+
+import artisan1 from "../assets/logo.png";
+import artisan2 from "../assets/images.jpeg";
+import artisan3 from "../assets/sari.png";
 
 const steps = [
   {
     title: "Sketching the Story",
     text: "Every design begins as a memory on paper — sparrows, phulkaris, vintage windows and borders from Nani’s dupatta.",
-    img: "/craft1.jpg" // replace with your images
+    type: "video",
+    src: videoSketch,
   },
   {
     title: "Tracing on Fabric",
     text: "Designs are traced by hand on casement or soft leather — no lasers, just a wooden table and quiet focus.",
-    img: "/craft2.jpg"
+    type: "video",
+    src: videoTrace,
   },
   {
     title: "Embroidery & Detailing",
     text: "Needles move in rhythm as artisans add tilla, resham and tiny motifs one by one — hours turn into days.",
-    img: "/craft3.jpg"
+    type: "video",
+    src: videoEmbroider,
   },
-  {
-    title: "Cutting & Shaping",
-    text: "Embroidered fabric is cut, lined and shaped over a leather base. Another artisan prepares soles and cushioning.",
-    img: "/craft4.jpg"
-  },
-  {
-    title: "Stitching It Together",
-    text: "Upper, lining and sole are stitched by hand — the same way it has been done for generations.",
-    img: "/craft5.jpg"
-  },
-  {
-    title: "Finishing & Blessing",
-    text: "Edges are polished and threads are checked before every pair is held with care — becoming a Heritage Sparrow piece.",
-    img: "/craft6.jpg"
-  }
 ];
 
 const artisans = [
@@ -38,20 +33,20 @@ const artisans = [
     name: "Rafiq ji · Lucknow",
     role: "Embroidery Master",
     text: "20+ years on the adda. When he saw our design, he smiled — “ਕਾਮ ਭਾਰੀ ਹੈ… ਪਰ ਹੋ ਜਾਏਗਾ.”",
-    img: "/artisan1.jpg"
+    img: artisan1,
   },
   {
     name: "Vijay ji · Amritsar",
     role: "Jutti Karigar",
     text: "His family has shaped leather soles since before independence — a lineage stitched through time.",
-    img: "/artisan2.jpg"
+    img: artisan2,
   },
   {
     name: "Manoj ji & Abdesh · Bihar",
     role: "Brothers in Craft",
     text: "One traces, one embroiders. Both learnt sitting beside elders, copying every stitch until hands remembered.",
-    img: "/artisan3.jpg"
-  }
+    img: artisan3,
+  },
 ];
 
 export default function CraftPage() {
@@ -72,29 +67,32 @@ export default function CraftPage() {
           </h1>
 
           <p className="mt-5 text-sm md:text-[15px] leading-7 text-[#737144]/80">
-            Slowmade, soulful and rooted in memory — here’s how every piece makes its journey from adda to you.
+            Slowmade, soulful and rooted in memory — here’s how every piece makes
+            its journey from adda to you.
           </p>
         </div>
       </section>
 
-      {/* IG style feed - Steps */}
+      {/* Craft Feed */}
       <section className="px-6 py-10 md:px-16 lg:px-24">
         <div className="grid gap-10 md:grid-cols-2">
           {steps.map((step) => (
             <article
               key={step.title}
-              className="rounded-xl overflow-hidden bg-white shadow-md hover:shadow-lg transition-all duration-300"
+              className="overflow-hidden bg-white shadow-md hover:shadow-lg transition-all duration-300"
             >
-              {/* Post image */}
-              <div className="aspect-square w-full bg-[#efeada]">
-                <img
-                  src={step.img}
-                  alt={step.title}
+              <div className="aspect-square w-full bg-[#efeada] overflow-hidden">
+                <video
+                  src={step.src}
                   className="w-full h-full object-cover"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
                 />
               </div>
 
-              {/* Caption */}
               <div className="p-5">
                 <h3 className="uppercase tracking-[0.18em] text-xs font-medium text-[#737144]">
                   {step.title}
@@ -111,13 +109,13 @@ export default function CraftPage() {
 
       {/* Punjabi Verse */}
       <section className="px-6 py-14 md:px-16 lg:px-24 bg-[#efeada]">
-        <p className="text-center text-sm md:text-base leading-relaxed italic text-[#737144]">
+        <p className="text-center text-sm md:text-base italic leading-relaxed text-[#737144]">
           “ਮਿੱਟੀ ਦੀ ਖੁਸ਼ਬੂ, ਸੂਈ ਧਾਗੇ ਦੀ ਰੀਤ, <br />
           ਸਾਡਾ ਵਿਰਸਾ, ਸਾਡਾ ਪਿਆਰ, ਹਰ ਜੁੱਤੀ ਵਿੱਚ ਦੀਤ।”
         </p>
       </section>
 
-      {/* IG style feed - Artisans */}
+      {/* Artisans */}
       <section className="px-6 py-16 md:px-16 lg:px-24">
         <div className="max-w-3xl mb-10">
           <h2 className="text-sm md:text-base tracking-[0.22em] uppercase font-light">
@@ -134,11 +132,12 @@ export default function CraftPage() {
               key={a.name}
               className="rounded-xl overflow-hidden bg-white shadow-md hover:shadow-lg transition-all duration-300"
             >
-              <div className="aspect-square w-full bg-[#efeada]">
+              <div className="aspect-square bg-[#efeada]">
                 <img
                   src={a.img}
                   alt={a.name}
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
               </div>
 
@@ -158,8 +157,8 @@ export default function CraftPage() {
         </div>
       </section>
 
-      {/* Slowmade Footer Section */}
-      <section className="px-6 py-16 md:px-16 lg:px-24 bg-[#efeada] text-[#262314]">
+      {/* Footer */}
+      <section className="px-6 py-16 md:px-16 lg:px-24 bg-[#efeada]">
         <div className="max-w-3xl">
           <h2 className="text-sm md:text-base tracking-[0.24em] uppercase text-[#737144]">
             Slowmade, Not Seasonal

@@ -124,12 +124,26 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Check if user is authenticated on app load
-  useEffect(() => {
+useEffect(() => {
+    // 1. Check URL for token from Google redirect
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenFromUrl = urlParams.get('token');
+
+    if (tokenFromUrl) {
+      localStorage.setItem('token', tokenFromUrl);
+      // Remove token from URL for clean UI
+      window.history.replaceState({}, document.title, "/");
+    }
+
+    // 2. Initialize authentication
     const token = localStorage.getItem('token');
     if (token) {
       getCurrentUser();
+    } else {
+      // Still set loading false if no token
+      dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
     }
-  }, []); // Empty dependency array
+  }, []);
 
   // Login function
   const login = async (credentials) => {

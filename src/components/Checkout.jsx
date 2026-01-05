@@ -33,7 +33,7 @@ export default function Checkout() {
       ? `₹ ${validAmount.toLocaleString("en-IN")}`
       : `$ ${(validAmount / conversionRate).toFixed(2)}`;
   };
-
+  console.log(items);
   const shippingCost = totalPrice > 1500 ? 0 : 150;
   const taxAmount = Math.round((Number(totalPrice) || 0) * 0.18);
   const grandTotal = (Number(totalPrice) || 0) + shippingCost + taxAmount;
@@ -48,14 +48,9 @@ export default function Checkout() {
     }
   };
 
-  const handleRemoveItem = async (_id) => {
-    try {
-      const response = await removeFromCart(_id);
-      if (!response.success) alert(response.error);
-    } catch {
-      alert("An error occurred while removing item.");
-    }
-  };
+const handleRemoveItem = async (productId, size) => {
+  await removeFromCart(productId, size);
+};
 
   const handleCheckout = async () => {
     setIsProcessing(true);
@@ -71,7 +66,7 @@ export default function Checkout() {
 
   const handleContinueShopping = () => {
     clearError();
-    console.log(items)
+    console.log(items);
     navigate(-1);
   };
 
@@ -161,8 +156,8 @@ export default function Checkout() {
                 {/* Image */}
                 <div className="w-full sm:w-1/3 bg-gray-100  overflow-hidden">
                   <img
-                    src={item.image || img}
-                    alt={item.product.name}
+                    src={item.product?.coverImage?.url}
+                    alt={item.product?.name}
                     className="w-full h-48 object-cover"
                   />
                 </div>
@@ -190,18 +185,6 @@ export default function Checkout() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-[var(--color-bg)]">
-                    {/* <span>
-                      Color:{" "}
-                      <span
-                        className="inline-block w-4 h-4 rounded-full border border-gray-400 ml-1"
-                        style={{
-                          backgroundColor: item.color?.toLowerCase() || "#000",
-                        }}
-                      ></span>
-                      <span className="capitalize ml-1">
-                        {item.color || "N/A"}
-                      </span>
-                    </span> */}
                     <span>
                       Size:{" "}
                       <span className="font-medium">{item.size || "N/A"}</span>
@@ -210,7 +193,9 @@ export default function Checkout() {
 
                   <div className="flex items-center justify-between mt-5">
                     <div className="flex items-center gap-3">
-                      <span className="text-sm text-[var(--color-bg)]">Quantity:</span>
+                      <span className="text-sm text-[var(--color-bg)]">
+                        Quantity:
+                      </span>
                       <div className="flex items-center text-[var(--color-bg)] border border-gray-300 rounded-md glass-card">
                         <button
                           onClick={() =>
@@ -241,7 +226,9 @@ export default function Checkout() {
                     </div>
 
                     <button
-                      onClick={() => handleRemoveItem(item._id)}
+                      onClick={() =>
+                        handleRemoveItem(item.product._id, item.size)
+                      }
                       className="text-red-600 hover:text-red-800 p-2"
                       title="Remove"
                     >

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import img from "../assets/demo3.jpg";
-import banner from "../assets/banner.jpg";
+import img from "../assets/pro.jpg";
+import img2 from "../assets/pro1.jpg";
+import banner from "../assets/DSC_5888.jpg";
 import { motion } from "framer-motion";
 import { useProduct } from "../context/ProductContext";
 
@@ -51,10 +52,12 @@ export default function ProductWindow() {
           category: decodedName,
           inStock: true,
         });
+        console.log(response);
 
         if (response.success) {
           const products = response.products;
           setMatchingProducts(products);
+          console.log(products);
           setFilteredProducts(products);
 
           const colors = [
@@ -103,7 +106,7 @@ export default function ProductWindow() {
 
     fetchData();
   }, [name, fetchProducts]);
- 
+
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     if (name === "priceMin" || name === "priceMax") {
@@ -180,17 +183,14 @@ export default function ProductWindow() {
   const toggleFilter = () => setIsFilterOpen(!isFilterOpen);
   const activeFilterCount = Object.keys(activeFilters).length;
 
- if (loading) {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F3ED]">
-      <div className="loader"></div>
-      <p className="mt-4 text-[#737144] uppercase tracking-[0.25em] text-sm font-light">
-      
-      </p>
-    </div>
-  );
-}
-
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F3ED]">
+        <div className="loader"></div>
+        <p className="mt-4 text-[#737144] uppercase tracking-[0.25em] text-sm font-light"></p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f9f6ef] text-[#737144]">
@@ -199,10 +199,11 @@ export default function ProductWindow() {
         <img
           src={banner}
           alt={decodeURIComponent(name)}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover object-center"
         />
-        <div className="absolute inset-0 flex flex-col items-center justify-center  bg-opacity-40">
-          <h1 className="text-3xl sm:text-5xl mt-[36%] font-light text-white uppercase tracking-[0.2em]">
+        <div className="absolute  inset-0 flex flex-col items-center justify-center  bg-opacity-40">
+          <h1 className="text-3xl sm:text-5xl  max-[767px]:mt-[36%]
+    max-[472px]:mt-[36%] md:mt-[40%] mt-[77%] font-light text-white uppercase tracking-[0.2em]">
             {decodeURIComponent(name)}
           </h1>
         </div>
@@ -253,13 +254,27 @@ export default function ProductWindow() {
                   visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
                 }}
               >
-                <div className="aspect-[3/4] overflow-hidden mb-3 bg-gray-50">
-                  <img
-                    src={img}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
+               <div className="relative overflow-hidden mb-3 bg-gray-50 bg-transparent aspect-square">
+  {/* Default Image */}
+  <img
+    src={product.coverImage?.url}
+    alt={product.name}
+    className="absolute inset-0 w-full h-full object-contain
+               transition-opacity duration-800 ease-in-out
+               opacity-100 group-hover:opacity-0 scale-110"
+  />
+
+  {/* Hover Image */}
+  <img
+    src={product.galleryImages?.[0]?.url || product.coverImage?.url}
+    alt={`${product.name} hover`}
+    className="absolute inset-0 w-full h-full object-contain
+               transition-opacity duration-800 ease-in-out
+               opacity-0 group-hover:opacity-100
+               scale-110"
+  />
+</div>
+
                 <div>
                   <h3 className="text-sm font-medium text-[#737144] uppercase tracking-wide mb-1">
                     {product.name}

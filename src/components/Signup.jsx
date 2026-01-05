@@ -11,9 +11,11 @@ import {
   AlertCircle,
   CheckCircle2, 
 } from "lucide-react";
-import logo from "../assets/img.png";
+import logo from "../assets/SignInPage4-01.png";
 import { FcGoogle } from "react-icons/fc";
 import favicon from "../assets/logo.png";
+import bakgroundPattern from "../assets/bakgroundPattern.png";
+
 
 const Signup = () => {
   const [formData, setFormData] = useState({

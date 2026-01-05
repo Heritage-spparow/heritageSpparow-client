@@ -1,87 +1,141 @@
-import React, { useState } from "react";
-import { ArrowRight } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-// Import your images
-import sample1 from "../assets/sample1.jpg";
-import sample2 from "../assets/sample2.jpg";
+import sample from "../assets/sample.jpeg";
 import sample3 from "../assets/sample3.jpg";
 
+import creative1 from "../assets/LandingPage/01-Basant.jpg";
+import creative2 from "../assets/LandingPage/01-Milap.jpg";
+import creative3 from "../assets/LandingPage/01-RoopDiRani.jpg";
+import creative4 from "../assets/LandingPage/01-Shagan.jpg";
+import creative5 from "../assets/LandingPage/DSC_5793.jpg";
+
 export default function FashionLanding() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   const collectionsData = [
     {
       id: 1,
-      title: "BALSAM",
+      title: "",
       description:
-        "Ethereal flowing designs that dance with light and movement, creating poetry in fabric.",
-      image: sample1,
-      layout: "content-left",
+        "",
+      image: sample,
+      align: "left",
+      type: "static",
     },
     {
       id: 2,
-      title: "KURTAS",
-      description:
-        "Contemporary elegance meets traditional craft in timeless silhouettes that honor heritage.",
-      image: sample2,
-      layout: "content-right",
+      images: [creative1, creative2, creative3, creative4],
+      align: "right",
+      type: "carousel",
     },
     {
       id: 3,
-      title: "SAREES",
-      description:
-        "Timeless drapes that tell stories of tradition woven with threads of modernity and grace.",
-      image: sample3,
-      layout: "content-left",
+      // title: "SAREES",
+      // description:
+      //   "Timeless drapes that tell stories of tradition woven with modern grace.",
+      image: creative5,
+      align: "left",
+      type: "static",
     },
   ];
 
-  const handleShopNow = (collection) => {
-    console.log(`Shopping for ${collection}`);
-  };
+  /* ---------------- CAROUSEL AUTO SLIDE ---------------- */
+  useEffect(() => {
+    const carouselSection = collectionsData.find(
+      (item) => item.type === "carousel"
+    );
+
+    if (!carouselSection) return;
+
+    const interval = setInterval(() => {
+      setCurrentSlide(
+        (prev) => (prev + 1) % carouselSection.images.length
+      );
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <div className="w-full text-[var(--color-surface)]">
-      {collectionsData.map((collection) => (
+    <div className="w-full bg-white">
+      {collectionsData.map((item) => (
         <section
-          key={collection.id}
-          className="relative min-h-screen w-full flex items-center justify-center overflow-hidden"
+          key={item.id}
+          className="relative w-full overflow-hidden bg-[#0e0e0e]"
+          style={{ aspectRatio: "1 / 1" }} // 👈 CAMPAIGN STYLE
         >
-          {/* Background Image */}
-          <img
-            src={collection.image}
-            alt={collection.title}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-
-          {/* Overlay */}
-          <div className="absolute inset-0 bg-black/40"></div>
-
-          {/* Content */}
-          <div
-            className={`relative z-10 text-white px-6 sm:px-12 md:px-24 ${
-              collection.layout === "content-right"
-                ? "text-right ml-auto"
-                : "text-left mr-auto"
-            } max-w-3xl`}
-          >
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-light tracking-wide mb-6">
-              {collection.title}
-            </h1>
-            <p className="text-lg sm:text-xl font-light leading-relaxed mb-10 max-w-lg">
-              {collection.description}
-            </p>
-
-            <button
-              onClick={() => handleShopNow(collection.title)}
-              className="group inline-flex items-center space-x-3 backdrop-blur-md bg-white/20 border border-white/30 text-white px-8 py-4 text-sm tracking-widest font-medium  transition-all duration-500 transform hover:scale-105 hover:bg-white/30 hover:border-white/50"
-            >
-              <span className="drop-shadow-lg">SHOP NOW</span>
-              <ArrowRight
-                size={16}
-                className="group-hover:translate-x-1 transition-transform duration-300"
+          {/* ================= IMAGE AREA ================= */}
+          <div className="absolute inset-0">
+            {/* STATIC IMAGE */}
+            {item.type === "static" && (
+              <img
+                src={item.image}
+                alt={item.title}
+                className="w-full h-full object-contain"
               />
-            </button>
+            )}
+
+            {/* CAROUSEL */}
+            {item.type === "carousel" && (
+              <div
+                className="flex h-full transition-transform duration-1000 ease-in-out"
+                style={{
+                  transform: `translateX(-${currentSlide * 100}%)`,
+                }}
+              >
+                {item.images.map((img, index) => (
+                  <img
+                    key={index}
+                    src={img}
+                    alt={`slide-${index}`}
+                    className="w-full h-full flex-shrink-0 object-contain brightness-90"
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* SUBTLE OVERLAY */}
+            <div className="absolute inset-0 bg-black/10" />
+          </div>
+
+          {/* ================= TEXT AREA ================= */}
+          <div
+            className={`relative z-10 w-full h-full px-6 sm:px-12 md:px-24 flex items-center ${
+              item.align === "right"
+                ? "justify-end text-right"
+                : "justify-start text-left"
+            }`}
+          >
+            <div className="max-w-xl text-white">
+              {item.title && (
+                <h1
+                  className="font-light tracking-wide mb-6"
+                  style={{
+                    fontSize: "clamp(2.5rem, 6vw, 4rem)",
+                    fontFamily: "'Cormorant Garamond', serif",
+                  }}
+                >
+                  {item.title}
+                </h1>
+              )}
+
+              {item.description && (
+                <p className="text-base sm:text-lg font-light leading-relaxed mb-8 opacity-95">
+                  {item.description}
+                </p>
+              )}
+
+              {item.title && (
+                <button
+                  onClick={() => navigate("/collection")}
+                  className="border border-white/80 px-8 py-3 text-xs tracking-widest font-light transition-all duration-300 hover:bg-white hover:text-black"
+                >
+                  EXPLORE
+                </button>
+              )}
+            </div>
           </div>
         </section>
       ))}

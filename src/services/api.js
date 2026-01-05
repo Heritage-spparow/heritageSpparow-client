@@ -46,7 +46,7 @@ export const authAPI = {
   getMe: () => api.get('/auth/me'),
   updateProfile: (userData) => api.put('/auth/profile', userData),
   changePassword: (passwords) => api.put('/auth/password', passwords),
-  
+
   // Address management
   addAddress: (addressData) => api.post('/auth/addresses', addressData),
   updateAddress: (addressId, addressData) => api.put(`/auth/addresses/${addressId}`, addressData),
@@ -57,7 +57,7 @@ export const authAPI = {
 
 // Product API calls
 export const productAPI = {
-  getAll: (params) => api.get('/products-enhanced', { params }), 
+  getAll: (params) => api.get('/products-enhanced', { params }),
   getById: (id) => api.get(`/products-enhanced/${id}`),
   getFeatured: () => api.get('/products-enhanced/featured'),
   getTopRated: () => api.get('/products-enhanced/top/rated'),
@@ -70,7 +70,10 @@ export const cartAPI = {
   get: () => api.get('/cart'),
   add: (productData) => api.post('/cart/add', productData),
   update: (itemId, updateData) => api.put(`/cart/item/${itemId}`, updateData),
-  remove: (itemId) => api.delete(`/cart/item/${itemId}`),
+  remove: ({ productId, size }) =>
+  api.delete('/cart/item', {
+    params: { productId, size }
+  }),
   clear: () => api.delete('/cart/clear'),
   getCount: () => api.get('/cart/count'),
 };

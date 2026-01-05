@@ -158,70 +158,70 @@ export const CartProvider = ({ children }) => {
   }, []);
 
   // Add to cart
-  const addToCart = useCallback(async (product, selectedColor, selectedSize, quantity = 1) => {
+const addToCart = useCallback(
+  async (product, selectedSize, quantity = 1) => {
+    dispatch({ type: CART_ACTIONS.ADD_TO_CART_START });
+
     try {
-      dispatch({ type: CART_ACTIONS.ADD_TO_CART_START });
-      
       const cartItem = {
         productId: product._id,
-        cartId: `${product._id}-${selectedColor}-${selectedSize}-${Date.now()}`,
-        name: product.name,
-        price: product.price,
-        color: selectedColor,
         size: selectedSize,
         quantity,
-        image: product.images?.[0]?.url || '/default-image.jpg'
       };
 
       const response = await cartAPI.add(cartItem);
-      
+
       if (response.data.success) {
         dispatch({
           type: CART_ACTIONS.ADD_TO_CART_SUCCESS,
           payload: {
             items: response.data.cart.items,
             totalItems: response.data.cart.totalItems,
-            totalPrice: response.data.cart.totalPrice
-          }
+            totalPrice: response.data.cart.totalPrice,
+          },
         });
+
         return { success: true };
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Failed to add to cart';
+      const errorMessage =
+        error.response?.data?.message || "Failed to add to cart";
+
       dispatch({
         type: CART_ACTIONS.ADD_TO_CART_FAILURE,
-        payload: errorMessage
+        payload: errorMessage,
       });
+
       return { success: false, error: errorMessage };
     }
-  }, []);
+  },
+  []
+);
+
 
   // Remove from cart
-  const removeFromCart = useCallback(async (cartId) => {
-    try {
-      dispatch({ type: CART_ACTIONS.REMOVE_FROM_CART_START });
-      const response = await cartAPI.remove(cartId);
-      
-      if (response.data.success) {
-        dispatch({
-          type: CART_ACTIONS.REMOVE_FROM_CART_SUCCESS,
-          payload: {
-            items: response.data.cart.items,
-            totalItems: response.data.cart.totalItems,
-            totalPrice: response.data.cart.totalPrice
-          }
-        });
-        return { success: true };
+ const removeFromCart = async (productId, size) => {
+  dispatch({ type: CART_ACTIONS.REMOVE_FROM_CART_START });
+
+  const response = await cartAPI.remove({
+    productId,
+    size
+  });
+
+  if (response.data.success) {
+    dispatch({
+      type: CART_ACTIONS.REMOVE_FROM_CART_SUCCESS,
+      payload: {
+        items: response.data.cart.items,
+        totalItems: response.data.cart.totalItems,
+        totalPrice: response.data.cart.totalPrice
       }
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Failed to remove from cart';
-      dispatch({
-        type: CART_ACTIONS.REMOVE_FROM_CART_FAILURE,
-        payload: errorMessage
-      });
-      return { success: false, error: errorMessage };
-    }
-  }, []);
+    });
+  }
+
+  return { success: true };
+};
+
 
   // Update quantity
   const updateQuantity = useCallback(async (cartId, quantity) => {

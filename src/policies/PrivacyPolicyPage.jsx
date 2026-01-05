@@ -4,7 +4,7 @@ const links = [
   {
     label: "Shipping / Returns / Refund Policy",
     to: "/shipping-returns-refund",
-  },
+  }, 
   {
     label: "Terms & Conditions",
     to: "/terms-and-conditions",
@@ -15,42 +15,62 @@ const links = [
   },
 ];
 
-export default function PolicyLayout() {
+export default function PrivacyPolicyPage() {
   return (
-    <div className="bg-[#f4f0e5] min-h-screen pt-24 pb-16"> 
-      {/* pt-24 assumes fixed navbar height; adjust as needed */}
-      <div className="max-w-6xl mx-auto px-4 md:px-8">
-        <div className="md:flex md:space-x-10">
-          {/* Sidebar */}
-          <aside className="md:w-1/4 mb-8 md:mb-0">
-            <nav className="space-y-3 text-sm tracking-wide">
-              {links.map(link => (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  className={({ isActive }) =>
-                    [
-                      "block border-l-2 pl-4 py-2 transition-colors duration-150",
-                      isActive
-                        ? "border-[#7f7b3b] text-[#7f7b3b] font-medium bg-[#f9f6ee]"
-                        : "border-transparent text-gray-800 hover:border-[#7f7b3b] hover:text-[#7f7b3b]"
-                    ].join(" ")
-                  }
-                >
-                  {link.label}
-                </NavLink>
-              ))}
-            </nav>
-          </aside>
+    <section className="text-sm leading-relaxed text-gray-800">
+      <h1 className="text-xl md:text-2xl tracking-[0.16em] text-[#58552c] mb-6 uppercase">
+        Privacy Policy
+      </h1>
 
-          {/* Main content */}
-          <main className="md:w-3/4">
-            <div className="bg-[#fbf8f0] border border-[#ded5c0] shadow-sm px-6 md:px-10 py-8 md:py-10">
-              <Outlet />
-            </div>
-          </main>
-        </div>
-      </div>
-    </div>
+      <section className="mb-4">
+        <p>
+          We value your privacy and are committed to protecting your personal
+          information. This Privacy Policy explains how we collect, use, and
+          safeguard your data when you visit or make a purchase from our website.
+        </p>
+      </section>
+
+      <section className="mb-4">
+        <p>
+          The information we collect may include your name, email address,
+          contact number, shipping address, billing details, and order history.
+          This information is used strictly for processing orders, providing
+          customer support, and improving our services.
+        </p>
+      </section>
+
+      <section className="mb-4">
+        <p>
+          We do not sell, rent, or trade your personal information. Your data is
+          shared only with trusted third-party service providers such as payment
+          gateways and logistics partners, solely for the purpose of order
+          fulfillment and transaction processing.
+        </p>
+      </section>
+
+      <section className="mb-4">
+        <p>
+          All payment transactions are processed through secure and encrypted
+          platforms. We do not store your complete payment details on our
+          servers.
+        </p>
+      </section>
+
+      <section className="mb-4">
+        <p>
+          By using our website, you consent to the collection and use of
+          information in accordance with this Privacy Policy. We may update this
+          policy from time to time, and any changes will be reflected on this
+          page.
+        </p>
+      </section>
+
+      <section>
+        <p>
+          If you have any questions or concerns regarding this Privacy Policy,
+          please contact us at our official support email.
+        </p>
+      </section>
+    </section>
   );
 }
