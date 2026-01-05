@@ -16,14 +16,14 @@ export default function ShippingReturnsRefundPage() {
         <p>
           If you have any specific urgency, please write to us at{" "}
           <a
-            href="mailto:hello@gullylabs.com"
+            href="mailto:support@heritagesparrow.com"
             className="underline hover:text-[#7f7b3b]"
           >
-            hello@gullylabs.com
+            support@heritagesparrow.com
           </a>{" "}
           or WhatsApp us at{" "}
           <a
-            href="https://wa.me/+919311233304"
+            href="https://wa.me/+917973926474"
             target="_blank"
             rel="noreferrer"
             className="underline hover:text-[#7f7b3b]"
