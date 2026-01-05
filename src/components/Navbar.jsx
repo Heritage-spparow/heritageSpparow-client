@@ -360,15 +360,19 @@ const Navbar = () => {
           </div>
 
           <div className="flex flex-col px-8 py-8 space-y-8">
-            <button
-              className="text-left text-white border-b border-[var(--color-border)] pb-4"
-              onClick={() => {
-                setIsShopMenuOpen(true);
-                setIsMenuOpen(false);
-              }}
-            >
-              SHOP
-            </button>
+            {categories.map((category) => (
+              <Link
+                key={category}
+                to={`/product/${encodeURIComponent(category)}`}
+                className="text-left text-white border-b border-[var(--color-border)] pb-4"
+                onClick={() => {
+                  setIsShopMenuOpen(false);
+                  setIsMenuOpen(false);
+                }}
+              >
+                SHOP
+              </Link>
+            ))}
             <Link
               to="/campaign"
               className="text-white border-b border-[var(--color-border)] pb-4"
