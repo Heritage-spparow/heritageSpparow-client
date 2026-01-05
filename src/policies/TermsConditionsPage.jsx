@@ -103,10 +103,10 @@ export default function TermsConditionsPage() {
         <p>
           For any questions regarding these Terms & Conditions, please contact us at{" "}
           <a
-            href="mailto:hello@gullylabs.com"
+            href="mailto:support@heritagesparrow.com"
             className="underline hover:text-[#7f7b3b]"
           >
-            hello@gullylabs.com
+           support@heritagesparrow.com
           </a>.
         </p>
       </section>
