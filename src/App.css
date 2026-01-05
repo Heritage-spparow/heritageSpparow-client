@@ -81,3 +81,31 @@ input{
   }
 }
 
+@media (max-width: 843px) {
+  .campaign-cta {
+    position: absolute;
+    top: 73%;
+    padding: 10px 16px;
+  }
+}
+
+@media(max-width: 639px){
+  .bannerName{
+    position: absolute;
+    top: 32%;
+  }
+}
+
+@media(max-width: 575px){
+  .bannerName{
+    position: absolute;
+    top: 49%;
+  }
+}
+
+@media(max-width: 425px){
+  .bannerName{
+    position: absolute;
+    top: 53%;
+  }
+}

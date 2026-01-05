@@ -13,6 +13,42 @@ export default function FashionLanding() {
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [enableTransition, setEnableTransition] = useState(true);
+  const [touchStartX, setTouchStartX] = useState(null);
+  const [touchEndX, setTouchEndX] = useState(null);
+
+  const handleTouchStart = (e) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEndX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+
+    const distance = touchStartX - touchEndX;
+    const swipeThreshold = 50; // px
+
+    if (distance > swipeThreshold) {
+      // 👉 swipe left → next
+      setEnableTransition(true);
+      setCurrentSlide((prev) => prev + 1);
+    }
+
+    if (distance < -swipeThreshold) {
+      // 👉 swipe right → previous
+      setEnableTransition(true);
+      setCurrentSlide((prev) =>
+        prev === 0 ? collectionsData[1].images.length - 1 : prev - 1
+      );
+    }
+
+    setTouchStartX(null);
+    setTouchEndX(null);
+  };
+
   useEffect(() => {
     const loadCategories = async () => {
       try {
@@ -29,65 +65,79 @@ export default function FashionLanding() {
     loadCategories();
   }, [fetchCategories]);
 
-const collectionsData = [
-  {
-    id: 1,
-    type: "static",
-    image: sample,
-    cta: {
-      label: "Explore Collection",
-      action: () =>
-        navigate(`/product/${encodeURIComponent(categories[0] || "")}`),
-      position: "center",
+  const collectionsData = [
+    {
+      id: 1,
+      type: "static",
+      image: sample,
+      cta: {
+        label: "Explore Collection",
+        action: () =>
+          navigate(`/product/${encodeURIComponent(categories[0] || "")}`),
+        position: "center",
+      },
     },
-  },
 
-  {
-    id: 2,
-    type: "carousel",
-    images: [
-      { src: creative1, category: "Basant" },
-      { src: creative2, category: "Milaap" },
-      { src: creative3, category: "Roop Di Rani" },
-      { src: creative4, category: "Shagun" },
-    ],
-    cta: {
-      label: "Shop Now",
-      // action: () =>
-      //   navigate(
-      //     `/feature/${encodeURIComponent(
-      //       collectionsData[1].images[currentSlide].category
-      //     )}`
-      //   ),
-      action: () =>
-        navigate(`/product/${encodeURIComponent(categories[0] || "")}`),
-      position: "left",
+    {
+      id: 2,
+      type: "carousel",
+      images: [
+        { src: creative1, category: "Basant" },
+        { src: creative2, category: "Milaap" },
+        { src: creative3, category: "Roop Di Rani" },
+        { src: creative4, category: "Shagun" },
+      ],
+      cta: {
+        label: "Shop Now",
+        // action: () =>
+        //   navigate(
+        //     `/feature/${encodeURIComponent(
+        //       collectionsData[1].images[currentSlide].category
+        //     )}`
+        //   ),
+        action: () =>
+          navigate(`/product/${encodeURIComponent(categories[0] || "")}`),
+        position: "left",
+      },
     },
-  },
 
-  {
-    id: 3,
-    type: "static",
-    image: creative5,
-    cta: {
-      label: "Explore Campaign",
-      action: () => navigate("/campaign"),
-      position: "center",
+    {
+      id: 3,
+      type: "static",
+      image: creative5,
+      cta: {
+        label: "Explore Campaign",
+        action: () => navigate("/campaign"),
+        position: "center",
+      },
     },
-  },
-];
+  ];
+
+  const carouselImages = [
+    ...collectionsData[1].images,
+    collectionsData[1].images[0],
+  ];
 
   /* ---------- AUTO SLIDE ---------- */
   useEffect(() => {
-    const carousel = collectionsData.find((i) => i.type === "carousel");
-    if (!carousel) return;
-
     const interval = setInterval(() => {
-      setCurrentSlide((p) => (p + 1) % carousel.images.length);
-    }, 5000);
+      setCurrentSlide((prev) => prev + 1);
+      setEnableTransition(true);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const originalLength = collectionsData[1].images.length;
+
+    if (currentSlide === originalLength) {
+      setTimeout(() => {
+        setEnableTransition(false);
+        setCurrentSlide(0);
+      }, 1000);
+    }
+  }, [currentSlide]);
 
   return (
     <div className="w-full bg-black">
@@ -109,12 +159,18 @@ const collectionsData = [
 
             {item.type === "carousel" && (
               <div
-                className="flex h-full transition-transform duration-1000 ease-in-out"
+                className="flex h-full"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
                 style={{
                   transform: `translateX(-${currentSlide * 100}%)`,
+                  transition: enableTransition
+                    ? "transform 1s ease-in-out"
+                    : "none",
                 }}
               >
-                {item.images.map((imgObj, i) => (
+                {carouselImages.map((imgObj, i) => (
                   <img
                     key={i}
                     src={imgObj.src}
@@ -140,10 +196,11 @@ const collectionsData = [
             <button
               onClick={item.cta.action}
               className="
+                campaign-cta
                 border border-white/80
                 px-10 py-4
                 text-xs md:text-sm
-                tracking-[0.35em]
+                tracking-[0.10em]
                 uppercase
                 font-light
                 text-white

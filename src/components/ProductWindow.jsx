@@ -127,7 +127,7 @@ export default function ProductWindow() {
         category: decodedName,
         inStock: filterInputs.stock === "inStock" ? true : undefined,
       };
-
+ 
       if (filterInputs.price.min !== "")
         queryParams.minPrice = parseFloat(filterInputs.price.min);
       if (filterInputs.price.max !== "")
@@ -202,7 +202,7 @@ export default function ProductWindow() {
           className="w-full h-full object-cover object-center"
         />
         <div className="absolute  inset-0 flex flex-col items-center justify-center  bg-opacity-40">
-          <h1 className="text-3xl sm:text-5xl  max-[767px]:mt-[36%]
+          <h1 className="bannerName text-3xl sm:text-5xl  max-[767px]:mt-[36%]
     max-[472px]:mt-[36%] md:mt-[40%] mt-[77%] font-light text-white uppercase tracking-[0.2em]">
             {decodeURIComponent(name)}
           </h1>
