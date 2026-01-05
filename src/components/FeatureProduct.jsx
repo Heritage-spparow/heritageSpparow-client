@@ -70,7 +70,7 @@ export default function FeatureProduct() {
   useEffect(() => {
     const loadProduct = async () => {
       const response = await fetchProductById(id);
-      console.log(response);
+      // console.log(response);
 
       if (response.success && response.product) {
         setSelectedColor(response.product.colors?.[0]?.name || "");

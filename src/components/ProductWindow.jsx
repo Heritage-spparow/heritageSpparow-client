@@ -52,12 +52,12 @@ export default function ProductWindow() {
           category: decodedName,
           inStock: true,
         });
-        console.log(response);
+        // console.log(response);
 
         if (response.success) {
           const products = response.products;
           setMatchingProducts(products);
-          console.log(products);
+          // console.log(products);
           setFilteredProducts(products);
 
           const colors = [

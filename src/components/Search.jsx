@@ -1,33 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import classNames from 'classnames';
-import { useNavigate } from 'react-router-dom';
-import { useProduct } from '../context/ProductContext';
-import img from '../assets/demo3.jpg';
+import React, { useState, useEffect } from "react";
+import classNames from "classnames";
+import { useNavigate } from "react-router-dom";
+import { useProduct } from "../context/ProductContext";
 
-
-
+/* ---------------- THEME ---------------- */
 const BRAND_COLOR = "#737144";
 const BG_COLOR = "#f9f6ef";
-const LIGHT_ACCENT = "#F4F3ED";
 const DIN_STYLE = {
-    fontFamily:
-      "'D-DIN', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif",
-    fontWeight: 400,
+  fontFamily:
+    "'D-DIN', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif",
+  fontWeight: 400,
 };
 
 export default function Search() {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
   const { searchProducts } = useProduct();
 
   const shouldLift = focused || query.length > 0;
 
+  /* ---------------- SEARCH LOGIC ---------------- */
   useEffect(() => {
     const fetchSearchResults = async () => {
-      if (query.trim().length === 0) {
+      if (!query.trim()) {
         setSearchResults([]);
         return;
       }
@@ -38,127 +37,151 @@ export default function Search() {
 
         if (response.success) {
           const filtered = response.products
-            .filter((item) => item.name.toLowerCase().includes(query.toLowerCase()))
+            .filter((item) =>
+              item.name.toLowerCase().includes(query.toLowerCase())
+            )
             .sort((a, b) => {
-              const startsWithA = a.name.toLowerCase().startsWith(query.toLowerCase());
-              const startsWithB = b.name.toLowerCase().startsWith(query.toLowerCase());
-              if (startsWithA && !startsWithB) return -1;
-              if (!startsWithA && startsWithB) return 1;
+              const aStart = a.name.toLowerCase().startsWith(query.toLowerCase());
+              const bStart = b.name.toLowerCase().startsWith(query.toLowerCase());
+              if (aStart && !bStart) return -1;
+              if (!aStart && bStart) return 1;
               return a.name.localeCompare(b.name);
             });
+
           setSearchResults(filtered);
         } else {
-          console.error("Failed to fetch search results:", response.error);
           setSearchResults([]);
         }
-      } catch (error) {
-        console.error("Error fetching search results:", error);
+      } catch (err) {
+        console.error("Search error:", err);
         setSearchResults([]);
       } finally {
         setLoading(false);
       }
     };
 
-    // Debounce the search to avoid excessive API calls
-    const debounceTimeout = setTimeout(fetchSearchResults, 300);
-
-    return () => clearTimeout(debounceTimeout);
+    const debounce = setTimeout(fetchSearchResults, 300);
+    return () => clearTimeout(debounce);
   }, [query, searchProducts]);
 
+  /* ---------------- NAVIGATION ---------------- */
   const handleProductClick = (product) => {
-    // Navigating to the product feature page using the product ID.
     navigate(`/feature/${product._id}`);
   };
 
   return (
-    <div 
-      style={{ ...DIN_STYLE, backgroundColor: BG_COLOR }} 
-      className="flex items-center justify-center min-h-screen text-gray-800 px-4 transition-all duration-500"
+    <div
+      style={{ ...DIN_STYLE, backgroundColor: BG_COLOR }}
+      className="min-h-screen flex items-center justify-center px-4 transition-all duration-500"
     >
       <div
         className={classNames(
-          'w-[80%] transform transition-all duration-500',
+          "w-full max-w-6xl transition-all duration-500",
           {
-            'translate-y-[-100px]': shouldLift,
-            'translate-y-0': !shouldLift,
+            "-translate-y-24": shouldLift,
+            "translate-y-0": !shouldLift,
           }
         )}
       >
-        {/* Search Field */}
-        <div className="relative">
+        {/* ---------------- SEARCH FIELD ---------------- */}
+        <div className="relative mb-10">
           <input
             type="text"
             value={query}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             onChange={(e) => setQuery(e.target.value)}
-            // Updated border and text colors to brand style
-            className="w-full border-b border-[#737144] focus:outline-none focus:border-[#737144] text-lg px-1 py-2 placeholder-transparent bg-transparent text-gray-800"
-            placeholder="Search"
+            className="
+              w-full
+              bg-transparent
+              border-b border-[#737144]
+              px-1 py-3
+              text-lg
+              text-[#555]
+              focus:outline-none
+            "
           />
 
-          {/* Animated Label */}
+          {/* Floating Label */}
           <label
             className={classNames(
-              'absolute left-1 text-sm text-[#737144] transition-all duration-200 uppercase tracking-wider font-light',
+              "absolute left-1 text-xs uppercase tracking-[0.35em] text-[#737144] transition-all duration-200",
               {
-                'top-[-20px] text-xs': shouldLift,
-                'top-2': !shouldLift,
+                "-top-4 text-[10px]": shouldLift,
+                "top-3": !shouldLift,
               }
             )}
           >
-            SEARCH
+            Search
           </label>
 
           {query && (
             <button
-              onClick={() => setQuery('')}
-              className="absolute right-1 top-2 text-sm text-[#737144] hover:text-[#5f5d3d] cursor-pointer"
+              onClick={() => setQuery("")}
+              className="absolute right-0 top-3 text-xs tracking-widest text-[#737144] hover:opacity-70"
             >
               CLEAR
             </button>
           )}
         </div>
 
-        {/* Search Results Dropdown */}
+        {/* ---------------- RESULTS ---------------- */}
         {query && (
-          <div className="mt-8 space-y-4 text-black overflow-y-auto max-h-[80vh]">
+          <div className="space-y-6">
             {loading ? (
-              <div className="text-gray-500 text-sm px-1">Loading...</div>
+              <p className="text-xs text-[#777]">Searching…</p>
             ) : (
               <>
-            
-                <h2 className="text-base sm:text-lg font-normal tracking-wider text-gray-800">
-                  {searchResults.length} RESULTS IN PRODUCTS
+                <h2 className="text-sm tracking-[0.3em] uppercase text-[#777]">
+                  {searchResults.length} Results in Products
                 </h2>
-                
+
                 {searchResults.length > 0 ? (
-        
-                  <div className="flex overflow-x-auto space-x-6 pt-4 pb-4 
-                                  scrollbar-thin scrollbar-thumb-[#a68038]/50 scrollbar-track-transparent">
+                  <div
+                    className="
+                      flex gap-6 overflow-x-auto pb-6
+                      scrollbar-thin
+                      scrollbar-thumb-[#737144]/40
+                      scrollbar-track-transparent
+                    "
+                  >
                     {searchResults.map((item) => (
                       <div
-                        key={item.id}
+                        key={item._id}
                         onClick={() => handleProductClick(item)}
-                        className=" flex flex-col items-center justify-center cursor-pointer group"
+                        className="
+                          w-[160px] sm:w-[180px] md:w-[200px]
+                          flex-shrink-0
+                          cursor-pointer
+                          group
+                        "
                       >
-                        <div className="aspect-[3/4] bg-gray-100 mb-3 overflow-hidden">
-                         
+                        {/* IMAGE */}
+                        <div className="aspect-[3/4] bg-[#f4f3ed] mb-4 overflow-hidden">
                           <img
-                            src={img}
+                            src={
+                              item.coverImage?.url ||
+                              item.galleryImages?.[0]?.url ||
+                              "/placeholder.jpg"
+                            }
                             alt={item.name}
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                            className="
+                              w-full h-full object-cover
+                              transition-transform duration-500
+                              group-hover:scale-[1.05]
+                            "
                           />
                         </div>
-                        {/* Product Name */}
-                        <div className="text-center text-sm text-gray-800 tracking-wide font-medium">
+
+                        {/* NAME */}
+                        <p className="text-center text-[11px] uppercase tracking-[0.18em] text-[#737144] font-light">
                           {item.name}
-                        </div>
+                        </p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-gray-500 text-sm px-1 pt-4">No results found.</div>
+                  <p className="text-xs text-[#777]">No products found.</p>
                 )}
               </>
             )}

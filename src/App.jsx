@@ -30,6 +30,7 @@ import PolicyLayout from "./policies/PolicyLayout";
 import PrivacyPolicyPage from "./policies/PrivacyPolicyPage";
 import TermsConditionsPage from "./policies/TermsConditionsPage";
 import ShippingReturnsRefundPage from "./policies/ShippingReturnsRefundPage";
+import ShringarAlbum from "./components/ShringarAlbum";
 
 function AppContent() {
   const location = useLocation();
@@ -51,7 +52,11 @@ function AppContent() {
           <Route path="/about" element={<About />} />
           <Route path="/craft" element={<CraftPage />} />
           <Route path="/campaign" element={<CampaignPage />} />
-          <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
+          <Route path="/campaigns/shringar-album" element={<ShringarAlbum />} />
+          <Route
+            path="/auth/google/callback"
+            element={<GoogleAuthCallback />}
+          />
 
           {/* ✅ POLICY ROUTES (NESTED) */}
           <Route path="/policies" element={<PolicyLayout />}>
@@ -107,7 +112,7 @@ function AppContent() {
 
       {/* WhatsApp floating button */}
       <a
-        href="https://wa.me/919122253096"
+        href="https://wa.me/917973926474"
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chat with us on WhatsApp"
@@ -127,7 +132,7 @@ function AppContent() {
         />
       </a>
 
-      <Footer />
+      {!shouldHideNavbar && <Footer />}
     </>
   );
 }

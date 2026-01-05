@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from "lucide-react";
-import logo from "../assets/login.png";
+import logo from "../assets/SignUpPage4.png";
 import { FcGoogle } from "react-icons/fc";
 import favicon from "../assets/logo.png";
 
@@ -113,8 +113,16 @@ const Login = () => {
         </span>
       </h2>
 
-      <div className="min-h-screen flex items-center justify-center  p-4">
-        <div className="flex flex-col sm:flex-row bg-[#f9f6ef]  rounded-2xl shadow-xl overflow-hidden max-w-5xl w-full">
+      <div className="min-h-screen flex items-center justify-center  p-4 ">
+        <div
+          className="flex flex-col sm:flex-row bg-[#f9f6ef] h-[45em]  rounded-2xl shadow-xl overflow-hidden max-w-5xl w-full"
+          style={{
+            backgroundImage: "url('/bakgroundPattern.png')",
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        >
           {/* Left Section (Form) */}
           <div className="flex flex-col justifiy-center mt-[4%] w-full sm:w-1/2 px-8 py-10 lg:px-14">
             <h2 className="text-2xl font-semibold border-l-[8px] border-solid px-[7px] text-[var(--color-bg)] mb-8">
@@ -147,7 +155,7 @@ const Login = () => {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="Enter your email"
-                    className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#23423b] sm:text-sm ${
+                    className={`block w-full pl-10 pr-3 bg-white shadow-[4px_10px_7px_-8px_rgba(0,0,0)] py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#23423b] sm:text-sm ${
                       errors.email ? "border-red-400" : "border-gray-300"
                     }`}
                   />
@@ -174,7 +182,7 @@ const Login = () => {
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="Enter your password"
-                    className={`block w-full pl-10 pr-10 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#23423b] sm:text-sm ${
+                    className={`block w-full pl-10 pr-10 bg-white py-2.5 shadow-[4px_10px_7px_-8px_rgba(0,0,0)] border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#23423b] sm:text-sm ${
                       errors.password ? "border-red-400" : "border-gray-300"
                     }`}
                   />
@@ -213,7 +221,8 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={isSubmitting || loading}
-                className="w-full py-2.5 px-4 bg-[var(--color-bg)] text-[var(--color-white)] rounded-lg font-medium cursor-pointer transition duration-200"
+                className="w-full py-2.5 px-4 bg-[var(--color-bg)] text-[var(--color-white)] rounded-lg font-medium
+                 cursor-pointer transition duration-200 shadow-[4px_10px_7px_-8px_rgba(0,0,0)]"
               >
                 {isSubmitting || loading ? (
                   <div className="flex items-center justify-center space-x-2">
@@ -241,19 +250,21 @@ const Login = () => {
             <button
               type="button"
               onClick={handleGoogleSignup}
-              className="w-full py-2.5 px-4 bg-white text-gray-700 border border-gray-300 rounded-lg font-medium cursor-pointer transition duration-200 flex items-center justify-center space-x-2 shadow-sm hover:bg-gray-50"
+              className="w-full py-2.5 px-4 bg-[var(--color-bg)] text-gray-700 border border-gray-300 rounded-lg font-medium cursor-pointer transition duration-200 
+              flex items-center justify-center space-x-2 shadow-sm  shadow-[12px_0_20px_-8px_rgba(0,0,0)]"
+              
             >
-              <FcGoogle className="h-5 w-5" />
-              <span>Continue with Google</span>
+              <span className="font-bold text-white">Continue with Google</span>
+              <FcGoogle className="h-5 w-5 shadow-[12px_0_20px_-8px_rgba(0,0,0)]" />
             </button>
           </div>
 
           {/* Right Section (Image) */}
-          <div className="hidden flex items-center justify-center sm:block sm:w-1/2">
+          <div className="hidden sm:flex items-center justify-center sm:w-1/2 overflow-hidden ">
             <img
               src={logo}
               alt="Art collage"
-              className="w-[75%] ml-5 object-cover"
+              className="w-[75%] ml-5 object-cover shadow-[12px_0_20px_-8px_rgba(0,0,0)]"
             />
           </div>
         </div>

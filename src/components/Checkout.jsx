@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useCart } from "../context/CartContex";
 import { useNavigate } from "react-router-dom";
 import { Minus, Plus, Trash2, ArrowLeft } from "lucide-react";
-import img from "../assets/images.jpeg";
 import favicon from "../assets/logo.png";
 
 export default function Checkout() {
@@ -33,9 +32,10 @@ export default function Checkout() {
       ? `₹ ${validAmount.toLocaleString("en-IN")}`
       : `$ ${(validAmount / conversionRate).toFixed(2)}`;
   };
-  console.log(items);
+  // console.log(items);
   const shippingCost = totalPrice > 1500 ? 0 : 150;
-  const taxAmount = Math.round((Number(totalPrice) || 0) * 0.18);
+  // const taxAmount = Math.round((Number(totalPrice) || 0) * 0.18);
+  const taxAmount = 0;
   const grandTotal = (Number(totalPrice) || 0) + shippingCost + taxAmount;
 
   const handleQuantityChange = async (_id, newQuantity) => {
@@ -48,9 +48,9 @@ export default function Checkout() {
     }
   };
 
-const handleRemoveItem = async (productId, size) => {
-  await removeFromCart(productId, size);
-};
+  const handleRemoveItem = async (productId, size) => {
+    await removeFromCart(productId, size);
+  };
 
   const handleCheckout = async () => {
     setIsProcessing(true);
@@ -255,12 +255,12 @@ const handleRemoveItem = async (productId, size) => {
             <h2 className="text-xl font-semibold text-[#737144] uppercase tracking-wider">
               Order Summary
             </h2>
-            <button
+            {/* <button
               onClick={() => setCurrency(currency === "INR" ? "USD" : "INR")}
               className="text-sm text-blue-700 hover:underline"
             >
               View in {currency === "INR" ? "USD" : "INR"}
-            </button>
+            </button> */}
           </div>
 
           <div className="space-y-3 text-gray-700">
@@ -272,15 +272,20 @@ const handleRemoveItem = async (productId, size) => {
               <span>Shipping</span>
               <span>{shippingCost === 0 ? "Free" : convert(shippingCost)}</span>
             </div>
-            <div className="flex justify-between">
+            {/* <div className="flex justify-between">
               <span>Tax</span>
               <span>{convert(taxAmount)}</span>
-            </div>
+            </div> */}
             <hr className="my-2" />
+
             <div className="flex justify-between font-semibold text-[#737144] text-lg">
               <span>Total</span>
               <span>{convert(grandTotal)}</span>
             </div>
+
+            <p className="mt-1 text-[11px] text-gray-500 tracking-wide">
+              Inclusive of all taxes
+            </p>
           </div>
 
           <div className="mt-8 space-y-4">

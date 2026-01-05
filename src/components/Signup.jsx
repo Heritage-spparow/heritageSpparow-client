@@ -9,13 +9,12 @@ import {
   User,
   Phone,
   AlertCircle,
-  CheckCircle2, 
+  CheckCircle2,
 } from "lucide-react";
 import logo from "../assets/SignInPage4-01.png";
 import { FcGoogle } from "react-icons/fc";
 import favicon from "../assets/logo.png";
-import bakgroundPattern from "../assets/bakgroundPattern.png";
-
+// import bakgroundPattern from "../assets/bakgroundPattern.png";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -123,7 +122,8 @@ const Signup = () => {
   };
 
   const handleGoogleSignup = () => {
-    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+    const baseURL =
+      import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
     window.location.href = `${baseURL}/auth/google`;
   };
 
@@ -148,7 +148,15 @@ const Signup = () => {
       </h2>
 
       <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="flex flex-col sm:flex-row bg-[#f9f6ef] rounded-2xl shadow-xl overflow-hidden max-w-5xl w-full">
+        <div
+          className="flex flex-col sm:flex-row bg-[#f9f6ef] rounded-2xl shadow-xl overflow-hidden max-w-5xl w-full"
+          style={{
+            backgroundImage: "url('/bakgroundPattern.png')",
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        >
           {/* Left Section (Form) */}
           <div className="flex flex-col justify-center mt-[2%] w-full sm:w-1/2 px-8 py-10 lg:px-14">
             <h2 className="text-2xl font-semibold border-l-[8px] border-solid px-[7px] text-[var(--color-bg)] mb-8">
@@ -181,7 +189,7 @@ const Signup = () => {
                       value={formData.firstName}
                       onChange={handleChange}
                       placeholder="First name"
-                      className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#23423b] sm:text-sm ${
+                      className={`block w-full pl-10 pr-3 bg-white py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#23423b] sm:text-sm ${
                         errors.firstName ? "border-red-400" : "border-gray-300"
                       }`}
                     />
@@ -207,7 +215,7 @@ const Signup = () => {
                     value={formData.lastName}
                     onChange={handleChange}
                     placeholder="Last name"
-                    className={`block w-full pl-3 pr-3 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#23423b] sm:text-sm ${
+                    className={`block w-full bg-white pl-3 pr-3 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#23423b] sm:text-sm ${
                       errors.lastName ? "border-red-400" : "border-gray-300"
                     }`}
                   />
@@ -236,7 +244,7 @@ const Signup = () => {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="Enter your email"
-                    className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#23423b] sm:text-sm ${
+                    className={`block w-full bg-white pl-10 pr-3 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#23423b] sm:text-sm ${
                       errors.email ? "border-red-400" : "border-gray-300"
                     }`}
                   />
@@ -263,7 +271,7 @@ const Signup = () => {
                     value={formData.phone}
                     onChange={handleChange}
                     placeholder="Enter your phone number"
-                    className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#23423b] sm:text-sm ${
+                    className={`block w-full pl-10 pr-3 bg-white py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#23423b] sm:text-sm ${
                       errors.phone ? "border-red-400" : "border-gray-300"
                     }`}
                   />
@@ -290,7 +298,7 @@ const Signup = () => {
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="Create a password"
-                    className={`block w-full pl-10 pr-10 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#23423b] sm:text-sm ${
+                    className={`block w-full pl-10 pr-10 py-2.5 bg-white border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#23423b] sm:text-sm ${
                       errors.password ? "border-red-400" : "border-gray-300"
                     }`}
                   />
@@ -328,7 +336,7 @@ const Signup = () => {
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     placeholder="Confirm your password"
-                    className={`block w-full pl-10 pr-10 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#23423b] sm:text-sm ${
+                    className={`block w-full pl-10 pr-10 py-2.5 bg-white border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#23423b] sm:text-sm ${
                       errors.confirmPassword
                         ? "border-red-400"
                         : "border-gray-300"
@@ -404,13 +412,14 @@ const Signup = () => {
             <hr className="my-6 border-gray-300" />
 
             {/* Google Sign-Up */}
-            <button 
-                type="button" 
-                onClick={handleGoogleSignup}
-                className="w-full py-2.5 px-4 bg-white text-gray-700 border border-gray-300 rounded-lg font-medium cursor-pointer transition duration-200 flex items-center justify-center space-x-2 shadow-sm hover:bg-gray-50"
+            <button
+              type="button"
+              onClick={handleGoogleSignup}
+              className="w-full py-2.5 px-4 bg-[var(--color-bg)] text-gray-700 border border-gray-300 rounded-lg font-medium cursor-pointer transition duration-200 
+                       flex items-center justify-center space-x-2 shadow-sm  shadow-[12px_0_20px_-8px_rgba(0,0,0)]"
             >
-              <FcGoogle className="h-5 w-5" />
-              <span>Continue with Google</span>
+              <span className="font-bold text-white">Continue with Google</span>
+              <FcGoogle className="h-5 w-5 shadow-[12px_0_20px_-8px_rgba(0,0,0)]" />
             </button>
           </div>
 
@@ -419,7 +428,7 @@ const Signup = () => {
             <img
               src={logo}
               alt="Signup illustration"
-              className="w-[75%] ml-5 object-cover"
+              className="w-[75%] ml-5 object-cover shadow-[12px_0_20px_-8px_rgba(0,0,0)]"
             />
           </div>
         </div>

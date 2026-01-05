@@ -119,13 +119,19 @@ const Navbar = () => {
       {/* Desktop Navigation */}
     <div className="hidden md:flex h-full w-full text-white items-center justify-between px-6">
         <div className="flex h-full w-full justify-between items-center space-x-8">
-          <Link
-            className="hover:underline font-medium relative"
-            onMouseEnter={() => setIsShopMenuOpen(true)}
-            onMouseLeave={() => setIsShopMenuOpen(false)}
-          >
-            SHOP
-          </Link>
+            {categories.map((category) => (
+              <Link
+                key={category}
+                to={`/product/${encodeURIComponent(category)}`}
+                className="block  hover:underline font-medium relative hover:opacity-90 font-light"
+                onClick={() => {
+                  setIsShopMenuOpen(false);
+                  setIsMenuOpen(false);
+                }}
+              >
+                SHOP
+              </Link>
+            ))}
           <Link to="/campaign" className={` hover:underline font-medium`}>
             CAMPAIGN
           </Link>

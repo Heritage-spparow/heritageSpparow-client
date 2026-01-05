@@ -44,12 +44,6 @@ export default function Payment() {
       description: "",
       icon: CreditCard,
     },
-    {
-      id: "cod",
-      name: "Cash on Delivery",
-      description: "Pay with cash upon delivery.",
-      icon: Truck,
-    },
   ];
 
   // Load Razorpay script
@@ -582,7 +576,7 @@ export default function Payment() {
                     <div className="relative">
                       <img
                         src={
-                          item.product.images?.[0]?.url ||
+                         item.product.coverImage?.url  ||
                           "/api/placeholder/80/80"
                         }
                         alt={item.product.name}

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ChevronDown } from "lucide-react";
-
+import heritage from "../assets/craft/DSC_7360.jpg";
 export default function AboutPage() {
   const [activeAccordion, setActiveAccordion] = useState(null);
 
@@ -29,7 +29,7 @@ export default function AboutPage() {
     {
       title: "Authenticity",
       description:
-        "No compromises, no shortcuts. Each garment carries the genuine mark of handcrafted excellence and honest materials.",
+        "No compromises, no shortcuts. Each piece of heritage carries the genuine mark of handcrafted excellence and honest materials.",
     },
   ];
 
@@ -86,22 +86,38 @@ export default function AboutPage() {
               Our Story
             </h2>
             <div className="space-y-6 text-[#555] leading-relaxed">
+              <h2 className="text-[#737144] text-xl font-medium tracking-wide">
+                About Us
+              </h2>
+
               <p>
-               Heritage Sparrow began with a feeling—one that lived quietly in our homes, in the hands of our elders, in the stories whispered through threads, fabrics, festivals, and everyday rituals. A feeling of belonging. A feeling of home.
+                Heritage Sparrow is born from a love for India’s old stories,
+                quiet details, and handmade traditions.
               </p>
+
               <p>
-               For us, the journey started long before the brand was born. It began in childhood summers spent at our Nani’s house, watching her sit by the window as sunlight fell on her embroidery frame. Her hands moved with a rhythm only she knew—stitching sparrows, parrots, peacocks, and patterns passed down from her mother and the women before her. Every piece she created held stories, warmth, and the kind of love that never fades.
+                We look back to age old craft patterns and bring them forward
+                with thoughtful design, keeping their soul intact.
               </p>
+
               <p>
-                As we grew older, those memories followed us—dusty festival lanes coming alive with drums, karigars shaping leather into juttis, artisans tracing century-old motifs onto fabric, neighbors turning into family, and entire villages celebrating something bigger than themselves.
+                Rooted in craft and community, our work is shaped slowly, by
+                skilled hands and patient processes.
               </p>
+
               <p>
-                We realized these were not just memories.
-                They were our roots.
-                And so, Heritage Sparrow was born—not as a brand, but as a voyage to artisanship. A promise to honor India’s indigenous artisans, their stories, and the crafts that shaped our identity.
+                Every piece carries time, care, and memory  made not in haste,
+                but with heart.
               </p>
-              <p className="text-[#737144] font-medium italic">
-              Like the sparrow—small yet resilient—we gather these stories and carry them forward, ensuring that the crafts we grew up with continue to live, breathe, and belong in the world of tomorrow.
+
+              <h3 className="text-[#737144] text-lg font-medium tracking-wide pt-4">
+                Our Vision
+              </h3>
+
+              <p className="">
+                To revive traditional craft patterns and give them a new voice
+                through contemporary design, while staying true to slow-made
+                values and honest workmanship.
               </p>
             </div>
           </div>
@@ -146,7 +162,7 @@ export default function AboutPage() {
       </div>
 
       {/* Mission Section */}
-      <div className="bg-[#737144] py-20">
+      {/* <div className="bg-[#737144] py-20">
         <div className="max-w-4xl mx-auto px-8 text-center">
           <h2 className="text-3xl font-light text-white tracking-[0.15em] mb-8 uppercase">
             Our Mission
@@ -162,10 +178,10 @@ export default function AboutPage() {
             artisan communities prosper.
           </p>
         </div>
-      </div>
+      </div> */}
 
       {/* Impact Section */}
-      <div className="max-w-6xl mx-auto px-8 py-20">
+      {/* <div className="max-w-6xl mx-auto px-8 py-20">
         <h2 className="text-3xl font-light text-[#737144] tracking-[0.15em] mb-16 uppercase text-center">
           Our Impact
         </h2>
@@ -187,7 +203,7 @@ export default function AboutPage() {
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
 
       {/* Artisan Stories Section */}
       <div className="bg-[#f4f3ed] py-20">
@@ -203,29 +219,29 @@ export default function AboutPage() {
           <div className="grid md:grid-cols-4 gap-8">
             {[
               {
-                name: "Ramesh Kumar",
+                name: "Manoj Paswan",
                 craft: "Master Weaver",
-                experience: "35 years",
-                img:"/art1.jpeg"
+                experience: "25 years",
+                img: "/art1.jpeg",
               },
               {
-                name: "Lakshmi Devi",
-                craft: "Silk Dyer",
+                name: "Vijay Kumar",
+                craft: "Leather Karigar",
+                experience: "24 years",
+                img: "/vijay.png",
+              },
+              {
+                name: "Jagdish Kumar",
+                craft: "Zari Artisan",
+                experience: "50 years",
+                img: "/chkra.png",
+              },
+              {
+                name: "Rafeeq",
+                craft: "Zari Artisan",
                 experience: "28 years",
-                img:"/art2.jpeg"
+                img: "/art4.jpeg",
               },
-              {
-                name: "Anil Sharma",
-                craft: "Zari Artisan",
-                experience: "42 years",
-                img:"/art3.jpeg"
-              },
-              {
-                name: "raju singh",
-                craft: "Zari Artisan",
-                experience: "42 years",
-                img:"/art4.jpeg"
-              }
             ].map((artisan, index) => (
               <div
                 key={index}
@@ -258,7 +274,10 @@ export default function AboutPage() {
           Every purchase supports an artisan, preserves a tradition, and weaves
           a better future. Become part of the Heritage Sparrow family today.
         </p>
-        <button className="bg-[#737144] text-white px-12 py-4 tracking-[0.15em] uppercase text-sm font-light hover:bg-[#5f5d3d] transition-all duration-300 hover:shadow-lg">
+        <button
+          className="bg-[#737144] text-white px-12 py-4 tracking-[0.15em] uppercase text-sm font-light hover:bg-[#5f5d3d] transition-all duration-300 hover:shadow-lg"
+          onClick={() => (window.location.href = "/collections")}
+        >
           Explore Our Collection
         </button>
       </div>
