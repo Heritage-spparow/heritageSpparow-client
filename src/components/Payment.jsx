@@ -31,6 +31,13 @@ export default function Payment() {
 
   const { register, handleSubmit, reset } = useForm();
 
+  const reverseGeocode = async (lat, lon) => {
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
+  );
+  return res.json();
+};
+
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/login", {
@@ -74,6 +81,43 @@ export default function Payment() {
     }
   }, [currentUser.addresses]);
 
+  useEffect(() => {
+  // If address already exists → DO NOTHING
+  if (currentUser.addresses.length > 0) return;
+
+  if (!navigator.geolocation) return;
+
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      try {
+        const { latitude, longitude } = position.coords;
+        const data = await reverseGeocode(latitude, longitude);
+
+        const addr = data.address || {};
+
+        setSelectedAddress({
+          firstName: "",
+          lastName: "",
+          phone: "",
+          street: "",
+          addressLine2: "",
+          city: addr.city || addr.town || addr.village || "",
+          state: addr.state || "",
+          zipCode: addr.postcode || "",
+          country: addr.country || "India",
+        });
+      } catch (err) {
+        console.warn("Location fetch failed");
+      }
+    },
+    () => {
+      console.warn("User denied location access");
+    },
+    { enableHighAccuracy: false, timeout: 8000 }
+  );
+}, [currentUser.addresses.length]);
+
+
   const formatAddress = (addr) => ({
     id: addr._id,
     label: addr.label,
@@ -107,7 +151,7 @@ export default function Payment() {
     try {
       if (saveInfo) {
         const newAddress = {
-          label: "Home",
+          label: "home",
           firstName: selectedAddress.firstName,
           lastName: selectedAddress.lastName,
           phone: selectedAddress.phone,

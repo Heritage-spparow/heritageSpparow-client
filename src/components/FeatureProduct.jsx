@@ -30,6 +30,15 @@ export default function FeatureProduct() {
   const [touchEnd, setTouchEnd] = useState(0);
   const imageContainerRef = useRef(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [scale, setScale] = useState(1);
+  const [lastDistance, setLastDistance] = useState(null);
+  const [origin, setOrigin] = useState({ x: 0, y: 0 });
+
+  const getDistance = (touches) => {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
 
   //  const currentProduct = {
   //   name: "Traditional Embroidered Juttis",
@@ -43,29 +52,54 @@ export default function FeatureProduct() {
   const minSwipeDistance = 50;
 
   const onTouchStart = (e) => {
-    setTouchEnd(0);
-    setTouchStart(e.targetTouches[0].clientX);
+    if (e.touches.length === 2) {
+      const dist = getDistance(e.touches);
+      setLastDistance(dist);
+
+      const rect = imageContainerRef.current.getBoundingClientRect();
+      setOrigin({
+        x: (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left,
+        y: (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top,
+      });
+    } else {
+      setTouchEnd(0);
+      setTouchStart(e.touches[0].clientX);
+    }
   };
 
   const onTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
+    if (e.touches.length === 2 && lastDistance) {
+      const newDistance = getDistance(e.touches);
+      const zoomFactor = newDistance / lastDistance;
+
+      setScale((prev) => {
+        let next = prev * zoomFactor;
+        return Math.min(Math.max(next, 1), 3); // clamp 1x–3x
+      });
+
+      setLastDistance(newDistance);
+    } else {
+      setTouchEnd(e.touches[0].clientX);
+    }
   };
 
   const onTouchEnd = () => {
-    if (!touchStart || !touchEnd || isAnimating) return;
+    setLastDistance(null);
 
+    // Disable swipe if zoomed
+    if (scale > 1 || isAnimating) return;
+
+    if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
     if (Math.abs(distance) < 50) return;
 
     setIsAnimating(true);
 
-    setActiveImage((prev) => {
-      if (distance > 0) {
-        return prev === images.length - 1 ? prev : prev + 1;
-      } else {
-        return prev === 0 ? prev : prev - 1;
-      }
-    });
+    setActiveImage((prev) =>
+      distance > 0
+        ? Math.min(prev + 1, images.length - 1)
+        : Math.max(prev - 1, 0)
+    );
 
     setTimeout(() => setIsAnimating(false), 300);
   };
@@ -219,12 +253,18 @@ export default function FeatureProduct() {
                           >
                             <img
                               src={image}
-                              loading="lazy"
-                              decoding="async"
                               alt={`${currentProduct.name}-${index}`}
                               className="w-full max-h-[85vh] object-contain select-none"
                               draggable={false}
-                              style={{ touchAction: "pan-y" }}
+                              loading="lazy"
+                              decoding="async"
+                              style={{
+                                transform: `scale(${scale})`,
+                                transformOrigin: `${origin.x}px ${origin.y}px`,
+                                transition:
+                                  scale === 1 ? "transform 0.3s ease" : "none",
+                                touchAction: scale > 1 ? "none" : "pan-y",
+                              }}
                             />
                           </div>
                         ))}

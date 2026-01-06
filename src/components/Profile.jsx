@@ -60,7 +60,7 @@ const Profile = () => {
   // ─── Address Add / Update ───────────────────────
   const onAddOrUpdateAddress = async (data) => {
     const addressData = {
-      label: data.label,
+      label: "home",
       firstName: data.firstName,
       lastName: data.lastName,
       phone: data.phone,
@@ -79,7 +79,7 @@ const Profile = () => {
     try {
       setFormErrors([]);
       const response = editingAddress
-        ? await updateAddress(editingAddress.id, addressData)
+        ? await updateAddress(editingAddress._id, addressData)
         : await addAddress(addressData);
 
       if (response.success) {
@@ -90,7 +90,7 @@ const Profile = () => {
         );
         setShowAddressForm(false);
         setEditingAddress(null);
-        reset();
+        reset(); 
       } else {
         console.error("Address error:", response.errors);
         setFormErrors(
@@ -274,7 +274,7 @@ const Profile = () => {
                   ))}
                 </div>
               )}
-              {["label", "firstName", "lastName", "phone", "street", "city", "state", "zipCode"].map((f) => (
+              {[ "firstName", "lastName", "phone", "street", "city", "state", "zipCode"].map((f) => (
                 <div key={f}>
                   <label className="text-sm text-[var(--color-bg)] capitalize">{f}</label>
                   <input
@@ -315,7 +315,7 @@ const Profile = () => {
               >
                 <div className="flex flex-col md:flex-row justify-between gap-4">
                   <div>
-                    <p className="font-medium text-[var(--color-bg)]">{a.label}</p>
+                    {/* <p className="font-medium text-[var(--color-bg)]">{a.label}</p> */}
                     <p className="text-[var(--color-bg)] text-sm">
                       {a.firstName} {a.lastName}
                     </p>
@@ -335,14 +335,14 @@ const Profile = () => {
                       Edit
                     </button>
                     <button
-                      onClick={() => deleteAddress(a.id)}
+                      onClick={() => deleteAddress(a._id)}
                       className="text-red-600 hover:underline"
                     >
                       Delete
                     </button>
                     {!a.isDefault && (
                       <button
-                        onClick={() => setDefaultAddress(a.id)}
+                        onClick={() => setDefaultAddress(a._id)}
                         className="text-blue-600 hover:underline"
                       >
                         Set Default
