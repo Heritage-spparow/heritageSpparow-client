@@ -53,6 +53,8 @@ export default function FeatureProduct() {
 
   const onTouchStart = (e) => {
     if (e.touches.length === 2) {
+      e.preventDefault();
+
       const dist = getDistance(e.touches);
       setLastDistance(dist);
 
@@ -69,16 +71,18 @@ export default function FeatureProduct() {
 
   const onTouchMove = (e) => {
     if (e.touches.length === 2 && lastDistance) {
+      e.preventDefault(); // 🔥 REQUIRED
+
       const newDistance = getDistance(e.touches);
       const zoomFactor = newDistance / lastDistance;
 
       setScale((prev) => {
-        let next = prev * zoomFactor;
-        return Math.min(Math.max(next, 1), 3); // clamp 1x–3x
+        const next = prev * zoomFactor;
+        return Math.min(Math.max(next, 1), 3);
       });
 
       setLastDistance(newDistance);
-    } else {
+    } else if (e.touches.length === 1 && scale === 1) {
       setTouchEnd(e.touches[0].clientX);
     }
   };
@@ -103,6 +107,10 @@ export default function FeatureProduct() {
 
     setTimeout(() => setIsAnimating(false), 300);
   };
+
+  useEffect(() => {
+    setScale(1);
+  }, [activeImage]);
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -240,7 +248,7 @@ export default function FeatureProduct() {
                     {/* ✅ SLIDER TRACK (FIXES STICKING ISSUE) */}
                     <div className="relative w-full overflow-hidden">
                       <div
-                        className="flex transition-transform duration-300 ease-out"
+                        className="flex transition-transform duration-300 ease-out "
                         style={{
                           transform: `translateX(-${activeImage * 100}%)`,
                           willChange: "transform",
@@ -248,8 +256,14 @@ export default function FeatureProduct() {
                       >
                         {images.map((image, index) => (
                           <div
-                            key={index}
-                            className="min-w-full flex items-center justify-center bg-white"
+                            className="relative flex items-center justify-center w-full flex-shrink-0"
+                            style={{
+                              transform: `scale(${scale})`,
+                              transformOrigin: `${origin.x}px ${origin.y}px`,
+                              transition:
+                                scale === 1 ? "transform 0.3s ease" : "none",
+                              touchAction: "none",
+                            }}
                           >
                             <img
                               src={image}
@@ -258,13 +272,6 @@ export default function FeatureProduct() {
                               draggable={false}
                               loading="lazy"
                               decoding="async"
-                              style={{
-                                transform: `scale(${scale})`,
-                                transformOrigin: `${origin.x}px ${origin.y}px`,
-                                transition:
-                                  scale === 1 ? "transform 0.3s ease" : "none",
-                                touchAction: scale > 1 ? "none" : "pan-y",
-                              }}
                             />
                           </div>
                         ))}
