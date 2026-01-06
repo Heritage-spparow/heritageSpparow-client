@@ -220,7 +220,7 @@ export default function AboutPage() {
             {[
               {
                 name: "Manoj Paswan",
-                craft: "Master Weaver",
+                craft: "Master Embroiderer",
                 experience: "25 years",
                 img: "/art1.jpeg",
               },
@@ -232,13 +232,13 @@ export default function AboutPage() {
               },
               {
                 name: "Jagdish Kumar",
-                craft: "Zari Artisan",
+                craft: "Leather Karigar",
                 experience: "50 years",
                 img: "/chkra.png",
               },
               {
                 name: "Rafeeq",
-                craft: "Zari Artisan",
+                craft: "Master Embroiderer",
                 experience: "28 years",
                 img: "/art4.jpeg",
               },

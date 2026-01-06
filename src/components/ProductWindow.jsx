@@ -197,6 +197,8 @@ export default function ProductWindow() {
       <div className="relative w-full h-[60vh] sm:h-[50vh] md:h-[70vh] lg:h-[100vh]">
         <img
           src={banner}
+          loading="lazy"
+          decoding="async"
           alt={decodeURIComponent(name)}
           className="w-full h-full object-cover object-center"
         />
@@ -260,6 +262,8 @@ export default function ProductWindow() {
                   <img
                     src={product.coverImage?.url}
                     alt={product.name}
+                    loading="lazy"
+                    decoding="async"
                     className="absolute inset-0 w-full h-full object-contain
                transition-opacity duration-800 ease-in-out
                opacity-100 group-hover:opacity-0 scale-110"
@@ -271,6 +275,8 @@ export default function ProductWindow() {
                       product.galleryImages?.[0]?.url || product.coverImage?.url
                     }
                     alt={`${product.name} hover`}
+                    loading="lazy"
+                    decoding="async"
                     className="absolute inset-0 w-full h-full object-contain
                transition-opacity duration-800 ease-in-out
                opacity-0 group-hover:opacity-100

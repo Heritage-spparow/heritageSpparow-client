@@ -181,7 +181,7 @@ export default function Payment() {
         currency: "INR",
         name: "HERITAGE SPARROW",
         description:
-          "HONOURING INDIA'S INDIGENOUS ARTISANS AND THEIR CRAFTSMANSHIP",
+          "HERITAGE SPARROW",
         image: "/login.png",
         order_id: rzOrder.id,
         prefill: {

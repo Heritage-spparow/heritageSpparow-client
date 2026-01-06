@@ -186,6 +186,8 @@ export default function FeatureProduct() {
                     >
                       <img
                         src={image}
+                        loading="lazy"
+                        decoding="async"
                         alt={`${currentProduct.name}-${index}`}
                         className="w-full h-full object-cover"
                       />
@@ -218,6 +220,8 @@ export default function FeatureProduct() {
                           >
                             <img
                               src={image}
+                              loading="lazy"
+                              decoding="async"
                               alt={`${currentProduct.name}-${index}`}
                               className="w-full max-h-[85vh] object-contain select-none"
                               draggable={false}
@@ -380,6 +384,8 @@ export default function FeatureProduct() {
                       <div className="flex justify-center">
                         <img
                           src={sizeChart}
+                          loading="lazy"
+                          decoding="async"
                           alt="Size Chart"
                           className="
                   max-h-[80vh]
@@ -459,7 +465,6 @@ export default function FeatureProduct() {
 
                   {activeTab === "shipping" && (
                     <div className="space-y-3 text-sm text-[#555] leading-relaxed">
-                      <p>Orders are </p>
                       <p>
                         Delivery across India typically takes{" "}
                         <span className="text-[#737144]">
@@ -488,7 +493,7 @@ export default function FeatureProduct() {
                   {activeTab === "care" && (
                     <p>
                       {currentProduct.specifications?.care ||
-                        "Dry clean only. Store in a cool, dry place away from direct sunlight."}
+                        "Dry clean only. Avoid moisture and direct contact with water. After use, allow the pair to air out and store it in the Heritage Sparrow dust bag provided to preserve its shape and embroidery."}
                     </p>
                   )}
                 </div>
@@ -552,6 +557,8 @@ export default function FeatureProduct() {
                     <img
                       src={rel.coverImage?.url || img}
                       alt={rel.name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
