@@ -201,7 +201,7 @@ const Orders = () => {
                   <div>
                     <p className="text-xs text-gray-500 uppercase">Total</p>
                     <p className="text-[var(--color-bg)]  font-medium">
-                      ${order.totalPrice.toFixed(2)}
+                      ₹ {order.totalPrice.toFixed(2)}
                     </p>
                   </div>
                   <div>

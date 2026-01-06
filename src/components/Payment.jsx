@@ -54,6 +54,12 @@ export default function Payment() {
       description: "",
       icon: CreditCard,
     },
+    {
+      id: "cod",
+      name: "Cash on Delivery",
+      description: "",
+      icon: Truck,
+    }
   ];
 
   // Load Razorpay script
