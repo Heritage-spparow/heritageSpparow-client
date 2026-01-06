@@ -8,10 +8,11 @@ import creative3 from "../assets/LandingPage/01-RoopDiRani.jpg";
 import creative4 from "../assets/LandingPage/01-Shagan.jpg";
 import creative5 from "../assets/LandingPage/DSC_5793.jpg";
 
+
 export default function FashionLanding() {
   const { fetchCategories } = useProduct();
   const navigate = useNavigate();
-  const [categories, setCategories] = useState([]);
+  const { categories } = useProduct();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [enableTransition, setEnableTransition] = useState(true);
   const [touchStartX, setTouchStartX] = useState(null);
@@ -32,13 +33,11 @@ export default function FashionLanding() {
     const swipeThreshold = 50; // px
 
     if (distance > swipeThreshold) {
-      // 👉 swipe left → next
       setEnableTransition(true);
       setCurrentSlide((prev) => prev + 1);
     }
 
     if (distance < -swipeThreshold) {
-      // 👉 swipe right → previous
       setEnableTransition(true);
       setCurrentSlide((prev) =>
         prev === 0 ? collectionsData[1].images.length - 1 : prev - 1
@@ -49,21 +48,6 @@ export default function FashionLanding() {
     setTouchEndX(null);
   };
 
-  useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        const result = await fetchCategories(true);
-        if (result.success) {
-          setCategories(result.categories || []);
-        } else {
-          console.error("Failed to load categories:", result.error);
-        }
-      } catch (err) {
-        console.error("Unexpected error in loadCategories:", err);
-      }
-    };
-    loadCategories();
-  }, [fetchCategories]);
 
   const collectionsData = [
     {
@@ -82,10 +66,14 @@ export default function FashionLanding() {
       id: 2,
       type: "carousel",
       images: [
-        { src: creative1, category: "Basant" },
-        { src: creative2, category: "Milaap" },
-        { src: creative3, category: "Roop Di Rani" },
-        { src: creative4, category: "Shagun" },
+        { src: creative1, category: "Basant", id: "695b423c8442a5230d2898c4" },
+        { src: creative2, category: "Milaap", id: "695bc02ec26b080cff59fc0e" },
+        {
+          src: creative3,
+          category: "Roop Di Rani",
+          id: "695b4c99277be9ec74c67e38",
+        },
+        { src: creative4, category: "Shagun", id: "695b5d6d2fb216f0b1c8396f" },
       ],
       cta: {
         label: "Shop Now",
@@ -95,8 +83,12 @@ export default function FashionLanding() {
         //       collectionsData[1].images[currentSlide].category
         //     )}`
         //   ),
-        action: () =>
-          navigate(`/product/${encodeURIComponent(categories[0] || "")}`),
+        action: () => {
+          const item = collectionsData[1].images[currentSlide];
+          if (item?.id) {
+            navigate(`/feature/${item.id}`);
+          }
+        },
         position: "left",
       },
     },
@@ -123,7 +115,7 @@ export default function FashionLanding() {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => prev + 1);
       setEnableTransition(true);
-    }, 3000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, []);

@@ -3,7 +3,7 @@ import { useCart } from "../context/CartContex";
 import { useAuth } from "../context/AuthContext";
 import { useOrder } from "../context/OrderContext";
 import api from "../services/api";
-
+import { useNavigate } from "react-router-dom";
 import { Truck, Check, Info, X, CreditCard } from "lucide-react";
 
 import { useForm } from "react-hook-form";
@@ -15,7 +15,9 @@ const BG_COLOR = "#f9f6ef";
 export default function Payment() {
   const { items, totalPrice, clearCart } = useCart();
   const { user, addAddress } = useAuth();
-  const { createOrder } = useOrder();
+  const { createOrder } = useOrder(); 
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
   const [selectedAddress, setSelectedAddress] = useState(null);
@@ -28,6 +30,14 @@ export default function Payment() {
   const [sameAsBilling, setSameAsBilling] = useState(true);
 
   const { register, handleSubmit, reset } = useForm();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login", {
+        state: { from: "/payment" },
+      });
+    }
+  }, [isAuthenticated]);
 
   const currentUser = {
     firstName: user?.firstName || "Guest",
@@ -106,7 +116,7 @@ export default function Payment() {
           city: selectedAddress.city,
           state: selectedAddress.state,
           postalCode: selectedAddress.zipCode,
-          country: "India", 
+          country: "India",
         };
 
         try {
@@ -118,7 +128,7 @@ export default function Payment() {
       const itemsPrice = totalPrice;
       const taxPrice = itemsPrice * 1;
       const shippingPrice = itemsPrice > 100 ? 0 : 10;
-      const finalTotal = itemsPrice + taxPrice + shippingPrice;
+      const finalTotal = itemsPrice;
 
       const orderPayload = {
         orderItems: items.map((item) => ({
@@ -576,7 +586,7 @@ export default function Payment() {
                     <div className="relative">
                       <img
                         src={
-                         item.product.coverImage?.url  ||
+                          item.product.coverImage?.url ||
                           "/api/placeholder/80/80"
                         }
                         alt={item.product.name}

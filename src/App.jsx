@@ -6,7 +6,7 @@ import {
   Route,
   useLocation,
 } from "react-router-dom";
-
+import{ useEffect } from "react";
 import Navbar from "./components/Navbar";
 import Landing from "./components/Landing";
 import Search from "./components/Search";
@@ -31,9 +31,16 @@ import PrivacyPolicyPage from "./policies/PrivacyPolicyPage";
 import TermsConditionsPage from "./policies/TermsConditionsPage";
 import ShippingReturnsRefundPage from "./policies/ShippingReturnsRefundPage";
 import ShringarAlbum from "./components/ShringarAlbum";
+import { useProduct } from "./context/ProductContext";
+import AuthSuccess from "./components/AuthSuccess";
 
 function AppContent() {
   const location = useLocation();
+  const { fetchCategories } = useProduct();
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
 
   // Routes where Navbar should be hidden
   const hideNavbarRoutes = ["/login", "/signup"];
@@ -57,7 +64,7 @@ function AppContent() {
             path="/auth/google/callback"
             element={<GoogleAuthCallback />}
           />
-
+          <Route path="/auth/success" element={<AuthSuccess />} />
           {/* ✅ POLICY ROUTES (NESTED) */}
           <Route path="/policies" element={<PolicyLayout />}>
             <Route index element={<PrivacyPolicyPage />} />
@@ -79,14 +86,7 @@ function AppContent() {
             }
           />
           <Route path="/feature/:id" element={<FeatureProduct />} />
-          <Route
-            path="/checkout"
-            element={
-              <PrivateRoute>
-                <Checkout />
-              </PrivateRoute>
-            }
-          />
+          <Route path="/checkout" element={<Checkout />} />
           <Route
             path="/payment"
             element={

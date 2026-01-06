@@ -19,11 +19,11 @@ const Login = () => {
   const navigate = useNavigate();
 
   // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/");
-    }
-  }, [isAuthenticated, navigate]);
+  // useEffect(() => {
+  //   if (isAuthenticated) {
+  //     navigate("/");
+  //   }
+  // }, [isAuthenticated, navigate]);
 
   // Clear errors when component mounts
   useEffect(() => {
@@ -56,7 +56,7 @@ const Login = () => {
       newErrors.email = "Please enter a valid email";
     }
 
-    // Password validation
+    // Password validation 
     if (!formData.password) {
       newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
@@ -80,8 +80,11 @@ const Login = () => {
       const result = await login(formData);
 
       if (result.success) {
-        navigate("/");
-      }
+    const redirectTo =
+  localStorage.getItem("redirectAfterLogin") || "/";
+localStorage.removeItem("redirectAfterLogin");
+navigate(redirectTo, { replace: true });
+  }
     } catch (err) {
       console.error("Login error:", err);
     } finally {

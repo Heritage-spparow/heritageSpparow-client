@@ -25,7 +25,6 @@ export default function FeatureProduct() {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
-  const { user, isAuthenticated, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
@@ -92,35 +91,43 @@ export default function FeatureProduct() {
   ].filter(Boolean);
 
   const handleAddToCart = async () => {
-    if (!isAuthenticated || !user) {
-      navigate("/login", { state: { from: `/feature/${id}` } });
-      return;
-    }
-    if (!selectedSize) {
-      return;
-    }
+  if (isAddingToCart) return;
 
-    setIsAddingToCart(true);
-    try {
-      const response = await addToCart(currentProduct, selectedSize, 1);
-      if (response.success) {
-        setAddedToCart(true);
-      } else {
-        alert(response.error || "Failed to add to cart");
-      }
-    } catch (err) {
-      alert("An error occurred while adding to cart.");
-    } finally {
-      setIsAddingToCart(false);
+  if (!selectedSize) return;
+
+  setIsAddingToCart(true);
+
+  try {
+    const response = await addToCart(currentProduct, selectedSize, 1);
+
+    if (response?.success) {
+      setAddedToCart(true);
     }
-  };
-  const handleViewCart = () => {
-    if (error) {
-      alert(error);
-      clearError();
-    }
-    navigate("/checkout");
-  };
+  } finally {
+    setIsAddingToCart(false);
+  }
+};
+
+
+  const handleProceedToPay = () => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    // 👇 SAME LOGIC
+    localStorage.setItem("redirectAfterLogin", "/payment");
+    navigate("/login");
+    return;
+  }
+
+  navigate("/payment");
+};
+  // const handleViewCart = () => {
+  //   if (error) {
+  //     alert(error);
+  //     clearError();
+  //   }
+  //   navigate("/checkout");
+  // };
 
   const dinStyle = {
     fontFamily:
@@ -141,15 +148,10 @@ export default function FeatureProduct() {
     return (
       <div className="p-10 text-center">
         <p className="text-red-600">{error || "Product not found."}</p>
-        <button
-          onClick={() => {
-            clearError();
-            navigate("/");
-          }}
-          className="mt-4 bg-green-800 text-white px-8 py-3 rounded-md font-medium hover:bg-green-900"
-        >
-          Back to Home
-        </button>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F3ED]">
+          <div className="loader"></div>
+          <p className="mt-4 text-[#737144] uppercase tracking-[0.25em] text-sm font-light"></p>
+        </div>
       </div>
     );
   }
@@ -438,7 +440,7 @@ export default function FeatureProduct() {
                   {activeTab === "shipping" && (
                     <p>
                       {currentProduct.shippingInfo?.estimatedDelivery ||
-                        "Standard delivery: 7 – 10 business days. Free shipping on orders over INR 1,500."}
+                        "Complimentary shipping across India."}
                     </p>
                   )}
 
@@ -456,34 +458,31 @@ export default function FeatureProduct() {
               </div>
             </div>
 
-            {/* Action Button Section */}
             <div className="space-y-4 mt-6">
-              {addedToCart ? (
-                <button
-                  onClick={handleViewCart}
-                  className="w-full py-4 px-6 bg-[#737144] text-white text-sm  tracking-[0.15em] uppercase font-light  
-                  transition-all duration-300 hover:bg-[#5f5d3d] hover:shadow-[0_4px_10px_rgba(0,0,0,0.15)]"
-                >
-                  Proceed to Checkout
-                </button>
-              ) : (
+              {!addedToCart ? (
                 <button
                   onClick={handleAddToCart}
                   disabled={
                     isAddingToCart ||
-                    (currentProduct.sizes?.length > 0 && !selectedSize) ||
-                    (currentProduct.colors?.length > 0 && !selectedColor)
+                    (currentProduct.sizes?.length > 0 && !selectedSize)
                   }
-                  className={`w-full py-4 px-6 text-sm tracking-[0.15em] uppercase font-light  transition-all duration-300 
+                  className={`w-full py-4 px-6 text-sm tracking-[0.15em] uppercase font-light transition-all duration-300
         ${
-          isAddingToCart ||
-          (currentProduct.sizes?.length > 0 && !selectedSize) ||
-          (currentProduct.colors?.length > 0 && !selectedColor)
+          isAddingToCart || !selectedSize
             ? "bg-[#737144]/30 text-gray-300 cursor-not-allowed"
-            : "bg-[#737144] text-white hover:bg-[#5f5d3d] hover:shadow-[0_4px_10px_rgba(0,0,0,0.15)]"
+            : "bg-[#737144] text-white hover:bg-[#5f5d3d]"
         }`}
                 >
                   {isAddingToCart ? "Adding to Bag..." : "Add to Bag"}
+                </button>
+              ) : (
+                <button
+                  onClick={handleProceedToPay}
+                  className="w-full py-4 px-6 text-sm tracking-[0.15em] uppercase font-light
+        bg-[#737144] text-white hover:bg-[#5f5d3d]
+        transition-all duration-300"
+                >
+                  Proceed to Pay
                 </button>
               )}
             </div>

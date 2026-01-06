@@ -55,7 +55,16 @@ export default function Checkout() {
   const handleCheckout = async () => {
     setIsProcessing(true);
     try {
-      await new Promise((r) => setTimeout(r, 1500));
+      await new Promise((r) => setTimeout(r, 300));
+
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        localStorage.setItem("redirectAfterLogin", "/payment");
+        navigate("/login");
+        return;
+      }
+
       navigate("/payment");
     } catch {
       alert("An error occurred during checkout.");
@@ -67,7 +76,7 @@ export default function Checkout() {
   const handleContinueShopping = () => {
     clearError();
     console.log(items);
-    navigate(-1);
+    navigate("/");
   };
 
   if (loading)

@@ -170,26 +170,36 @@ export const ProductProvider = ({ children }) => {
 
   // Fetch categories
   const fetchCategories = useCallback(async () => {
-    try {
-      dispatch({ type: PRODUCT_ACTIONS.FETCH_CATEGORIES_START });
-      const response = await productAPI.getCategories();
-      
-      if (response.data.success) {
-        dispatch({
-          type: PRODUCT_ACTIONS.FETCH_CATEGORIES_SUCCESS,
-          payload: response.data.categories
-        });
-        return { success: true, categories: response.data.categories };
-      }
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Failed to fetch categories';
+  // ⛔ DO NOT refetch if already loaded
+  if (state.categories.length > 0) {
+    return { success: true, categories: state.categories };
+  }
+
+  try {
+    dispatch({ type: PRODUCT_ACTIONS.FETCH_CATEGORIES_START });
+    const response = await productAPI.getCategories();
+
+    if (response.data.success) {
       dispatch({
-        type: PRODUCT_ACTIONS.FETCH_CATEGORIES_FAILURE,
-        payload: errorMessage
+        type: PRODUCT_ACTIONS.FETCH_CATEGORIES_SUCCESS,
+        payload: response.data.categories,
       });
-      return { success: false, error: errorMessage };
+
+      return { success: true, categories: response.data.categories };
     }
-  }, []);
+  } catch (error) {
+    const errorMessage =
+      error.response?.data?.message || "Failed to fetch categories";
+
+    dispatch({
+      type: PRODUCT_ACTIONS.FETCH_CATEGORIES_FAILURE,
+      payload: errorMessage,
+    });
+
+    return { success: false, error: errorMessage };
+  }
+}, [state.categories]);
+
 
   // Fetch featured products
   const fetchFeaturedProducts = useCallback(async () => {

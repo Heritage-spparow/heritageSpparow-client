@@ -34,11 +34,11 @@ const Signup = () => {
   const navigate = useNavigate();
 
   // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/");
-    }
-  }, [isAuthenticated, navigate]);
+  // useEffect(() => {
+  //   if (isAuthenticated) {
+  //     navigate("/");
+  //   }
+  // }, [isAuthenticated, navigate]);
 
   useEffect(() => {
     clearError();
@@ -112,7 +112,9 @@ const Signup = () => {
       const result = await register(registrationData);
 
       if (result.success) {
-        navigate("/");
+        const redirectTo = localStorage.getItem("redirectAfterLogin") || "/";
+        localStorage.removeItem("redirectAfterLogin");
+        navigate(redirectTo, { replace: true });
       }
     } catch (err) {
       console.error("Registration error:", err);

@@ -13,6 +13,7 @@ import {
   Settings,
   Package,
 } from "lucide-react";
+import { useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useCart } from "../context/CartContex";
 import { useAuth } from "../context/AuthContext";
@@ -20,11 +21,23 @@ import { useProduct } from "../context/ProductContext";
 import logo from "../assets/logo.png";
 
 const Navbar = () => {
+  const { categories } = useProduct();
+  const firstCategorySlug = useMemo(() => {
+    if (!categories || categories.length === 0) return null;
+
+    const cat = categories[0];
+
+    if (typeof cat === "string") return cat;
+    if (cat.category) return cat.category;
+    if (cat.name) return cat.name;
+
+    return null;
+  }, [categories]);
+
+  
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isShopMenuOpen, setIsShopMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const { fetchCategories } = useProduct();
-  const [categories, setCategories] = useState([]);
   const navigate = useNavigate();
   const { items, totalItems, error, clearError } = useCart();
   const { user, isAuthenticated, logout } = useAuth();
@@ -40,22 +53,6 @@ const Navbar = () => {
       "'D-DIN', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif",
     fontWeight: 400,
   };
-
-  useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        const result = await fetchCategories(true);
-        if (result.success) {
-          setCategories(result.categories || []);
-        } else {
-          console.error("Failed to load categories:", result.error);
-        }
-      } catch (err) {
-        console.error("Unexpected error in loadCategories:", err);
-      }
-    };
-    loadCategories();
-  }, [fetchCategories]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -117,21 +114,18 @@ const Navbar = () => {
       className="w-full bg-[var(--color-bg)] h-[56px] md:h-[64px] fixed top-0 left-0 z-50 border-b border-[var(--color-border)]"
     >
       {/* Desktop Navigation */}
-    <div className="hidden md:flex h-full w-full text-white items-center justify-between px-6">
+      <div className="hidden md:flex h-full w-full text-white items-center justify-between px-6">
         <div className="flex h-full w-full justify-between items-center space-x-8">
-            {categories.map((category) => (
-              <Link
-                key={category}
-                to={`/product/${encodeURIComponent(category)}`}
-                className="block  hover:underline font-medium relative hover:opacity-90 font-light"
-                onClick={() => {
-                  setIsShopMenuOpen(false);
-                  setIsMenuOpen(false);
-                }}
-              >
-                SHOP
-              </Link>
-            ))}
+          <button
+            onClick={() => {
+              if (firstCategorySlug) {
+                navigate(`/product/${encodeURIComponent(firstCategorySlug)}`);
+              }
+            }}
+            className="hover:underline font-medium cursor-pointer"
+          >
+            SHOP
+          </button>
           <Link to="/campaign" className={` hover:underline font-medium`}>
             CAMPAIGN
           </Link>
@@ -152,6 +146,7 @@ const Navbar = () => {
           <Link to="/search" className={` hover:underline font-medium`}>
             SEARCH
           </Link>
+
           {/* Profile Dropdown */}
           <div className="relative text-white" ref={dropdownRef}>
             {isAuthenticated ? (
@@ -214,13 +209,15 @@ const Navbar = () => {
               </>
             ) : (
               <button
-                onClick={handleLogin}
-                className={`text-gray-700 ${
-                  isShopMenuOpen ? "text-white" : "text-gray"
-                } hover:underline font-medium flex items-center space-x-1 cursor-pointer`}
+                onClick={handleCartClick}
+                className="relative text-white hover:opacity-90 transition"
               >
-                <User className={"text-white"} size={20} />
-                <span className="hidden lg:block text-white">Login</span>
+                <ShoppingBag size={20} />
+                {totalItems > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-white text-[var(--color-bg)] text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {totalItems}
+                  </span>
+                )}
               </button>
             )}
           </div>
@@ -355,7 +352,9 @@ const Navbar = () => {
             <button onClick={toggleMenu} className="text-white">
               <X size={28} />
             </button>
-            <h1 className="text-sm md:text-base text-white tracking-[0.18em] font-medium">HERITAGE SPARROW</h1>
+            <h1 className="text-sm md:text-base text-white tracking-[0.18em] font-medium">
+              HERITAGE SPARROW
+            </h1>
             <div className="w-7"></div>
           </div>
 
