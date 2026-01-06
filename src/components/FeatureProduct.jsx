@@ -29,6 +29,7 @@ export default function FeatureProduct() {
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const imageContainerRef = useRef(null);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   //  const currentProduct = {
   //   name: "Traditional Embroidered Juttis",
@@ -51,19 +52,22 @@ export default function FeatureProduct() {
   };
 
   const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
+    if (!touchStart || !touchEnd || isAnimating) return;
 
     const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
+    if (Math.abs(distance) < 50) return;
 
-    if (isLeftSwipe) {
-      setActiveImage((prev) => (prev === images.length - 1 ? 0 : prev + 1));
-    }
+    setIsAnimating(true);
 
-    if (isRightSwipe) {
-      setActiveImage((prev) => (prev === 0 ? images.length - 1 : prev - 1));
-    }
+    setActiveImage((prev) => {
+      if (distance > 0) {
+        return prev === images.length - 1 ? prev : prev + 1;
+      } else {
+        return prev === 0 ? prev : prev - 1;
+      }
+    });
+
+    setTimeout(() => setIsAnimating(false), 300);
   };
 
   useEffect(() => {
@@ -91,36 +95,35 @@ export default function FeatureProduct() {
   ].filter(Boolean);
 
   const handleAddToCart = async () => {
-  if (isAddingToCart) return;
+    if (isAddingToCart) return;
 
-  if (!selectedSize) return;
+    if (!selectedSize) return;
 
-  setIsAddingToCart(true);
+    setIsAddingToCart(true);
 
-  try {
-    const response = await addToCart(currentProduct, selectedSize, 1);
+    try {
+      const response = await addToCart(currentProduct, selectedSize, 1);
 
-    if (response?.success) {
-      setAddedToCart(true);
+      if (response?.success) {
+        setAddedToCart(true);
+      }
+    } finally {
+      setIsAddingToCart(false);
     }
-  } finally {
-    setIsAddingToCart(false);
-  }
-};
-
+  };
 
   const handleProceedToPay = () => {
-  const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
 
-  if (!token) {
-    // 👇 SAME LOGIC
-    localStorage.setItem("redirectAfterLogin", "/payment");
-    navigate("/login");
-    return;
-  }
+    if (!token) {
+      // 👇 SAME LOGIC
+      localStorage.setItem("redirectAfterLogin", "/payment");
+      navigate("/login");
+      return;
+    }
 
-  navigate("/payment");
-};
+    navigate("/payment");
+  };
   // const handleViewCart = () => {
   //   if (error) {
   //     alert(error);
@@ -194,22 +197,36 @@ export default function FeatureProduct() {
                 <div className="flex-1 flex items-center justify-center">
                   <div
                     ref={imageContainerRef}
-                    className=" relative w-full  md:max-w-full bg-white overflow-hidden flex items-center justify-center touch-pan-y "
+                    className="relative w-full md:max-w-full bg-white overflow-hidden flex items-center justify-center touch-pan-y"
                     onTouchStart={onTouchStart}
                     onTouchMove={onTouchMove}
                     onTouchEnd={onTouchEnd}
                   >
-                    <img
-                      src={images[activeImage]}
-                      alt={currentProduct.name}
-                      className="
-              w-full
-              h-full
-              object-contain
-              transition-transform
-              duration-700
-            "
-                    />
+                    {/* ✅ SLIDER TRACK (FIXES STICKING ISSUE) */}
+                    <div className="relative w-full overflow-hidden">
+                      <div
+                        className="flex transition-transform duration-300 ease-out"
+                        style={{
+                          transform: `translateX(-${activeImage * 100}%)`,
+                          willChange: "transform",
+                        }}
+                      >
+                        {images.map((image, index) => (
+                          <div
+                            key={index}
+                            className="min-w-full flex items-center justify-center bg-white"
+                          >
+                            <img
+                              src={image}
+                              alt={`${currentProduct.name}-${index}`}
+                              className="w-full max-h-[85vh] object-contain select-none"
+                              draggable={false}
+                              style={{ touchAction: "pan-y" }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
 
                     {/* Image counter */}
                     <div className="absolute top-4 right-4 bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs text-gray-700">
@@ -231,7 +248,12 @@ export default function FeatureProduct() {
                       {images.map((_, index) => (
                         <button
                           key={index}
-                          onClick={() => setActiveImage(index)}
+                          onClick={() => {
+                            if (isAnimating) return;
+                            setIsAnimating(true);
+                            setActiveImage(index);
+                            setTimeout(() => setIsAnimating(false), 300);
+                          }}
                           className={`h-2 rounded-full transition-all duration-300 ${
                             activeImage === index
                               ? "bg-white w-6"
@@ -293,9 +315,7 @@ export default function FeatureProduct() {
                 <button className="text-sm text-[#737144] underline hover:text-blue-700">
                   Shipping
                 </button>
-                <span className="text-xs text-[#737144] ml-2">
-                  calculated at checkout.
-                </span>
+                <span className="text-xs text-[#737144] ml-2">Inclusive</span>
               </div>
             </div>
 
@@ -438,10 +458,27 @@ export default function FeatureProduct() {
                   )}
 
                   {activeTab === "shipping" && (
-                    <p>
-                      {currentProduct.shippingInfo?.estimatedDelivery ||
-                        "Complimentary shipping across India."}
-                    </p>
+                    <div className="space-y-3 text-sm text-[#555] leading-relaxed">
+                      <p>Orders are </p>
+                      <p>
+                        Delivery across India typically takes{" "}
+                        <span className="text-[#737144]">
+                          8–10 working days
+                        </span>{" "}
+                        from dispatch.
+                      </p>
+                      <p className="pt-2 text-[#737144] font-medium">
+                        What you’ll receive in the box:
+                      </p>
+                      <ul className="list-disc pl-5 space-y-1">
+                        <li>
+                          Personalised postcard sealed in a heritage sparrow
+                          envelope
+                        </li>
+                        <li>Protective jutti dust bag</li>
+                        <li>Handwritten cash memo</li>
+                      </ul>
+                    </div>
                   )}
 
                   {/* {activeTab === "dimension" && (

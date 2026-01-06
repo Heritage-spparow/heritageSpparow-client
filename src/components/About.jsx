@@ -216,7 +216,7 @@ export default function AboutPage() {
             craftsmanship
           </p>
 
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-4 gap-8"> 
             {[
               {
                 name: "Manoj Paswan",
