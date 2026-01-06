@@ -235,7 +235,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("cart_merged"); // 👈 Reset this
     setCartMerged(false);
     dispatch({ type: AUTH_ACTIONS.LOGOUT });
-    window.location.href = "/login";
+    window.location.href = "/";
   };
 
   // Update user profile
