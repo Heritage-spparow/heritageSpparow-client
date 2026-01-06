@@ -150,7 +150,6 @@ export default function FeatureProduct() {
   if (error || !currentProduct) {
     return (
       <div className="p-10 text-center">
-        <p className="text-red-600">{error || "Product not found."}</p>
         <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F3ED]">
           <div className="loader"></div>
           <p className="mt-4 text-[#737144] uppercase tracking-[0.25em] text-sm font-light"></p>
