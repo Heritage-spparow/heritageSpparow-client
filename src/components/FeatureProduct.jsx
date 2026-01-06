@@ -87,26 +87,30 @@ export default function FeatureProduct() {
     }
   };
 
-  const onTouchEnd = () => {
-    setLastDistance(null);
+ const onTouchEnd = () => {
+  setLastDistance(null);
+  if (scale > 1) {
+    setTouchStart(0);
+    setTouchEnd(0);
+    return;
+  }
 
-    // Disable swipe if zoomed
-    if (scale > 1 || isAnimating) return;
+  if (!touchStart || !touchEnd || isAnimating) return;
 
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    if (Math.abs(distance) < 50) return;
+  const distance = touchStart - touchEnd;
+  if (Math.abs(distance) < 50) return;
 
-    setIsAnimating(true);
+  setIsAnimating(true);
 
-    setActiveImage((prev) =>
-      distance > 0
-        ? Math.min(prev + 1, images.length - 1)
-        : Math.max(prev - 1, 0)
-    );
+  setActiveImage((prev) =>
+    distance > 0
+      ? Math.min(prev + 1, images.length - 1)
+      : Math.max(prev - 1, 0)
+  );
 
-    setTimeout(() => setIsAnimating(false), 300);
-  };
+  setTimeout(() => setIsAnimating(false), 300);
+};
+
 
   useEffect(() => {
     setScale(1);
@@ -250,7 +254,10 @@ export default function FeatureProduct() {
                       <div
                         className="flex transition-transform duration-300 ease-out "
                         style={{
-                          transform: `translateX(-${activeImage * 100}%)`,
+                          transform:
+                            scale > 1
+                              ? "translateX(0px)" // 🔒 LOCK SLIDER DURING ZOOM
+                              : `translateX(-${activeImage * 100}%)`,
                           willChange: "transform",
                         }}
                       >
@@ -258,6 +265,7 @@ export default function FeatureProduct() {
                           <div
                             className="relative flex items-center justify-center w-full flex-shrink-0"
                             style={{
+                              pointerEvents: scale > 1 ? "none" : "auto",
                               transform: `scale(${scale})`,
                               transformOrigin: `${origin.x}px ${origin.y}px`,
                               transition:
