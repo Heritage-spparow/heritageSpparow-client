@@ -256,7 +256,7 @@ export default function FeatureProduct() {
                 <div className="flex-1 flex items-center justify-center">
                   <div
                     ref={imageContainerRef}
-                    className="relative w-full md:max-w-full bg-white overflow-hidden flex items-center justify-center touch-pan-y"
+                    className="relative w-full md:max-w-full  overflow-hidden flex items-center justify-center touch-pan-y"
                     onTouchStart={onTouchStart}
                     onTouchMove={onTouchMove}
                     onTouchEnd={onTouchEnd}
