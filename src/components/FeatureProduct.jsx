@@ -302,11 +302,11 @@ export default function FeatureProduct() {
                                   e.stopPropagation(); // 👈 prevent double trigger
                                   setViewerOpen(true);
                                 }}
-                                className="  absolute  bottom-4 right-4    text-white  p-2    transition
+                                className="  absolute  bottom-4 right-4    text-white  p-2   transition
     "
                                 aria-label="Zoom image"
                               >
-                                
+                                🔍
                               </button>
                             </div>
                           );
