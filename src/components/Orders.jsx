@@ -222,8 +222,8 @@ const Orders = () => {
                     </p>
                     <div className="flex items-center gap-2 justify-start md:justify-end">
                       <button
-                        onClick={() => navigate(`/order/${order._id}`)}
-                        className="text-green-700 hover:underline font-medium"
+                        // onClick={() => navigate(`/order/${order._id}`)}
+                        className="hover:underline font-medium"
                       >
                         View order details
                       </button>

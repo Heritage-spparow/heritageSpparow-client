@@ -6,13 +6,13 @@ import heritage from "../assets/craft/DSC_7360.jpg";
 
 const steps = [
   {
-    title: "Sketching the Story",
-    text: "Every design begins as a memory on paper — sparrows, phulkaris, vintage windows and borders from Nani’s dupatta.",
+    title: "Sketching the Heritage",
+    text: "Each design begins as a hand drawn exploration of heritage  inspired by age old motifs, traditional patterns, and stories preserved through generations.",
     src: videoSketch,
   },
   {
-    title: "Tracing on Fabric",
-    text: "Designs are traced by hand on casement or soft leather — no lasers, just a wooden table and quiet focus.",
+    title: "Tracing by Hand",
+    text: "The designs are carefully traced by hand onto fabric and soft leather, guided by practiced hands, quiet focus, and respect for traditional methods.",
     src: videoTrace,
   },
 ];
@@ -50,8 +50,8 @@ export default function CraftPage() {
           </h1>
 
           <p className="mt-8 max-w-xl text-sm md:text-base leading-7 opacity-80">
-            At Heritage Sparrow, craft is not a step — it is a journey. A quiet
-            passage of hands, patience, and stories passed forward.
+            At Heritage Sparrow, craft stands as a legacy, defined by time,
+            intention, and human touch.
           </p>
         </div>
       </section>
@@ -159,17 +159,17 @@ export default function CraftPage() {
       {/* CLOSING */}
       <section className="px-6 md:px-16 lg:px-24 py-28 bg-[#efeada]">
         <div className="max-w-3xl">
-          <h2 className="text-sm tracking-[0.35em] uppercase">
+          <h2 className="text-sm tracking-[0.35em] uppercase text-[#737144]">
             Slowmade, Always
           </h2>
 
-          <p className="mt-6 text-sm md:text-base leading-7 opacity-80">
-            No seasons. No shortcuts. Only patience, respect, and the belief
-            that true luxury is made slowly.
+          <p className="mt-6 text-sm md:text-base leading-7 text-[#737144]/80">
+            Crafted with patience and intention, each piece reflects a respect
+            for time, tradition, and the quiet rhythm of handwork.
           </p>
 
-          <p className="mt-10 text-[10px] tracking-[0.35em] uppercase opacity-60">
-            Heritage Sparrow · Crafted by Hand
+          <p className="mt-10 text-[10px] tracking-[0.35em] uppercase text-[#737144]/60">
+            Heritage Sparrow · Handcrafted with Intention
           </p>
         </div>
       </section>

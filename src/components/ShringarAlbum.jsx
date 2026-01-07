@@ -24,8 +24,7 @@ export default function ShringarAlbum() {
         </h1>
 
         <p className="mt-6 max-w-xl text-sm md:text-base leading-7 opacity-80">
-          Shringar is not an act — it is a moment shared. Between mirrors,
-          laughter, and quiet rituals.
+         Shringar lives in shared moments, shaped by mirrors, laughter, and unspoken rituals.
         </p>
       </section>
 

@@ -1,8 +1,13 @@
 import React, { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import heritage from "../assets/craft/DSC_7360.jpg";
+import { useNavigate } from "react-router-dom";
+import { useProduct } from "../context/ProductContext";
+
 export default function AboutPage() {
   const [activeAccordion, setActiveAccordion] = useState(null);
+    const { fetchCategories, categories } = useProduct();
+  const navigate = useNavigate();
 
   const dinStyle = {
     fontFamily:
@@ -14,7 +19,7 @@ export default function AboutPage() {
     {
       title: "Craftsmanship",
       description:
-        "Every piece is a testament to generations of artisanal expertise, where traditional techniques meet contemporary design sensibilities.",
+        "More than a product, it reflects years of experience and devotion, thoughtfully crafted and offered to you with heartfelt care.",
     },
     {
       title: "Sustainability",
@@ -24,12 +29,12 @@ export default function AboutPage() {
     {
       title: "Heritage",
       description:
-        "We preserve age-old weaving traditions, empowering artisan communities and keeping cultural narratives alive through every thread.",
+       "We work with age old patterns, crafts, and techniques, reinterpreting them through contemporary design. Our purpose goes beyond revival  we strive for acceptance, allowing traditional craft to live naturally in the present.",
     },
     {
       title: "Authenticity",
       description:
-        "No compromises, no shortcuts. Each piece of heritage carries the genuine mark of handcrafted excellence and honest materials.",
+        "Every piece is handmade, inherently unique, and shaped through hours of careful craftsmanship.",
     },
   ];
 
@@ -73,7 +78,7 @@ export default function AboutPage() {
             Heritage Sparrow
           </h1>
           <p className="text-lg md:text-xl text-white/90 tracking-[0.15em] font-light max-w-2xl">
-            Weaving stories, preserving traditions, creating legacies
+            VOYAGE TO ARTISANSHIP
           </p>
         </div>
       </div>
@@ -139,8 +144,7 @@ export default function AboutPage() {
             Our Values
           </h2>
           <p className="text-center text-[#555] mb-16 max-w-2xl mx-auto">
-            These principles guide every decision we make and every thread we
-            weave
+           
           </p>
 
           <div className="grid md:grid-cols-2 gap-8">
@@ -276,7 +280,7 @@ export default function AboutPage() {
         </p>
         <button
           className="bg-[#737144] text-white px-12 py-4 tracking-[0.15em] uppercase text-sm font-light hover:bg-[#5f5d3d] transition-all duration-300 hover:shadow-lg"
-          onClick={() => (window.location.href = "/collections")}
+          onClick={() => navigate(`/product/${encodeURIComponent(categories[0] || "")}`)}
         >
           Explore Our Collection
         </button>

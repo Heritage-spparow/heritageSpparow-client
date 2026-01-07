@@ -19,10 +19,10 @@ export default function Footer() {
         <div className="bg-[var(--color-bg)] text-white flex flex-col w-full">
           {/* Brand */}
           <div className="mb-10 px-6 md:px-16 py-4 flex items-center justify-between">
-            <h2 className="text-2xl  mt-4 font-light">
+            <h2 className="text-l md:text-2xl  mt-4 font-light">
               HERITAGE SPARROW
             </h2>
-            <h2 className="text-2xl  mt-3 font-light tracking-wide">
+            <h2 className="text-l md:text-2xl  mt-3 font-light tracking-wide">
               हेरिटेज स्पैरो
             </h2>
           </div>

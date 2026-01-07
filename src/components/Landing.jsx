@@ -13,13 +13,11 @@ export default function FashionLanding() {
   const { fetchCategories, categories } = useProduct();
   const navigate = useNavigate();
 
-  /* ---------------- STATE ---------------- */
-  const [currentSlide, setCurrentSlide] = useState(1); // 👈 start from 1
+  const [currentSlide, setCurrentSlide] = useState(1); 
   const [enableTransition, setEnableTransition] = useState(true);
   const [touchStartX, setTouchStartX] = useState(null);
   const [touchEndX, setTouchEndX] = useState(null);
 
-  /* ---------------- TOUCH HANDLERS ---------------- */
   const handleTouchStart = (e) => {
     setTouchStartX(e.touches[0].clientX);
   };
