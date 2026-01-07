@@ -67,6 +67,8 @@ const Orders = () => {
     }
   }, [isAuthenticated, currentPage]);
 
+  // console.log(user)
+
   const fetchOrders = async () => {
     try {
       setLoading(true);
@@ -108,7 +110,7 @@ const Orders = () => {
     switch (status) {
       case "pending":
         return <Clock className="h-4 w-4" />;
-      case "processing":
+      case "Order Confirmed":
         return <Package className="h-4 w-4" />;
       case "shipped":
         return <Truck className="h-4 w-4" />;
@@ -212,7 +214,7 @@ const Orders = () => {
                       href="#"
                       className="text-[var(--color-bg)] hover:underline font-medium flex items-center"
                     >
-                      {user?.name || "Customer"}{" "}
+                      {user?.fullName || "Customer"}{" "}
                       <ChevronDown className="h-4 w-4 ml-1" />
                     </a>
                   </div>
@@ -222,11 +224,11 @@ const Orders = () => {
                     </p>
                     <div className="flex items-center gap-2 justify-start md:justify-end">
                       <button
-                        // onClick={() => navigate(`/order/${order._id}`)}
-                        className="hover:underline font-medium"
+                        onClick={() => navigate(`/order/${order._id}`)}
+                        className="text-green-700 hover:underline font-medium"
                       >
                         View order details
-                      </button>
+                      </button> 
                     </div>
                   </div>
                 </div>

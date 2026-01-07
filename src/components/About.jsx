@@ -121,7 +121,7 @@ export default function AboutPage() {
 
               <p className="">
                 To revive traditional craft patterns and give them a new voice
-                through contemporary design, while staying true to slow-made
+                through contemporary design, while staying true to slow made
                 values and honest workmanship.
               </p>
             </div>

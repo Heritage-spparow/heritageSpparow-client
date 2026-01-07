@@ -42,7 +42,7 @@ export default function PrivacyPolicyPage() {
       <section className="mb-4">
         <p>
           We do not sell, rent, or trade your personal information. Your data is
-          shared only with trusted third-party service providers such as payment
+          shared only with trusted third party service providers such as payment
           gateways and logistics partners, solely for the purpose of order
           fulfillment and transaction processing.
         </p>

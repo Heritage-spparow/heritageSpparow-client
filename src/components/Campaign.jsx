@@ -26,7 +26,7 @@ export default function ShringarCampaign() {
             <p className="mt-8 max-w-md flex md:block flex-col items-center md:items-start justify-center md:justify-start text-sm md:text-base leading-7 opacity-80">
               Before the mirror , Before the moment.
               <br />
-              <p>~ There is Shringar.</p>
+              <p> ~ There is Shringar.</p>
                              
             </p>
 

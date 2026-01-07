@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import heritageSpparow from "../assets/heitageSparrow.png"
+
 
 export default function Footer() {
   const nav = useNavigate();
@@ -18,7 +18,7 @@ export default function Footer() {
       <footer className="w-full">
         <div className="bg-[var(--color-bg)] text-white flex flex-col w-full">
           {/* Brand */}
-          <div className="mb-10 px-6 md:px-16 py-4 flex items-center justify-between">
+          <div className="mb-6 px-6 md:px-16 py-4 flex items-center justify-between">
             <h2 className="text-l md:text-2xl  mt-4 font-light">
               HERITAGE SPARROW
             </h2>
@@ -28,7 +28,7 @@ export default function Footer() {
           </div>
 
           {/* Newsletter */}
-          <div className="bg-[#f9f6ef] w-full px-6 md:px-16 py-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div className="bg-[#f9f6ef]  w-full px-6 md:px-16 py-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
               <p className="text-xs tracking-widest uppercase text-[#737144]">
                 Stay up to date

@@ -25,7 +25,7 @@ const OrderDetail = () => {
   const fetchOrder = async () => {
     try {
       setLoading(true);
-      const res = await orderAPI.getOrderById(orderId);
+      const res = await orderAPI.getById(orderId);
       if (res.data.success) {
         setOrder(res.data.order);
       }
@@ -51,7 +51,7 @@ const OrderDetail = () => {
     switch (status) {
       case "pending":
         return <Clock className="h-4 w-4" />;
-      case "processing":
+      case "Order Confirmed":
         return <Package className="h-4 w-4" />;
       case "shipped":
         return <Truck className="h-4 w-4" />;

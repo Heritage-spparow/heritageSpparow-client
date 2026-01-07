@@ -184,11 +184,11 @@ export default function Payment() {
         orderItems: items.map((item) => ({
           product: item.product._id,
           name: item.product.name,
-          image: item.product.images?.[0]?.url || "",
+          image: item.product.coverImage?.url || "",
           price: item.product.discountPrice || item.product.price,
           quantity: item.quantity,
           color: item.color || item.selectedColor,
-          size: item.size || item.selectedSize,
+          size: Number(item.size || item.selectedSize),
         })),
         shippingAddress: {
           address: selectedAddress.street,
@@ -411,7 +411,7 @@ export default function Payment() {
                   <input
                     type="text"
                     value={selectedAddress?.street || ""}
-                    onChange={(e) =>
+                    onChange={(e) => 
                       setSelectedAddress({
                         ...selectedAddress,
                         street: e.target.value,

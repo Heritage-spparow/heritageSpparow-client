@@ -55,7 +55,7 @@ export default function TermsConditionsPage() {
         <p>
           All content on this website  including images, text, graphics, logos, and
           designs  is owned by or licensed to us and is protected by applicable
-          intellectual-property laws. You may not reproduce, distribute, modify, or
+          intellectual property laws. You may not reproduce, distribute, modify, or
           commercially exploit any content without prior written permission.
         </p>
       </section>

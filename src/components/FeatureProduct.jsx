@@ -329,14 +329,13 @@ export default function FeatureProduct() {
                               />
                               <button
                                 onClick={(e) => {
-                                  e.stopPropagation(); // 👈 prevent double trigger
+                                  e.stopPropagation();
                                   setViewerOpen(true);
                                 }}
-                                className="  absolute  bottom-4 right-4    text-white  p-2   transition
-    "
+                                className="  absolute  bottom-4 right-4  text-white  p-2  transition "
                                 aria-label="Zoom image"
                               >
-                                🔍
+                               <img width="20" height="20" src="/icons8-zoom-in-50.png" alt="zoom-in--v1"/>
                               </button>
                             </div>
                           );
@@ -570,7 +569,7 @@ export default function FeatureProduct() {
 
               {selectedSize ? (
                 <span className="text-xs text-[#737144]">
-                  {selectedStock} available
+                
                 </span>
               ) : (
                 <span className="text-xs text-neutral-400">

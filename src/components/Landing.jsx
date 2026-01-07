@@ -7,7 +7,7 @@ import creative2 from "../assets/LandingPage/01-Milap.jpg";
 import creative3 from "../assets/LandingPage/01-RoopDiRani.jpg";
 import creative4 from "../assets/LandingPage/01-Shagan.jpg";
 import creative5 from "../assets/LandingPage/DSC_5793.jpg";
-import heritageSpparow from "../assets/heitageSparrow.png"
+
 
 export default function FashionLanding() {
   const { fetchCategories, categories } = useProduct();
