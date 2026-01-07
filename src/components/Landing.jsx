@@ -104,7 +104,7 @@ export default function FashionLanding() {
     const interval = setInterval(() => {
       setEnableTransition(true);
       setCurrentSlide((prev) => prev + 1);
-    }, 5000);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, []);
