@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import heritageSpparow from "../assets/heitageSparrow.png"
 
 export default function Footer() {
   const nav = useNavigate();
@@ -17,9 +18,12 @@ export default function Footer() {
       <footer className="w-full">
         <div className="bg-[var(--color-bg)] text-white flex flex-col w-full">
           {/* Brand */}
-          <div className="mb-10 px-6 md:px-16 py-5 flex">
-            <h2 className="text-2xl font-light tracking-wide">
+          <div className="mb-10 px-6 md:px-16 py-4 flex items-center justify-between">
+            <h2 className="text-2xl  mt-4 font-light">
               HERITAGE SPARROW
+            </h2>
+            <h2 className="text-2xl  mt-3 font-light tracking-wide">
+              हेरिटेज स्पैरो
             </h2>
           </div>
 

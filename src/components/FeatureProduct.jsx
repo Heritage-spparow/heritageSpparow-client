@@ -6,6 +6,7 @@ import img from "../assets/demo3.jpg";
 import { useAuth } from "../context/AuthContext";
 import sizeChart from "../assets/SizeChart-01.png";
 import FullscreenImageViewer from "./FullscreenImageViewer";
+import { cloudinaryOptimize } from "../utils/loudinary";
 
 export default function FeatureProduct() {
   const { id } = useParams();
@@ -152,8 +153,10 @@ export default function FeatureProduct() {
   }, [fetchProducts]);
 
   const images = [
-    currentProduct?.coverImage?.url,
-    ...(currentProduct?.galleryImages || []).map((img) => img.url),
+    cloudinaryOptimize(currentProduct?.coverImage?.url, "detail"),
+    ...(currentProduct?.galleryImages || []).map((img) =>
+      cloudinaryOptimize(img.url, "detail")
+    ),
   ].filter(Boolean);
 
   const handleAddToCart = async () => {
@@ -422,14 +425,6 @@ export default function FeatureProduct() {
               <p className="text-xs text-[#737144] mb-6">
                 (Inclusive of all Taxes)
               </p>
-
-              {/* Shipping Link */}
-              <div className="mb-8">
-                <button className="text-sm text-[#737144] underline hover:text-blue-700">
-                  Shipping
-                </button>
-                <span className="text-xs text-[#737144] ml-2">Inclusive</span>
-              </div>
             </div>
 
             {/* Color Selection */}
@@ -534,6 +529,55 @@ export default function FeatureProduct() {
                 </div>
               </div>
             )}
+            {/* Quantity */}
+
+            <div className="flex items-center gap-4 mt-6">
+              <span className="text-sm text-[#737144] tracking-wide uppercase">
+                Quantity
+              </span>
+
+              <div className="flex items-center border border-[#737144]/40">
+                <button
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  disabled={!selectedSize}
+                  className={`px-4 py-2 text-lg ${
+                    !selectedSize
+                      ? "text-gray-300 cursor-not-allowed"
+                      : "text-[#737144]"
+                  }`}
+                >
+                  −
+                </button>
+
+                <span className="px-4 py-2 text-sm text-[#555]">
+                  {quantity}
+                </span>
+
+                <button
+                  onClick={() =>
+                    setQuantity((q) => Math.min(selectedStock || 1, q + 1))
+                  }
+                  disabled={!selectedSize || quantity >= selectedStock}
+                  className={`px-4 py-2 text-lg ${
+                    !selectedSize || quantity >= selectedStock
+                      ? "text-gray-300 cursor-not-allowed"
+                      : "text-[#737144]"
+                  }`}
+                >
+                  +
+                </button>
+              </div>
+
+              {selectedSize ? (
+                <span className="text-xs text-[#737144]">
+                  {selectedStock} available
+                </span>
+              ) : (
+                <span className="text-xs text-neutral-400">
+                  Select a size first
+                </span>
+              )}
+            </div>
 
             {/* Tabs */}
             <div>
@@ -610,45 +654,6 @@ export default function FeatureProduct() {
                 </div>
               </div>
             </div>
-            {selectedSize && selectedStock > 0 && (
-              <div className="flex items-center gap-4 mt-6">
-                <span className="text-sm text-[#737144] tracking-wide uppercase">
-                  Quantity
-                </span>
-
-                <div className="flex items-center border border-[#737144]/40">
-                  <button
-                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    className="px-4 py-2 text-lg text-[#737144]"
-                  >
-                    −
-                  </button>
-
-                  <span className="px-4 py-2 text-sm text-[#555]">
-                    {quantity}
-                  </span>
-
-                  <button
-                    onClick={() =>
-                      setQuantity((q) => Math.min(selectedStock, q + 1))
-                    }
-                    disabled={quantity >= selectedStock}
-                    className={`px-4 py-2 text-lg ${
-                      quantity >= selectedStock
-                        ? "text-gray-300 cursor-not-allowed"
-                        : "text-[#737144]"
-                    }`}
-                  >
-                    +
-                  </button>
-                </div>
-
-                <span className="text-xs text-[#737144]">
-                  {selectedStock} available
-                </span>
-              </div>
-            )}
-
             <div className="space-y-4 mt-6">
               {!addedToCart ? (
                 <button

@@ -5,6 +5,7 @@ import img2 from "../assets/pro1.jpg";
 import banner from "../assets/DSC_5888.jpg";
 import { motion } from "framer-motion";
 import { useProduct } from "../context/ProductContext";
+import { cloudinaryOptimize } from "../utils/loudinary";
 
 export default function ProductWindow() {
   const { name } = useParams();
@@ -260,7 +261,7 @@ export default function ProductWindow() {
                 <div className="relative overflow-hidden mb-3 bg-gray-50 bg-transparent aspect-square">
                   {/* Default Image */}
                   <img
-                    src={product.coverImage?.url}
+                    src={cloudinaryOptimize(product.coverImage?.url, "card")}
                     alt={product.name}
                     loading="lazy"
                     decoding="async"
@@ -271,9 +272,11 @@ export default function ProductWindow() {
 
                   {/* Hover Image */}
                   <img
-                    src={
-                      product.galleryImages?.[0]?.url || product.coverImage?.url
-                    }
+                    src={cloudinaryOptimize(
+                      product.galleryImages?.[0]?.url ||
+                        product.coverImage?.url,
+                      "card"
+                    )}
                     alt={`${product.name} hover`}
                     loading="lazy"
                     decoding="async"

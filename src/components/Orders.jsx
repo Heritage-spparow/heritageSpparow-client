@@ -152,9 +152,11 @@ const Orders = () => {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-10">
-          <h1 className="flex items-start flex-col justify-start  font-semibold
+          <h1
+            className="flex items-start flex-col justify-start  font-semibold
                        border-l-[5px] border-solid px-3  text-[var(--color-bg)]
-                       text-lg sm:text-2xl tracking-wide ">
+                       text-lg sm:text-2xl tracking-wide "
+          >
             ORDER ARCHIVES
           </h1>
         </div>
@@ -219,12 +221,12 @@ const Orders = () => {
                       Order # {order.orderNumber}
                     </p>
                     <div className="flex items-center gap-2 justify-start md:justify-end">
-                      <a
-                        href="#"
+                      <button
+                        onClick={() => navigate(`/order/${order._id}`)}
                         className="text-green-700 hover:underline font-medium"
                       >
                         View order details
-                      </a>
+                      </button>
                     </div>
                   </div>
                 </div>

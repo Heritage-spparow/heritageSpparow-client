@@ -39,8 +39,8 @@ export default function ShippingReturnsRefundPage() {
         </h2>
         <ul className="list-disc list-inside space-y-1">
           <li>
-            Estimated delivery time: <strong>8–12 days working days</strong>{" "}
-            from the date of dispatch.
+            Estimated delivery time: <strong>8–12 working days</strong> from the
+            date of dispatch.
           </li>
           <li>
             Shipping within India is <strong>free</strong>.
@@ -57,20 +57,23 @@ export default function ShippingReturnsRefundPage() {
         <h2 className="font-semibold mb-2 tracking-wide text-[#7f7b3b]">
           International Shipping
         </h2>
-        <ul className="list-disc list-inside space-y-1">
-          <li>
-            <strong>Standard shipping:</strong> approximately{" "}
-            <strong>10–15 working days</strong> from the date of dispatch.
-          </li>
-          <li>
-            <strong>Priority shipping:</strong> delivery timelines depend on the
-            destination country.
-          </li>
-          <li>
-            Final shipping charges are calculated at checkout based on your
-            delivery address and selected service.
-          </li>
-        </ul>
+
+        <p className="text-sm leading-relaxed">
+          At the moment, we do not offer international shipping.
+        </p>
+
+        <p className="text-sm mt-2 leading-relaxed">
+          If you are located outside India and wish to place an order, please
+          get in touch with us at{" "}
+          <a
+            href="mailto:support@heritagesparrow.com"
+            className="underline font-medium"
+          >
+            support@heritagesparrow.com
+          </a>
+          . Our team will be happy to assist you with availability and shipping
+          options.
+        </p>
       </section>
 
       {/* RETURNS & EXCHANGES */}
@@ -78,30 +81,43 @@ export default function ShippingReturnsRefundPage() {
         <h2 className="font-semibold mb-2 tracking-wide text-[#7f7b3b]">
           Returns & Exchanges
         </h2>
-        <p className="mb-2">
-          We want you to be satisfied with your purchase. If you receive a
-          product that is damaged in transit or incorrect, please contact us
-          within <strong>3 days</strong> of delivery with your order number and
-          photographs of the issue.
+
+        <p className="mb-2 leading-relaxed">
+          We want you to be completely satisfied with your purchase. If you
+          receive a product that is damaged during transit or if an incorrect
+          item is delivered, please contact us within <strong>3 days</strong> of
+          delivery. Kindly share your order number along with clear photographs
+          of the issue.
         </p>
+
+        <p className="mb-2 leading-relaxed">
+          Once we receive your return request, our team will carefully review
+          the product after it is returned to us. If the item qualifies under
+          our exchange policy or is found to have a genuine manufacturing
+          defect, we will proceed with the exchange or resolution. If the
+          product does not meet these criteria, we will not be able to take the
+          request forward.
+        </p>
+
         <ul className="list-disc list-inside space-y-1 mb-2">
           <li>
-            Items must be unused, unworn, and in their original packaging.
+            Items must be unused, unworn, and returned in their original
+            packaging.
           </li>
           <li>
-            Once your return is approved, we will guide you through the exchange
-            or credit process.
+            Exchanges or credits are processed only after quality inspection
+            approval.
           </li>
           <li>
-            We do not accept returns for products that show signs of wear,
-            damage caused by the customer, or items purchased on final sale (if
-            marked).
+            We do not accept returns for products showing signs of wear,
+            customer-caused damage, or items marked as final sale.
           </li>
         </ul>
+
         <p>
-          For any return or exchange queries, please reach out to us at{" "}
+          For any return or exchange-related queries, please reach out to us at{" "}
           <a
-            href="mailto:hello@gullylabs.com"
+            href="mailto:support@heritagesparrow.com"
             className="underline hover:text-[#7f7b3b]"
           >
             support@heritagesparrow.com

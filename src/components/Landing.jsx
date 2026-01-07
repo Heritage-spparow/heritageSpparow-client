@@ -7,6 +7,7 @@ import creative2 from "../assets/LandingPage/01-Milap.jpg";
 import creative3 from "../assets/LandingPage/01-RoopDiRani.jpg";
 import creative4 from "../assets/LandingPage/01-Shagan.jpg";
 import creative5 from "../assets/LandingPage/DSC_5793.jpg";
+import heritageSpparow from "../assets/heitageSparrow.png"
 
 export default function FashionLanding() {
   const { fetchCategories, categories } = useProduct();
@@ -66,7 +67,11 @@ export default function FashionLanding() {
       images: [
         { src: creative1, category: "Basant", id: "695b423c8442a5230d2898c4" },
         { src: creative2, category: "Milaap", id: "695bc02ec26b080cff59fc0e" },
-        { src: creative3, category: "Roop Di Rani", id: "695b4c99277be9ec74c67e38" },
+        {
+          src: creative3,
+          category: "Roop Di Rani",
+          id: "695b4c99277be9ec74c67e38",
+        },
         { src: creative4, category: "Shagun", id: "695b5d6d2fb216f0b1c8396f" },
       ],
       cta: {
@@ -172,8 +177,8 @@ export default function FashionLanding() {
                 ))}
               </div>
             )}
-
-            <div className="absolute inset-0 bg-black/15" />
+            {/* 
+            <div className="absolute inset-0 bg-black/15" /> */}
           </div>
 
           {/* CTA OVERLAY */}
@@ -207,6 +212,34 @@ export default function FashionLanding() {
           </div>
         </section>
       ))}
+      <section className="relative bg-[#f9f6ef] px-6 md:px-20 lg:px-32 py-15">
+        <div className="max-w-4xl mx-auto text-center">
+
+          <div className="w-24 h-[1px] bg-[#737144]/40 mx-auto mb-10" />
+
+          <h2
+            className="text-3xl md:text-4xl text-[#737144] tracking-[0.18em] uppercase font-light mb-8"
+            // style={{ fontFamily: "'Cormorant Garamond', serif" }}
+          >
+        Crafted for You, Celebrated with You
+          </h2>
+
+          <p className="text-sm md:text-base text-[#737144]/80 leading-relaxed font-light">
+            Every jutti tells a story  of celebration, tradition, and
+            individuality.
+            <br className="hidden md:block" />
+            We offer{" "}
+            <span className="text-[#737144]">tailored craftsmanship</span>,
+            thoughtfully crafted to reflect your ceremony or festive palette
+          </p>
+          <p className="text-xs md:text-sm uppercase tracking-[0.25em] text-[#737144] mt-14 font-light">
+            <a href="mailto:support@heritagesparrow.com" className="font-bold"> Custom orders shaped by ceremonial traditions · Connect with us to begin</a>
+          </p>
+
+          {/* Decorative Divider */}
+          <div className="w-24 h-[1px] bg-[#737144]/40 mx-auto mt-10" />
+        </div>
+      </section>
     </div>
   );
 }

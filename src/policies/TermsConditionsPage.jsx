@@ -45,20 +45,16 @@ export default function TermsConditionsPage() {
         <h2 className="font-semibold mb-2 text-[#7f7b3b]">3. Shipping, Returns & Refunds</h2>
         <p>
           Shipping timelines, return eligibility, and refund conditions are detailed in our{" "}
-          <a
-            href="/shipping-returns-refund"
-            className="underline hover:text-[#7f7b3b]"
-          >
             Shipping / Returns / Refund Policy
-          </a>. By placing an order, you agree to those terms as well.
+          By placing an order, you agree to those terms as well.
         </p>
       </section>
 
       <section className="mb-4">
         <h2 className="font-semibold mb-2 text-[#7f7b3b]">4. Intellectual Property</h2>
         <p>
-          All content on this website – including images, text, graphics, logos, and
-          designs – is owned by or licensed to us and is protected by applicable
+          All content on this website  including images, text, graphics, logos, and
+          designs  is owned by or licensed to us and is protected by applicable
           intellectual-property laws. You may not reproduce, distribute, modify, or
           commercially exploit any content without prior written permission.
         </p>

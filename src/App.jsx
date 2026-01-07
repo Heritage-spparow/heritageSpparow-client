@@ -33,6 +33,7 @@ import ShippingReturnsRefundPage from "./policies/ShippingReturnsRefundPage";
 import ShringarAlbum from "./components/ShringarAlbum";
 import { useProduct } from "./context/ProductContext";
 import AuthSuccess from "./components/AuthSuccess";
+import OrderDetail from "./components/OrderDetail";
 
 function AppContent() {
   const location = useLocation();
@@ -60,6 +61,7 @@ function AppContent() {
           <Route path="/craft" element={<CraftPage />} />
           <Route path="/campaign" element={<CampaignPage />} />
           <Route path="/campaigns/shringar-album" element={<ShringarAlbum />} />
+          <Route path="/order/:orderId" element={<OrderDetail/>} />
           <Route
             path="/auth/google/callback"
             element={<GoogleAuthCallback />}
