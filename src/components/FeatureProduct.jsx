@@ -30,9 +30,13 @@ export default function FeatureProduct() {
   const [touchEnd, setTouchEnd] = useState(0);
   const imageContainerRef = useRef(null);
   const [isAnimating, setIsAnimating] = useState(false);
+
   const [scale, setScale] = useState(1);
-  const [lastDistance, setLastDistance] = useState(null);
-  const [origin, setOrigin] = useState({ x: 0, y: 0 });
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [isZooming, setIsZooming] = useState(false);
+
+  const lastDistance = useRef(null);
+  const dragStart = useRef({ x: 0, y: 0 });
 
   const getDistance = (touches) => {
     const dx = touches[0].clientX - touches[1].clientX;
@@ -54,66 +58,74 @@ export default function FeatureProduct() {
   const onTouchStart = (e) => {
     if (e.touches.length === 2) {
       e.preventDefault();
-
-      const dist = getDistance(e.touches);
-      setLastDistance(dist);
-
-      const rect = imageContainerRef.current.getBoundingClientRect();
-      setOrigin({
-        x: (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left,
-        y: (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top,
-      });
-    } else {
-      setTouchEnd(0);
-      setTouchStart(e.touches[0].clientX);
+      setIsZooming(true);
+      lastDistance.current = getDistance(e.touches);
+      return;
     }
+
+    if (scale > 1) {
+      dragStart.current = {
+        x: e.touches[0].clientX - offset.x,
+        y: e.touches[0].clientY - offset.y,
+      };
+      return;
+    }
+
+    setTouchStart(e.touches[0].clientX);
   };
 
   const onTouchMove = (e) => {
-    if (e.touches.length === 2 && lastDistance) {
-      e.preventDefault(); // 🔥 REQUIRED
+    if (e.touches.length === 2 && lastDistance.current) {
+      e.preventDefault();
 
       const newDistance = getDistance(e.touches);
-      const zoomFactor = newDistance / lastDistance;
+      const zoomFactor = newDistance / lastDistance.current;
 
-      setScale((prev) => {
-        const next = prev * zoomFactor;
-        return Math.min(Math.max(next, 1), 3);
-      });
-
-      setLastDistance(newDistance);
-    } else if (e.touches.length === 1 && scale === 1) {
-      setTouchEnd(e.touches[0].clientX);
+      setScale((prev) => Math.min(Math.max(prev * zoomFactor, 1), 4));
+      lastDistance.current = newDistance;
+      return;
     }
+
+    if (scale > 1) {
+      e.preventDefault();
+      setOffset({
+        x: e.touches[0].clientX - dragStart.current.x,
+        y: e.touches[0].clientY - dragStart.current.y,
+      });
+      return;
+    }
+
+    setTouchEnd(e.touches[0].clientX);
   };
 
- const onTouchEnd = () => {
-  setLastDistance(null);
-  if (scale > 1) {
-    setTouchStart(0);
-    setTouchEnd(0);
-    return;
-  }
+  const onTouchEnd = () => {
+    lastDistance.current = null;
 
-  if (!touchStart || !touchEnd || isAnimating) return;
+    if (scale > 1) return;
 
-  const distance = touchStart - touchEnd;
-  if (Math.abs(distance) < 50) return;
+    if (!touchStart || !touchEnd) return;
 
-  setIsAnimating(true);
+    const distance = touchStart - touchEnd;
+    if (Math.abs(distance) < 50) return;
 
-  setActiveImage((prev) =>
-    distance > 0
-      ? Math.min(prev + 1, images.length - 1)
-      : Math.max(prev - 1, 0)
-  );
+    setActiveImage((prev) =>
+      distance > 0
+        ? Math.min(prev + 1, images.length - 1)
+        : Math.max(prev - 1, 0)
+    );
+  };
 
-  setTimeout(() => setIsAnimating(false), 300);
-};
-
+  useEffect(() => {
+    if (scale === 1) {
+      setIsZooming(false);
+      setOffset({ x: 0, y: 0 });
+    }
+  }, [scale]);
 
   useEffect(() => {
     setScale(1);
+    setOffset({ x: 0, y: 0 });
+    setIsZooming(false);
   }, [activeImage]);
 
   useEffect(() => {
@@ -252,37 +264,49 @@ export default function FeatureProduct() {
                     {/* ✅ SLIDER TRACK (FIXES STICKING ISSUE) */}
                     <div className="relative w-full overflow-hidden">
                       <div
-                        className="flex transition-transform duration-300 ease-out "
+                        className="flex transition-transform duration-300 ease-out"
                         style={{
-                          transform:
-                            scale > 1
-                              ? "translateX(0px)" // 🔒 LOCK SLIDER DURING ZOOM
-                              : `translateX(-${activeImage * 100}%)`,
-                          willChange: "transform",
+                          transform: isZooming
+                            ? "translateX(0px)"
+                            : `translateX(-${activeImage * 100}%)`,
                         }}
                       >
-                        {images.map((image, index) => (
-                          <div
-                            className="relative flex items-center justify-center w-full flex-shrink-0"
-                            style={{
-                              pointerEvents: scale > 1 ? "none" : "auto",
-                              transform: `scale(${scale})`,
-                              transformOrigin: `${origin.x}px ${origin.y}px`,
-                              transition:
-                                scale === 1 ? "transform 0.3s ease" : "none",
-                              touchAction: "none",
-                            }}
-                          >
-                            <img
-                              src={image}
-                              alt={`${currentProduct.name}-${index}`}
-                              className="w-full max-h-[85vh] object-contain select-none"
-                              draggable={false}
-                              loading="lazy"
-                              decoding="async"
-                            />
-                          </div>
-                        ))}
+                        {images.map((image, index) => {
+                          const isActive = index === activeImage;
+
+                          return (
+                            <div
+                              key={index}
+                              className="flex items-center justify-center bg-white overflow-hidden"
+                              style={{
+                                width: isZooming && !isActive ? 0 : "100%",
+                                minWidth: isZooming && !isActive ? 0 : "100%",
+                                pointerEvents:
+                                  isZooming && !isActive ? "none" : "auto",
+                              }}
+                            >
+                              {isActive && (
+                                <div
+                                  className="flex items-center justify-center"
+                                  style={{
+                                    transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
+                                    transition:
+                                      scale === 1
+                                        ? "transform 0.3s ease"
+                                        : "none",
+                                    touchAction: "none",
+                                  }}
+                                >
+                                  <img
+                                    src={image}
+                                    className="w-full max-h-[85vh] object-contain select-none"
+                                    draggable={false}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
