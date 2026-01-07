@@ -253,7 +253,7 @@ export default function FeatureProduct() {
                 </div>
 
                 {/* Main image */}
-                <div className="flex-1 flex items-center justify-center">
+                <v className="flex-1 flex items-center justify-center">
                   <div
                     ref={imageContainerRef}
                     className="relative w-full md:max-w-full  overflow-hidden flex items-center justify-center touch-pan-y"
@@ -277,7 +277,7 @@ export default function FeatureProduct() {
                           return (
                             <div
                               key={index}
-                              className="flex items-center justify-center bg-white overflow-hidden"
+                              className="flex items-center justify-center  overflow-hidden"
                               style={{
                                 width: isZooming && !isActive ? 0 : "100%",
                                 minWidth: isZooming && !isActive ? 0 : "100%",
@@ -299,7 +299,10 @@ export default function FeatureProduct() {
                                 >
                                   <img
                                     src={image}
-                                    className="w-full max-h-[85vh] object-contain select-none"
+                                    className="w-full max-h-[85vh] object-contain"
+                                    loading="lazy"
+                                    decoding="async"
+                                    alt={`${currentProduct.name}-${index}`}
                                     draggable={false}
                                   />
                                 </div>
@@ -346,7 +349,7 @@ export default function FeatureProduct() {
                       ))}
                     </div>
                   </div>
-                </div>
+                </v>
               </div>
             </div>
           </div>

@@ -8,16 +8,17 @@ import creative3 from "../assets/LandingPage/01-RoopDiRani.jpg";
 import creative4 from "../assets/LandingPage/01-Shagan.jpg";
 import creative5 from "../assets/LandingPage/DSC_5793.jpg";
 
-
 export default function FashionLanding() {
-  const { fetchCategories } = useProduct();
+  const { fetchCategories, categories } = useProduct();
   const navigate = useNavigate();
-  const { categories } = useProduct();
-  const [currentSlide, setCurrentSlide] = useState(0);
+
+  /* ---------------- STATE ---------------- */
+  const [currentSlide, setCurrentSlide] = useState(1); // 👈 start from 1
   const [enableTransition, setEnableTransition] = useState(true);
   const [touchStartX, setTouchStartX] = useState(null);
   const [touchEndX, setTouchEndX] = useState(null);
 
+  /* ---------------- TOUCH HANDLERS ---------------- */
   const handleTouchStart = (e) => {
     setTouchStartX(e.touches[0].clientX);
   };
@@ -27,28 +28,26 @@ export default function FashionLanding() {
   };
 
   const handleTouchEnd = () => {
-    if (!touchStartX || !touchEndX) return;
+    if (touchStartX === null || touchEndX === null) return;
 
     const distance = touchStartX - touchEndX;
-    const swipeThreshold = 50; // px
+    const swipeThreshold = 50;
+
+    setEnableTransition(true);
 
     if (distance > swipeThreshold) {
-      setEnableTransition(true);
+      // swipe left → next
       setCurrentSlide((prev) => prev + 1);
-    }
-
-    if (distance < -swipeThreshold) {
-      setEnableTransition(true);
-      setCurrentSlide((prev) =>
-        prev === 0 ? collectionsData[1].images.length - 1 : prev - 1
-      );
+    } else if (distance < -swipeThreshold) {
+      // swipe right → previous
+      setCurrentSlide((prev) => prev - 1);
     }
 
     setTouchStartX(null);
     setTouchEndX(null);
   };
 
-
+  /* ---------------- DATA ---------------- */
   const collectionsData = [
     {
       id: 1,
@@ -61,38 +60,24 @@ export default function FashionLanding() {
         position: "center",
       },
     },
-
     {
       id: 2,
       type: "carousel",
       images: [
         { src: creative1, category: "Basant", id: "695b423c8442a5230d2898c4" },
         { src: creative2, category: "Milaap", id: "695bc02ec26b080cff59fc0e" },
-        {
-          src: creative3,
-          category: "Roop Di Rani",
-          id: "695b4c99277be9ec74c67e38",
-        },
+        { src: creative3, category: "Roop Di Rani", id: "695b4c99277be9ec74c67e38" },
         { src: creative4, category: "Shagun", id: "695b5d6d2fb216f0b1c8396f" },
       ],
       cta: {
         label: "Shop Now",
-        // action: () =>
-        //   navigate(
-        //     `/feature/${encodeURIComponent(
-        //       collectionsData[1].images[currentSlide].category
-        //     )}`
-        //   ),
         action: () => {
-          const item = collectionsData[1].images[currentSlide];
-          if (item?.id) {
-            navigate(`/feature/${item.id}`);
-          }
+          const item = collectionsData[1].images[currentSlide - 1];
+          if (item?.id) navigate(`/feature/${item.id}`);
         },
         position: "left",
       },
     },
-
     {
       id: 3,
       type: "static",
@@ -105,32 +90,47 @@ export default function FashionLanding() {
     },
   ];
 
+  /* ---------------- CAROUSEL LOGIC ---------------- */
+  const originalImages = collectionsData[1].images;
+
   const carouselImages = [
-    ...collectionsData[1].images,
-    collectionsData[1].images[0],
+    originalImages[originalImages.length - 1], // clone last
+    ...originalImages,
+    originalImages[0], // clone first
   ];
 
-  /* ---------- AUTO SLIDE ---------- */
+  /* ---------------- AUTO SCROLL ---------------- */
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => prev + 1);
       setEnableTransition(true);
+      setCurrentSlide((prev) => prev + 1);
     }, 5000);
 
     return () => clearInterval(interval);
   }, []);
 
+  /* ---------------- LOOP RESET ---------------- */
   useEffect(() => {
-    const originalLength = collectionsData[1].images.length;
+    const total = originalImages.length;
 
-    if (currentSlide === originalLength) {
+    // fake last → real first
+    if (currentSlide === total + 1) {
       setTimeout(() => {
         setEnableTransition(false);
-        setCurrentSlide(0);
+        setCurrentSlide(1);
       }, 1000);
     }
-  }, [currentSlide]);
 
+    // fake first → real last
+    if (currentSlide === 0) {
+      setTimeout(() => {
+        setEnableTransition(false);
+        setCurrentSlide(total);
+      }, 1000);
+    }
+  }, [currentSlide, originalImages.length]);
+
+  /* ---------------- RENDER ---------------- */
   return (
     <div className="w-full bg-black">
       {collectionsData.map((item) => (
@@ -178,12 +178,11 @@ export default function FashionLanding() {
 
           {/* CTA OVERLAY */}
           <div
-            className={`relative z-10 w-full h-full flex items-center
-              ${
-                item.cta.position === "left"
-                  ? "justify-start px-8 md:px-24"
-                  : "justify-center"
-              }`}
+            className={`relative z-10 w-full h-full flex items-center ${
+              item.cta.position === "left"
+                ? "justify-start px-8 md:px-24"
+                : "justify-center"
+            }`}
           >
             <button
               onClick={item.cta.action}
