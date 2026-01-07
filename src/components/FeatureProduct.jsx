@@ -31,6 +31,8 @@ export default function FeatureProduct() {
   const [touchEnd, setTouchEnd] = useState(0);
   const imageContainerRef = useRef(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [selectedStock, setSelectedStock] = useState(0);
+  const [quantity, setQuantity] = useState(1);
 
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -157,16 +159,41 @@ export default function FeatureProduct() {
   const handleAddToCart = async () => {
     if (isAddingToCart) return;
 
-    if (!selectedSize) return;
+    // size must be selected
+    if (!selectedSize) {
+      alert("Please select a size");
+      return;
+    }
+
+    // stock check (frontend safety)
+    if (selectedStock <= 0) {
+      alert("This size is out of stock");
+      return;
+    }
+
+    // quantity should never exceed stock
+    if (quantity > selectedStock) {
+      alert(`Only ${selectedStock} item(s) available for this size`);
+      return;
+    }
 
     setIsAddingToCart(true);
 
     try {
-      const response = await addToCart(currentProduct, selectedSize, 1);
+      const response = await addToCart(
+        currentProduct,
+        selectedSize,
+        quantity // 👈 IMPORTANT: use quantity, not 1
+      );
 
       if (response?.success) {
         setAddedToCart(true);
+      } else {
+        alert(response?.message || "Failed to add item to cart");
       }
+    } catch (error) {
+      console.error("Add to cart error:", error);
+      alert("Something went wrong. Please try again.");
     } finally {
       setIsAddingToCart(false);
     }
@@ -487,6 +514,8 @@ export default function FeatureProduct() {
                       key={size._id}
                       onClick={() => {
                         setSelectedSize(size.size);
+                        setSelectedStock(size.stock);
+                        setQuantity(1);
                         setAddedToCart(false);
                       }}
                       disabled={size.stock === 0}
@@ -581,15 +610,50 @@ export default function FeatureProduct() {
                 </div>
               </div>
             </div>
+            {selectedSize && selectedStock > 0 && (
+              <div className="flex items-center gap-4 mt-6">
+                <span className="text-sm text-[#737144] tracking-wide uppercase">
+                  Quantity
+                </span>
+
+                <div className="flex items-center border border-[#737144]/40">
+                  <button
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    className="px-4 py-2 text-lg text-[#737144]"
+                  >
+                    −
+                  </button>
+
+                  <span className="px-4 py-2 text-sm text-[#555]">
+                    {quantity}
+                  </span>
+
+                  <button
+                    onClick={() =>
+                      setQuantity((q) => Math.min(selectedStock, q + 1))
+                    }
+                    disabled={quantity >= selectedStock}
+                    className={`px-4 py-2 text-lg ${
+                      quantity >= selectedStock
+                        ? "text-gray-300 cursor-not-allowed"
+                        : "text-[#737144]"
+                    }`}
+                  >
+                    +
+                  </button>
+                </div>
+
+                <span className="text-xs text-[#737144]">
+                  {selectedStock} available
+                </span>
+              </div>
+            )}
 
             <div className="space-y-4 mt-6">
               {!addedToCart ? (
                 <button
                   onClick={handleAddToCart}
-                  disabled={
-                    isAddingToCart ||
-                    (currentProduct.sizes?.length > 0 && !selectedSize)
-                  }
+                  disabled={isAddingToCart || !selectedSize}
                   className={`w-full py-4 px-6 text-sm tracking-[0.15em] uppercase font-light transition-all duration-300
         ${
           isAddingToCart || !selectedSize

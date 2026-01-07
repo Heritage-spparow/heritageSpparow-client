@@ -4,6 +4,35 @@ export default function FullscreenImageViewer({ images, startIndex, onClose }) {
   const [index, setIndex] = useState(startIndex);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  useEffect(() => {
+  const handleKeyDown = (e) => {
+    if (e.key === "Escape") {
+      onClose();
+    }
+
+    if (e.key === "ArrowRight") {
+      setIndex((i) => Math.min(i + 1, images.length - 1));
+    }
+
+    if (e.key === "ArrowLeft") {
+      setIndex((i) => Math.max(i - 1, 0));
+    }
+
+    if (e.key === "ArrowUp") {
+      setScale((s) => Math.min(s + 0.3, 4));
+    }
+
+    if (e.key === "ArrowDown") {
+      setScale((s) => Math.max(s - 0.3, 1));
+      if (scale <= 1.3) {
+        setOffset({ x: 0, y: 0 });
+      }
+    }
+  };
+
+  window.addEventListener("keydown", handleKeyDown);
+  return () => window.removeEventListener("keydown", handleKeyDown);
+}, [images.length, onClose, scale]);
 
   const lastDistance = useRef(null);
   const dragStart = useRef({ x: 0, y: 0 });
