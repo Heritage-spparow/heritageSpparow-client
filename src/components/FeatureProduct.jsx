@@ -5,6 +5,7 @@ import { useProduct } from "../context/ProductContext";
 import img from "../assets/demo3.jpg";
 import { useAuth } from "../context/AuthContext";
 import sizeChart from "../assets/SizeChart-01.png";
+import FullscreenImageViewer from "./FullscreenImageViewer";
 
 export default function FeatureProduct() {
   const { id } = useParams();
@@ -34,6 +35,7 @@ export default function FeatureProduct() {
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isZooming, setIsZooming] = useState(false);
+  const [viewerOpen, setViewerOpen] = useState(false);
 
   const lastDistance = useRef(null);
   const dragStart = useRef({ x: 0, y: 0 });
@@ -277,36 +279,35 @@ export default function FeatureProduct() {
                           return (
                             <div
                               key={index}
-                              className="flex items-center justify-center  overflow-hidden"
+                              className="flex items-center justify-center w-full min-w-full overflow-hidden"
                               style={{
-                                width: isZooming && !isActive ? 0 : "100%",
-                                minWidth: isZooming && !isActive ? 0 : "100%",
-                                pointerEvents:
-                                  isZooming && !isActive ? "none" : "auto",
+                                pointerEvents: isActive ? "auto" : "none",
+                              }}
+                              onClick={() => {
+                                if (isActive) {
+                                  setViewerOpen(true); // 👈 open fullscreen viewer
+                                }
                               }}
                             >
-                              {isActive && (
-                                <div
-                                  className="flex items-center justify-center"
-                                  style={{
-                                    transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
-                                    transition:
-                                      scale === 1
-                                        ? "transform 0.3s ease"
-                                        : "none",
-                                    touchAction: "none",
-                                  }}
-                                >
-                                  <img
-                                    src={image}
-                                    className="w-full max-h-[85vh] object-contain"
-                                    loading="lazy"
-                                    decoding="async"
-                                    alt={`${currentProduct.name}-${index}`}
-                                    draggable={false}
-                                  />
-                                </div>
-                              )}
+                              <img
+                                src={image}
+                                className="w-full max-h-[85vh] object-contain select-none"
+                                loading="lazy"
+                                decoding="async"
+                                alt={`${currentProduct.name}-${index}`}
+                                draggable={false}
+                              />
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation(); // 👈 prevent double trigger
+                                  setViewerOpen(true);
+                                }}
+                                className="  absolute  bottom-4 right-4    text-white  p-2    transition
+    "
+                                aria-label="Zoom image"
+                              >
+                                
+                              </button>
                             </div>
                           );
                         })}
@@ -656,6 +657,15 @@ export default function FeatureProduct() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ✅ ADD FULLSCREEN VIEWER HERE */}
+      {viewerOpen && (
+        <FullscreenImageViewer
+          images={images}
+          startIndex={activeImage}
+          onClose={() => setViewerOpen(false)}
+        />
       )}
     </div>
   );
