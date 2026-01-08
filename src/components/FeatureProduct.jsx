@@ -625,13 +625,14 @@ export default function FeatureProduct() {
                   {activeTab === "shipping" && (
                     <div className="space-y-3 text-sm text-[#555] leading-relaxed">
                       <p>
-                        Delivery across India typically takes{" "}
+                       <li className="text-[#737144]">Delivery across India typically takes{" "}
                         <span className="text-[#737144]">
                           8–10 working days
                         </span>{" "}
-                        from dispatch, and{" "}
-                        <span className="text-[#737144]">
-                          shipping is complimentary across India
+                        from dispatch .{" "}
+                        </li> 
+                        <span className="text-[#737144] font-medium">
+                          <li>shipping is complimentary across India .</li>
                         </span>
                         .
                       </p>
