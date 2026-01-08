@@ -137,10 +137,12 @@ export default function FeatureProduct() {
     const loadProduct = async () => {
       const response = await fetchProductById(id);
       // console.log(response);
+      const defaultSizeObj = sizes.find((s) => s.stock > 0) || sizes[0];
 
       if (response.success && response.product) {
         setSelectedColor(response.product.colors?.[0]?.name || "");
         setSelectedSize(response.product.sizes?.[0]?.size || "");
+        setSelectedStock(defaultSizeObj?.stock || 0);
       } else {
         alert(response.error || "Product not found");
       }
@@ -335,7 +337,12 @@ export default function FeatureProduct() {
                                 className="  absolute  bottom-4 right-4  text-white  p-2  transition "
                                 aria-label="Zoom image"
                               >
-                               <img width="20" height="20" src="/icons8-zoom-in-50.png" alt="zoom-in--v1"/>
+                                <img
+                                  width="20"
+                                  height="20"
+                                  src="/icons8-zoom-in-50.png"
+                                  alt="zoom-in--v1"
+                                />
                               </button>
                             </div>
                           );
@@ -568,9 +575,7 @@ export default function FeatureProduct() {
               </div>
 
               {selectedSize ? (
-                <span className="text-xs text-[#737144]">
-                
-                </span>
+                <span className="text-xs text-[#737144]"></span>
               ) : (
                 <span className="text-xs text-neutral-400">
                   Select a size first
@@ -624,8 +629,13 @@ export default function FeatureProduct() {
                         <span className="text-[#737144]">
                           8–10 working days
                         </span>{" "}
-                        from dispatch.
+                        from dispatch, and{" "}
+                        <span className="text-[#737144]">
+                          shipping is complimentary across India
+                        </span>
+                        .
                       </p>
+
                       <p className="pt-2 text-[#737144] font-medium">
                         What you’ll receive in the box:
                       </p>

@@ -15,7 +15,7 @@ const BG_COLOR = "#f9f6ef";
 export default function Payment() {
   const { items, totalPrice, clearCart } = useCart();
   const { user, addAddress } = useAuth();
-  const { createOrder } = useOrder(); 
+  const { createOrder } = useOrder();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -27,16 +27,17 @@ export default function Payment() {
   const [showModal, setShowModal] = useState(false);
   const [emailNews, setEmailNews] = useState(false);
   const [saveInfo, setSaveInfo] = useState(false);
+  const [showShippingInfo, setShowShippingInfo] = useState(false);
   const [sameAsBilling, setSameAsBilling] = useState(true);
 
   const { register, handleSubmit, reset } = useForm();
 
   const reverseGeocode = async (lat, lon) => {
-  const res = await fetch(
-    `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
-  );
-  return res.json();
-};
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
+    );
+    return res.json();
+  };
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -61,12 +62,12 @@ export default function Payment() {
       description: "",
       icon: CreditCard,
     },
-    // {
-    //   id: "cod",
-    //   name: "Cash on Delivery",
-    //   description: "",
-    //   icon: Truck,
-    // },
+    {
+      id: "cod",
+      name: "Cash on Delivery",
+      description: "",
+      icon: Truck,
+    },
   ];
 
   // Load Razorpay script
@@ -88,41 +89,40 @@ export default function Payment() {
   }, [currentUser.addresses]);
 
   useEffect(() => {
-  // If address already exists → DO NOTHING
-  if (currentUser.addresses.length > 0) return;
+    // If address already exists → DO NOTHING
+    if (currentUser.addresses.length > 0) return;
 
-  if (!navigator.geolocation) return;
+    if (!navigator.geolocation) return;
 
-  navigator.geolocation.getCurrentPosition(
-    async (position) => {
-      try {
-        const { latitude, longitude } = position.coords;
-        const data = await reverseGeocode(latitude, longitude);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const data = await reverseGeocode(latitude, longitude);
 
-        const addr = data.address || {};
+          const addr = data.address || {};
 
-        setSelectedAddress({
-          firstName: "",
-          lastName: "",
-          phone: "",
-          street: "",
-          addressLine2: "",
-          city: addr.city || addr.town || addr.village || "",
-          state: addr.state || "",
-          zipCode: addr.postcode || "",
-          country: addr.country || "India",
-        });
-      } catch (err) {
-        console.warn("Location fetch failed");
-      }
-    },
-    () => {
-      console.warn("User denied location access");
-    },
-    { enableHighAccuracy: false, timeout: 8000 }
-  );
-}, [currentUser.addresses.length]);
-
+          setSelectedAddress({
+            firstName: "",
+            lastName: "",
+            phone: "",
+            street: "",
+            addressLine2: "",
+            city: addr.city || addr.town || addr.village || "",
+            state: addr.state || "",
+            zipCode: addr.postcode || "",
+            country: addr.country || "India",
+          });
+        } catch (err) {
+          console.warn("Location fetch failed");
+        }
+      },
+      () => {
+        console.warn("User denied location access");
+      },
+      { enableHighAccuracy: false, timeout: 8000 }
+    );
+  }, [currentUser.addresses.length]);
 
   const formatAddress = (addr) => ({
     id: addr._id,
@@ -210,10 +210,12 @@ export default function Payment() {
           ...orderPayload,
           paymentMethod: "cod",
         });
-
+        console.log(orderRes);
         if (orderRes.success) {
-          await clearCart();
-          setShowModal(true);
+          setShowModal(true); // ✅ UI reacts immediately
+
+          // fire-and-forget (do NOT block UI)
+          clearCart().catch((err) => console.error("Clear cart failed:", err));
         }
         return;
       }
@@ -230,8 +232,7 @@ export default function Payment() {
         amount: rzOrder.amount,
         currency: "INR",
         name: "HERITAGE SPARROW",
-        description:
-          "HERITAGE SPARROW",
+        description: "HERITAGE SPARROW",
         image: "/login.png",
         order_id: rzOrder.id,
         prefill: {
@@ -411,7 +412,7 @@ export default function Payment() {
                   <input
                     type="text"
                     value={selectedAddress?.street || ""}
-                    onChange={(e) => 
+                    onChange={(e) =>
                       setSelectedAddress({
                         ...selectedAddress,
                         street: e.target.value,
@@ -696,17 +697,22 @@ export default function Payment() {
                 <div className="flex justify-between text-sm">
                   <div className="flex items-center gap-1">
                     <span className="text-[#777]">Shipping</span>
-                    <Info className="w-4 h-4 text-[#b8b7a8]" />
+                    <Info
+                      className="w-4 h-4 text-[#b8b7a8]"
+                      onClick={() => setShowShippingInfo(true)}
+                    />
                   </div>
-                  <span className="text-[#777] text-xs">
-                    Enter shipping address
-                  </span>
+                  <span className="text-[#777] text-xs">00.0</span>
                 </div>
 
                 <div className="flex justify-between text-lg font-medium pt-3 border-t border-[#e5e4da]">
-                  <span className="text-[#555]">Total</span>
+                  <span className="text-[#555]">
+                    Total
+                    <p className="text-xs text-[#777] font-normal">
+                      Inclusive of all taxes
+                    </p>
+                  </span>
                   <div className="text-right">
-                    <div className="text-xs text-[#777] font-normal">INR</div>
                     <div className="text-[#555]">₹{totalPrice.toFixed(2)}</div>
                   </div>
                 </div>
@@ -809,6 +815,92 @@ export default function Payment() {
                 Save Address
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showShippingInfo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white max-w-lg w-full rounded-xl shadow-xl overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5e4da]">
+              <h3 className="text-sm uppercase tracking-[0.2em] text-[#737144] font-light">
+                Shipping Information
+              </h3>
+              <button
+                onClick={() => setShowShippingInfo(false)}
+                className="text-[#777] hover:text-black transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="px-6 py-6 space-y-5 text-sm text-[#555] leading-relaxed">
+              <p>
+                We work closely with skilled artisans to craft each piece with
+                care. Orders are prepared and dispatched with attention to
+                detail to ensure they reach you in perfect condition.
+              </p>
+
+              <div>
+                <p className="text-[#737144] font-medium mb-1">
+                  Delivery Timeline
+                </p>
+                <p>
+                  Orders are typically delivered within{" "}
+                  <span className="font-medium text-[#737144]">
+                    8-10 working days
+                  </span>{" "}
+                  from the date of dispatch, depending on your location.
+                </p>
+              </div>
+
+              <div>
+                <p className="text-[#737144] font-medium mb-1">
+                  Shipping Charges
+                </p>
+                <p>
+                  We currently offer{" "}
+                  <span className="font-medium text-[#737144]">
+                    complimentary shipping across India
+                  </span>
+                  .
+                </p>
+              </div>
+
+              <div className="pt-4 border-t border-[#e5e4da]">
+                <p className="text-[#737144] font-medium mb-1">
+                  Important Note
+                </p>
+                <p className="text-[#777]">
+                  As each order is processed immediately after confirmation,
+                  we’re unable to make changes or cancellations once an order
+                  has been placed.
+                </p>
+              </div>
+
+              <p className="text-xs text-[#999] pt-2">
+                For any assistance, please reach out to our{" "}
+                <a
+                  href="mailto:support@heritagesparrow.com"
+                  className="text-[#737144] hover:underline"
+                >
+                  support
+                </a>{" "}
+                team before completing your purchase.
+              </p>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-[#e5e4da] bg-[#f9f6ef] text-right">
+              <button
+                onClick={() => setShowShippingInfo(false)}
+                className="text-sm uppercase tracking-[0.15em] font-light text-[#737144] hover:text-[#5f5d3d]"
+              >
+                Understood
+              </button>
+            </div>
           </div>
         </div>
       )}

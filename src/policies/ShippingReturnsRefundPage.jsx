@@ -30,6 +30,9 @@ export default function ShippingReturnsRefundPage() {
           </a>
           .
         </p>
+        <p className=" leading-relaxed font-medium text-[#7f7b3b]">
+          Please note: once an order has been placed, it cannot be cancelled.
+        </p>
       </section>
 
       {/* DOMESTIC SHIPPING */}
