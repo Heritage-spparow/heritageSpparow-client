@@ -94,5 +94,9 @@ export const orderAPI = {
     api.post('/orders/razorpay/verify', data),
 };
 
+export const landingAPI = {
+  get: () => api.get("/landing"),
+  update: (data) => api.post("/landing", data),
+};
 
 export default api;
