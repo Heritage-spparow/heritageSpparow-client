@@ -9,7 +9,7 @@ const PrivateRoute = ({ children }) => {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-[#f9f6ef] p-4">
         {/* The animate-pulse class from Tailwind CSS creates the loading effect */}
-        <div className="w-full max-w-lg animate-pulse">
+        <div className="w-full max-w-lg animate-pulse"> 
           <div className="w-full space-y-5 p-8 bg-white/5 backdrop-blur-md rounded-2xl">
             {/* Header Skeleton */}
             <div className="flex items-center gap-4">

@@ -8,12 +8,11 @@ import creative3 from "../assets/LandingPage/01-RoopDiRani.jpg";
 import creative4 from "../assets/LandingPage/01-Shagan.jpg";
 import creative5 from "../assets/LandingPage/DSC_5793.jpg";
 
-
 export default function FashionLanding() {
   const { fetchCategories, categories } = useProduct();
   const navigate = useNavigate();
 
-  const [currentSlide, setCurrentSlide] = useState(1); 
+  const [currentSlide, setCurrentSlide] = useState(1);
   const [enableTransition, setEnableTransition] = useState(true);
   const [touchStartX, setTouchStartX] = useState(null);
   const [touchEndX, setTouchEndX] = useState(null);
@@ -212,27 +211,42 @@ export default function FashionLanding() {
       ))}
       <section className="relative bg-[#f9f6ef] px-6 md:px-20 lg:px-32 py-15">
         <div className="max-w-4xl mx-auto text-center">
-
           <div className="w-24 h-[1px] bg-[#737144]/40 mx-auto mb-10" />
 
           <h2
             className="text-3xl md:text-4xl text-[#737144] tracking-[0.18em] uppercase font-light mb-8"
             // style={{ fontFamily: "'Cormorant Garamond', serif" }}
           >
-        Crafted for You, Celebrated with You
+            Crafted for You, Celebrated with You
           </h2>
 
           <p className="text-sm md:text-base text-[#737144]/80 leading-relaxed font-light">
-            Every jutti tells a story  of celebration, tradition, and
+            Every jutti tells a story of celebration, tradition, and
             individuality.
             <br className="hidden md:block" />
             We offer{" "}
             <span className="text-[#737144]">tailored craftsmanship</span>,
             thoughtfully crafted to reflect your ceremony or festive palette
           </p>
-          <p className="text-xs md:text-sm uppercase tracking-[0.25em] text-[#737144] mt-14 font-light">
-            <a href="mailto:support@heritagesparrow.com" className="font-bold"> Custom orders shaped by ceremonial traditions · Connect with us to begin</a>
-          </p>
+          <a
+            href="https://wa.me/917973926474"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="
+    inline-flex items-center justify-center
+    mt-14 px-6 py-3
+    text-xs md:text-sm uppercase tracking-[0.25em]
+    font-medium text-[#737144]
+    border border-[#737144]/60
+    transition-all duration-300 ease-out
+    hover:bg-[#737144]
+    hover:text-[#F7F6F2]
+    hover:shadow-[0_6px_18px_rgba(115,113,68,0.25)]
+    focus:outline-none focus:ring-2 focus:ring-[#737144]/40
+  "
+          >
+            Click to Customize Your Order
+          </a>
 
           {/* Decorative Divider */}
           <div className="w-24 h-[1px] bg-[#737144]/40 mx-auto mt-10" />

@@ -207,7 +207,7 @@ const OrderDetail = () => {
 
             <div className="flex justify-between">
               <span>Shipping</span>
-              <span>₹ {order.shippingPrice.toFixed(2)}</span>
+              <span>₹ 00.0</span>
             </div>
 
             <div className="flex justify-between pt-4 border-t border-[#e5e4da] font-medium text-[#737144]">

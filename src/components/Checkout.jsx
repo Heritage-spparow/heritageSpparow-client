@@ -114,7 +114,13 @@ export default function Checkout() {
         style={dinStyle}
         className="min-h-screen bg-[#f9f6ef] flex flex-col items-center justify-center text-center px-6"
       >
-        <img src={favicon} alt="Logo" className="w-10 h-10 mb-4" />
+        {/* <div className="w-12 h-12 mb-4 bg-[#737144]  flex items-center justify-center rounded-full">
+          <img
+            src="./heitageSparrow.png"
+            alt="Logo"
+            className="w-10 h-10 object-contain"
+          />
+        </div> */}
         <h1 className="text-3xl font-semibold text-[#737144] mb-4">
           Your Cart is Empty
         </h1>

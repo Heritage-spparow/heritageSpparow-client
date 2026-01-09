@@ -84,7 +84,11 @@ export default function ShippingReturnsRefundPage() {
         <h2 className="font-semibold mb-2 tracking-wide text-[#7f7b3b]">
           Returns & Exchanges
         </h2>
-
+        <p className="mb-2 leading-relaxed font-medium text-[#7f7b3b]">
+          For first time orders, if you need to return a product due to an
+          eligible issue, our team will ensure a{" "}
+          <strong>hassle free exchange</strong> experience.
+        </p>
         <p className="mb-2 leading-relaxed">
           We want you to be completely satisfied with your purchase. If you
           receive a product that is damaged during transit or if an incorrect
