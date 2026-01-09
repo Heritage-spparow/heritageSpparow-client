@@ -74,10 +74,11 @@ export default function ProductWindow() {
             ...new Set(
               products
                 .flatMap((product) =>
-                  Array.isArray(product.sizes) ? product.sizes : []
+                  Array.isArray(product.sizes)
+                    ? product.sizes.map((s) => String(s.size))
+                    : []
                 )
-                .filter((s) => typeof s === "string" && s.trim() !== "")
-                .map((s) => s.toLowerCase())
+                .filter(Boolean)
             ),
           ];
 

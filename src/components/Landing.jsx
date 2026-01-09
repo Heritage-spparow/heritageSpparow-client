@@ -203,6 +203,7 @@ export default function FashionLanding() {
                     src={cloudinaryOptimize(imgObj.src, "card")}
                     alt={imgObj.category}
                     loading="lazy"
+                    decoding="async"
                     className="w-full h-full flex-shrink-0 object-contain"
                   />
                 ))}
