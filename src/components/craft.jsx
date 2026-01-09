@@ -1,7 +1,6 @@
 import React from "react";
 import videoSketch from "../assets/craft/IMG_6233.mp4";
 import videoTrace from "../assets/craft/IMG_6242.mp4";
-import videoEmbroider from "../assets/craft/IMG_6249.jpg";
 import heritage from "../assets/craft/DSC_7360.jpg";
 
 const steps = [

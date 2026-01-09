@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContex";
 import { useProduct } from "../context/ProductContext";
-import img from "../assets/demo3.jpg";
 import { useAuth } from "../context/AuthContext";
 import sizeChart from "../assets/SizeChart-01.png";
 import FullscreenImageViewer from "./FullscreenImageViewer";

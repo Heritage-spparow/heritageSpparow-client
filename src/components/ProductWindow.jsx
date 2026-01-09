@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import img from "../assets/pro.jpg";
-import img2 from "../assets/pro1.jpg";
 import banner from "../assets/DSC_5888.jpg";
 import { motion } from "framer-motion";
 import { useProduct } from "../context/ProductContext";

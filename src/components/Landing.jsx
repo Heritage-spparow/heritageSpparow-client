@@ -1,22 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProduct } from "../context/ProductContext";
-import sample from "../assets/sample.jpeg";
-import creative1 from "../assets/LandingPage/01-Basant.jpg";
-import creative2 from "../assets/LandingPage/01-Milap.jpg";
-import creative3 from "../assets/LandingPage/01-RoopDiRani.jpg";
-import creative4 from "../assets/LandingPage/01-Shagan.jpg";
-import creative5 from "../assets/LandingPage/DSC_5793.jpg";
+import { landingAPI } from "../services/api";
+import { cloudinaryOptimize } from "../utils/loudinary";
 
 export default function FashionLanding() {
   const { fetchCategories, categories } = useProduct();
   const navigate = useNavigate();
+
+  const [landing, setLanding] = useState(null);
+  const [heroLoaded, setHeroLoaded] = useState(false);
 
   const [currentSlide, setCurrentSlide] = useState(1);
   const [enableTransition, setEnableTransition] = useState(true);
   const [touchStartX, setTouchStartX] = useState(null);
   const [touchEndX, setTouchEndX] = useState(null);
 
+  /* ---------------- TOUCH ---------------- */
   const handleTouchStart = (e) => {
     setTouchStartX(e.touches[0].clientX);
   };
@@ -33,49 +33,62 @@ export default function FashionLanding() {
 
     setEnableTransition(true);
 
-    if (distance > swipeThreshold) {
-      // swipe left → next
-      setCurrentSlide((prev) => prev + 1);
-    } else if (distance < -swipeThreshold) {
-      // swipe right → previous
-      setCurrentSlide((prev) => prev - 1);
-    }
+    if (distance > swipeThreshold) setCurrentSlide((p) => p + 1);
+    if (distance < -swipeThreshold) setCurrentSlide((p) => p - 1);
 
     setTouchStartX(null);
     setTouchEndX(null);
   };
 
-  /* ---------------- DATA ---------------- */
+  /* ---------------- FETCH LANDING ---------------- */
+  useEffect(() => {
+    landingAPI.get().then((res) => {
+      setLanding(res.data.landing || null);
+    });
+  }, []);
+
+  /* ---------------- SAFE FALLBACKS ---------------- */
+  const sectionOne = landing?.sectionOne;
+  const sectionTwo = landing?.sectionTwo;
+  const sectionThree = landing?.sectionThree;
+
+  /* ---------------- DATA (STRUCTURE UNCHANGED) ---------------- */
   const collectionsData = [
     {
       id: 1,
       type: "static",
-      image: sample,
+      image: sectionOne?.image?.url,
       cta: {
-        label: "Explore Collection",
+        label: sectionOne?.ctaLabel || "Explore Collection",
         action: () =>
-          navigate(`/product/${encodeURIComponent(categories[0] || "")}`),
+          navigate(
+            `/product/${encodeURIComponent(sectionOne?.category || "")}`
+          ),
         position: "center",
       },
     },
     {
       id: 2,
       type: "carousel",
-      images: [
-        { src: creative1, category: "Basant", id: "695b423c8442a5230d2898c4" },
-        { src: creative2, category: "Milaap", id: "695bc02ec26b080cff59fc0e" },
-        {
-          src: creative3,
-          category: "Roop Di Rani",
-          id: "695b4c99277be9ec74c67e38",
-        },
-        { src: creative4, category: "Shagun", id: "695b5d6d2fb216f0b1c8396f" },
-      ],
+      images:
+        sectionTwo?.items?.map((i) => ({
+          src: i.image?.url,
+          category: i.label,
+          id: typeof i.productId === "object" ? i.productId._id : i.productId,
+        })) || [],
       cta: {
-        label: "Shop Now",
+        label: sectionTwo?.ctaLabel || "Shop Now",
         action: () => {
-          const item = collectionsData[1].images[currentSlide - 1];
-          if (item?.id) navigate(`/feature/${item.id}`);
+          const item = sectionTwo?.items?.[currentSlide - 1];
+
+          const productId =
+            typeof item?.productId === "object"
+              ? item.productId._id
+              : item?.productId;
+
+          if (productId) {
+            navigate(`/feature/${productId}`);
+          }
         },
         position: "left",
       },
@@ -83,39 +96,44 @@ export default function FashionLanding() {
     {
       id: 3,
       type: "static",
-      image: creative5,
+      image: sectionThree?.image?.url,
       cta: {
-        label: "Explore Campaign",
-        action: () => navigate("/campaign"),
+        label: sectionThree?.ctaLabel || "Explore Campaign",
+        action: () => navigate(sectionThree?.link || "/campaign"),
         position: "center",
       },
     },
   ];
 
-  /* ---------------- CAROUSEL LOGIC ---------------- */
+  /* ---------------- CAROUSEL LOGIC (UNCHANGED) ---------------- */
   const originalImages = collectionsData[1].images;
 
-  const carouselImages = [
-    originalImages[originalImages.length - 1], // clone last
-    ...originalImages,
-    originalImages[0], // clone first
-  ];
+  const carouselImages =
+    originalImages.length > 0
+      ? [
+          originalImages[originalImages.length - 1],
+          ...originalImages,
+          originalImages[0],
+        ]
+      : [];
 
   /* ---------------- AUTO SCROLL ---------------- */
   useEffect(() => {
+    if (!originalImages.length) return;
+
     const interval = setInterval(() => {
       setEnableTransition(true);
       setCurrentSlide((prev) => prev + 1);
     }, 3000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [originalImages.length]);
 
   /* ---------------- LOOP RESET ---------------- */
   useEffect(() => {
     const total = originalImages.length;
+    if (!total) return;
 
-    // fake last → real first
     if (currentSlide === total + 1) {
       setTimeout(() => {
         setEnableTransition(false);
@@ -123,7 +141,6 @@ export default function FashionLanding() {
       }, 1000);
     }
 
-    // fake first → real last
     if (currentSlide === 0) {
       setTimeout(() => {
         setEnableTransition(false);
@@ -134,20 +151,36 @@ export default function FashionLanding() {
 
   /* ---------------- RENDER ---------------- */
   return (
-    <div className="w-full bg-black">
+    <div className="w-full bg-[#f9f6ef]">
+      {/* LCP PRELOAD (NO DESIGN IMPACT) */}
+      {collectionsData[0]?.image && (
+        <link
+          rel="preload"
+          as="image"
+          href={cloudinaryOptimize(collectionsData[0].image, "detail")}
+        />
+      )}
+
       {collectionsData.map((item) => (
         <section
           key={item.id}
-          className="relative w-full overflow-hidden bg-[#0e0e0e]"
+          className="relative w-full overflow-hidden bg-[#f9f6ef]"
           style={{ aspectRatio: "1 / 1" }}
         >
           {/* IMAGE */}
           <div className="absolute inset-0">
             {item.type === "static" && (
               <img
-                src={item.image}
+                src={cloudinaryOptimize(item.image, "detail")}
                 alt="campaign"
-                className="w-full h-full object-contain"
+                onLoad={() => setHeroLoaded(true)}
+                loading="lazy"
+                decoding="async"
+                className={`
+    w-full h-full object-contain
+    transition-opacity duration-200
+    ${heroLoaded ? "opacity-100" : "opacity-0"}
+  `}
               />
             )}
 
@@ -167,18 +200,17 @@ export default function FashionLanding() {
                 {carouselImages.map((imgObj, i) => (
                   <img
                     key={i}
-                    src={imgObj.src}
+                    src={cloudinaryOptimize(imgObj.src, "card")}
                     alt={imgObj.category}
+                    loading="lazy"
                     className="w-full h-full flex-shrink-0 object-contain"
                   />
                 ))}
               </div>
             )}
-            {/* 
-            <div className="absolute inset-0 bg-black/15" /> */}
           </div>
 
-          {/* CTA OVERLAY */}
+          {/* CTA OVERLAY (UNCHANGED) */}
           <div
             className={`relative z-10 w-full h-full flex items-center ${
               item.cta.position === "left"
@@ -209,14 +241,13 @@ export default function FashionLanding() {
           </div>
         </section>
       ))}
+
+      {/* TEXT SECTION (UNCHANGED) */}
       <section className="relative bg-[#f9f6ef] px-6 md:px-20 lg:px-32 py-15">
         <div className="max-w-4xl mx-auto text-center">
           <div className="w-24 h-[1px] bg-[#737144]/40 mx-auto mb-10" />
 
-          <h2
-            className="text-3xl md:text-4xl text-[#737144] tracking-[0.18em] uppercase font-light mb-8"
-            // style={{ fontFamily: "'Cormorant Garamond', serif" }}
-          >
+          <h2 className="text-3xl md:text-4xl text-[#737144] tracking-[0.18em] uppercase font-light mb-8">
             Crafted for You, Celebrated with You
           </h2>
 
@@ -228,27 +259,27 @@ export default function FashionLanding() {
             <span className="text-[#737144]">tailored craftsmanship</span>,
             thoughtfully crafted to reflect your ceremony or festive palette
           </p>
+
           <a
             href="https://wa.me/917973926474"
             target="_blank"
             rel="noopener noreferrer"
             className="
-    inline-flex items-center justify-center
-    mt-14 px-6 py-3
-    text-xs md:text-sm uppercase tracking-[0.25em]
-    font-medium text-[#737144]
-    border border-[#737144]/60
-    transition-all duration-300 ease-out
-    hover:bg-[#737144]
-    hover:text-[#F7F6F2]
-    hover:shadow-[0_6px_18px_rgba(115,113,68,0.25)]
-    focus:outline-none focus:ring-2 focus:ring-[#737144]/40
-  "
+              inline-flex items-center justify-center
+              mt-14 px-6 py-3
+              text-xs md:text-sm uppercase tracking-[0.25em]
+              font-medium text-[#737144]
+              border border-[#737144]/60
+              transition-all duration-300 ease-out
+              hover:bg-[#737144]
+              hover:text-[#F7F6F2]
+              hover:shadow-[0_6px_18px_rgba(115,113,68,0.25)]
+              focus:outline-none focus:ring-2 focus:ring-[#737144]/40
+            "
           >
             Click to Customize Your Order
           </a>
 
-          {/* Decorative Divider */}
           <div className="w-24 h-[1px] bg-[#737144]/40 mx-auto mt-10" />
         </div>
       </section>
