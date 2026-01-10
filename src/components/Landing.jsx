@@ -5,11 +5,13 @@ import { landingAPI } from "../services/api";
 import { cloudinaryOptimize } from "../utils/loudinary";
 
 export default function FashionLanding() {
-  const { fetchCategories, categories } = useProduct();
+  const { fetchCategories } = useProduct();
   const navigate = useNavigate();
 
   const [landing, setLanding] = useState(null);
-  const [heroLoaded, setHeroLoaded] = useState(false);
+
+  // ✅ PER SECTION IMAGE LOAD STATE
+  const [loaded, setLoaded] = useState({});
 
   const [currentSlide, setCurrentSlide] = useState(1);
   const [enableTransition, setEnableTransition] = useState(true);
@@ -52,7 +54,7 @@ export default function FashionLanding() {
   const sectionTwo = landing?.sectionTwo;
   const sectionThree = landing?.sectionThree;
 
-  /* ---------------- DATA (STRUCTURE UNCHANGED) ---------------- */
+  /* ---------------- DATA (UNCHANGED STRUCTURE) ---------------- */
   const collectionsData = [
     {
       id: 1,
@@ -86,9 +88,7 @@ export default function FashionLanding() {
               ? item.productId._id
               : item?.productId;
 
-          if (productId) {
-            navigate(`/feature/${productId}`);
-          }
+          if (productId) navigate(`/feature/${productId}`);
         },
         position: "left",
       },
@@ -152,12 +152,12 @@ export default function FashionLanding() {
   /* ---------------- RENDER ---------------- */
   return (
     <div className="w-full bg-[#f9f6ef]">
-      {/* LCP PRELOAD (NO DESIGN IMPACT) */}
+      {/* LCP PRELOAD (UNCHANGED DESIGN) */}
       {collectionsData[0]?.image && (
         <link
           rel="preload"
           as="image"
-          href={cloudinaryOptimize(collectionsData[0].image, "detail")}
+          href={cloudinaryOptimize(collectionsData[0].image, "hero")}
         />
       )}
 
@@ -171,16 +171,19 @@ export default function FashionLanding() {
           <div className="absolute inset-0">
             {item.type === "static" && (
               <img
-                src={cloudinaryOptimize(item.image, "detail")}
+                src={cloudinaryOptimize(item.image, "hero")}
                 alt="campaign"
-                onLoad={() => setHeroLoaded(true)}
-                loading="lazy"
+                loading={item.id === 1 ? "eager" : "lazy"}
+                fetchpriority={item.id === 1 ? "high" : "auto"}
                 decoding="async"
+                onLoad={() =>
+                  setLoaded((p) => ({ ...p, [item.id]: true }))
+                }
                 className={`
-    w-full h-full object-contain
-    transition-opacity duration-200
-    ${heroLoaded ? "opacity-100" : "opacity-0"}
-  `}
+                  w-full h-full object-contain
+                  transition-opacity duration-200
+                  ${loaded[item.id] ? "opacity-100" : "opacity-0"}
+                `}
               />
             )}
 
@@ -200,9 +203,9 @@ export default function FashionLanding() {
                 {carouselImages.map((imgObj, i) => (
                   <img
                     key={i}
-                    src={cloudinaryOptimize(imgObj.src, "card")}
+                    src={cloudinaryOptimize(imgObj.src, "hero")}
                     alt={imgObj.category}
-                    loading="lazy"
+                    loading={i === 1 ? "eager" : "lazy"}
                     decoding="async"
                     className="w-full h-full flex-shrink-0 object-contain"
                   />
@@ -275,7 +278,6 @@ export default function FashionLanding() {
               hover:bg-[#737144]
               hover:text-[#F7F6F2]
               hover:shadow-[0_6px_18px_rgba(115,113,68,0.25)]
-              focus:outline-none focus:ring-2 focus:ring-[#737144]/40
             "
           >
             Click to Customize Your Order
