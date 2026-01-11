@@ -5,18 +5,25 @@ import { landingAPI } from "../services/api";
 import { cloudinaryOptimize } from "../utils/loudinary";
 
 export default function FashionLanding() {
-  const { fetchCategories, loading } = useProduct();
+  const { fetchCategories, categories } = useProduct();
   const navigate = useNavigate();
 
   const [landing, setLanding] = useState(null);
-
-  // ✅ PER SECTION IMAGE LOAD STATE
+  const [heroLoaded, setHeroLoaded] = useState(false);
   const [loaded, setLoaded] = useState({});
 
   const [currentSlide, setCurrentSlide] = useState(1);
   const [enableTransition, setEnableTransition] = useState(true);
   const [touchStartX, setTouchStartX] = useState(null);
   const [touchEndX, setTouchEndX] = useState(null);
+  const [landingLoading, setLandingLoading] = useState(true);
+
+  const ImageSkeleton = () => (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F3ED]">
+      <div className="loader"></div>
+      <p className="mt-4 text-[#737144] uppercase tracking-[0.25em] text-sm font-light"></p>
+    </div>
+  );
 
   /* ---------------- TOUCH ---------------- */
   const handleTouchStart = (e) => {
@@ -43,10 +50,33 @@ export default function FashionLanding() {
   };
 
   /* ---------------- FETCH LANDING ---------------- */
+  /* ---------------- FETCH LANDING ---------------- */
   useEffect(() => {
-    landingAPI.get().then((res) => {
-      setLanding(res.data.landing || null);
-    });
+    let isMounted = true;
+
+    const fetchLanding = async () => {
+      try {
+        setLandingLoading(true);
+
+        const res = await landingAPI.get();
+
+        if (isMounted) {
+          setLanding(res.data.landing || null);
+        }
+      } catch (error) {
+        console.error("Landing fetch failed", error);
+      } finally {
+        if (isMounted) {
+          setLandingLoading(false);
+        }
+      }
+    };
+
+    fetchLanding();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   /* ---------------- SAFE FALLBACKS ---------------- */
@@ -54,7 +84,7 @@ export default function FashionLanding() {
   const sectionTwo = landing?.sectionTwo;
   const sectionThree = landing?.sectionThree;
 
-  /* ---------------- DATA (UNCHANGED STRUCTURE) ---------------- */
+  /* ---------------- DATA (STRUCTURE UNCHANGED) ---------------- */
   const collectionsData = [
     {
       id: 1,
@@ -88,7 +118,9 @@ export default function FashionLanding() {
               ? item.productId._id
               : item?.productId;
 
-          if (productId) navigate(`/feature/${productId}`);
+          if (productId) {
+            navigate(`/feature/${productId}`);
+          }
         },
         position: "left",
       },
@@ -149,24 +181,16 @@ export default function FashionLanding() {
     }
   }, [currentSlide, originalImages.length]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F3ED]">
-        <div className="loader"></div>
-        <p className="mt-4 text-[#737144] uppercase tracking-[0.25em] text-sm font-light"></p>
-      </div>
-    );
-  }
-
   /* ---------------- RENDER ---------------- */
   return (
     <div className="w-full bg-[#f9f6ef]">
-      {/* LCP PRELOAD (UNCHANGED DESIGN) */}
+      {landingLoading && <ImageSkeleton />}
+      {/* LCP PRELOAD (NO DESIGN IMPACT) */}
       {collectionsData[0]?.image && (
         <link
           rel="preload"
           as="image"
-          href={cloudinaryOptimize(collectionsData[0].image, "hero")}
+          href={cloudinaryOptimize(collectionsData[0].image, "detail")}
         />
       )}
 
@@ -178,35 +202,18 @@ export default function FashionLanding() {
         >
           {/* IMAGE */}
           <div className="absolute inset-0">
-            <div
-              className={` absolute inset-0 bg-gradient-to-br from-[#f9f6ef] to-[#f4f3ed] transition-opacity duration-300 ${
-                loaded[item.id] ? "opacity-0" : "opacity-100"
-              }`}
-            />
-            {item.type === "static" && item.image && (
-              <img
-                src={cloudinaryOptimize(
-                  item.image.url,
-                  "q_auto,f_auto,w_100,e_blur:150"
-                )}
-                alt=""
-                className="absolute inset-0 w-full h-full object-contain blur-sm"
-                aria-hidden="true"
-              />
-            )}
             {item.type === "static" && (
               <img
-                src={cloudinaryOptimize(item.image, "hero")}
+                src={cloudinaryOptimize(item.image, "detail")}
                 alt="campaign"
-                loading={item.id === 1 ? "eager" : "lazy"}
-                fetchpriority={item.id === 1 ? "high" : "auto"}
+                onLoad={() => setHeroLoaded(true)}
+                loading="lazy"
                 decoding="async"
-                onLoad={() => setLoaded((p) => ({ ...p, [item.id]: true }))}
                 className={`
-                  w-full h-full object-contain
-                  transition-opacity duration-300
-                  ${loaded[item.id] ? "opacity-100" : "opacity-0"}
-                `}
+    w-full h-full object-contain
+    transition-opacity duration-200
+    ${heroLoaded ? "opacity-100" : "opacity-0"}
+  `}
               />
             )}
 
@@ -226,9 +233,9 @@ export default function FashionLanding() {
                 {carouselImages.map((imgObj, i) => (
                   <img
                     key={i}
-                    src={cloudinaryOptimize(imgObj.src, "hero")}
+                    src={cloudinaryOptimize(imgObj.src, "card")}
                     alt={imgObj.category}
-                    loading={i === 1 ? "eager" : "lazy"}
+                    loading="lazy"
                     decoding="async"
                     className="w-full h-full flex-shrink-0 object-contain"
                   />
@@ -301,6 +308,7 @@ export default function FashionLanding() {
               hover:bg-[#737144]
               hover:text-[#F7F6F2]
               hover:shadow-[0_6px_18px_rgba(115,113,68,0.25)]
+              focus:outline-none focus:ring-2 focus:ring-[#737144]/40
             "
           >
             Click to Customize Your Order
