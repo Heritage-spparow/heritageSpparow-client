@@ -4,10 +4,7 @@ import { orderAPI } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import {
   Package,
-  Calendar,
-  CreditCard,
   Truck,
-  Clock,
   CheckCircle,
   XCircle,
   ChevronDown,
@@ -15,39 +12,26 @@ import {
   Star,
 } from "lucide-react";
 
+/* ---------------- SKELETON ---------------- */
 const SkeletonOrderCard = () => (
-  <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm overflow-hidden relative">
-    <div className="skeleton-shimmer absolute inset-0"></div>
-    <div className="relative z-10">
-      <div className="flex justify-between items-center border-b border-gray-100 pb-4 mb-4">
-        <div className="space-y-2">
-          <div className="h-4 bg-gray-200 rounded w-32"></div>
-          <div className="h-3 bg-gray-200 rounded w-24"></div>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="h-6 w-20 bg-gray-200 rounded-full"></div>
-          <div className="h-5 w-16 bg-gray-200 rounded"></div>
-        </div>
+  <div className="border border-[#737144]/15 bg-[#f9f6ef] p-8 animate-pulse">
+    <div className="flex justify-between mb-6">
+      <div className="space-y-2">
+        <div className="h-3 w-32 bg-[#737144]/20"></div>
+        <div className="h-3 w-24 bg-[#737144]/10"></div>
       </div>
-      <div className="space-y-3">
-        {[...Array(2)].map((_, i) => (
-          <div key={i} className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-gray-200 rounded-md"></div>
-            <div className="flex-1 space-y-2">
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-            </div>
-            <div className="h-4 w-12 bg-gray-200 rounded"></div>
+      <div className="h-6 w-24 bg-[#737144]/20"></div>
+    </div>
+    <div className="space-y-4">
+      {[...Array(2)].map((_, i) => (
+        <div key={i} className="flex gap-4">
+          <div className="w-16 h-16 bg-[#737144]/10"></div>
+          <div className="flex-1 space-y-2">
+            <div className="h-3 bg-[#737144]/20 w-3/4"></div>
+            <div className="h-3 bg-[#737144]/10 w-1/2"></div>
           </div>
-        ))}
-      </div>
-      <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-100">
-        <div className="h-4 w-40 bg-gray-200 rounded"></div>
-        <div className="flex gap-3">
-          <div className="h-8 w-24 bg-gray-200 rounded-md"></div>
-          <div className="h-8 w-24 bg-gray-200 rounded-md"></div>
         </div>
-      </div>
+      ))}
     </div>
   </div>
 );
@@ -55,6 +39,7 @@ const SkeletonOrderCard = () => (
 const Orders = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
+
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -62,12 +47,8 @@ const Orders = () => {
   const [pagination, setPagination] = useState({});
 
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchOrders();
-    }
+    if (isAuthenticated) fetchOrders();
   }, [isAuthenticated, currentPage]);
-
-  // console.log(user)
 
   const fetchOrders = async () => {
     try {
@@ -77,241 +58,182 @@ const Orders = () => {
         setOrders(res.data.orders);
         setPagination(res.data.pagination);
       }
-    } catch (err) {
-      setError("Failed to fetch orders");
+    } catch {
+      setError("Unable to load your orders at the moment.");
     } finally {
       setLoading(false);
     }
   };
 
   const cancelOrder = async (orderId) => {
-    try {
-      await orderAPI.cancel(orderId);
-      fetchOrders();
-    } catch (err) {
-      setError("Failed to cancel order. Please try again.");
-    }
+    await orderAPI.cancel(orderId);
+    fetchOrders();
   };
 
-  const getStatusStyle = (status) => {
+  const statusStyle = (status) => {
     const base =
-      "inline-flex items-center gap-2 px-3 py-1  text-sm font-medium";
-    const styles = {
-      pending: "bg-yellow-100 text-yellow-800",
-      OrderConfirmed: "bg-blue-100 text-blue-800",
-      shipped: "bg-purple-100 text-purple-800",
-      delivered: "bg-green-100 text-green-800",
-      cancelled: "bg-red-100 text-red-800",
+      "inline-flex items-center gap-2 px-4 py-1 text-xs uppercase tracking-[0.15em] border";
+    const map = {
+      confirmed: "border-[#c2b96b] text-[#737144]",
+      shipped: "border-[#737144]/50 text-[#737144]",
+      delivered: "border-[#737144] text-[#737144]",
+      // cancelled: "border-red-400 text-red-500",
     };
-    return `${base} ${styles[status] || "bg-gray-100 text-gray-700"}`;
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "confirmed":
-        return <Package className="h-4 w-4" />;
-      case "shipped":
-        return <Truck className="h-4 w-4" />;
-      case "delivered":
-        return <CheckCircle className="h-4 w-4" />;
-      default:
-        return <Package className="h-4 w-4" />;
-    }
+    return `${base} ${map[status] || "border-[#737144]/30 text-[#737144]"}`;
   };
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)]">
-        <div className="text-center">
-          <h2 className="text-2xl font-semibold text-[var(--color-textbg)] mb-3">
-            Access Denied
-          </h2>
-          <p className="text-[var(--color-text)]">
-            Please log in to view your orders.
-          </p>
-        </div>
+      <div className="min-h-screen bg-[#f9f6ef] flex items-center justify-center">
+        <p className="text-sm tracking-[0.25em] uppercase text-[#737144]">
+          Please login to view orders
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f6ef] py-12 relative">
-      <style>{`
-          .skeleton-shimmer::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(110deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%);
-            animation: shimmer 1.5s infinite;
-            transform: translateX(-100%);
-          }
-          @keyframes shimmer { 100% { transform: translateX(100%); } }
-      `}</style>
-
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-10">
-          <h1
-            className="flex items-start flex-col justify-start  font-semibold
-                       border-l-[5px] border-solid px-3  text-[var(--color-bg)]
-                       text-lg sm:text-2xl tracking-wide "
-          >
-            ORDER ARCHIVES
+    <div className="min-h-screen bg-[#f9f6ef] py-20">
+      <div className="max-w-5xl mx-auto px-6">
+        {/* HEADER */}
+        <div className="mb-16">
+          <h1 className="text-lg uppercase tracking-[0.3em] text-[#737144]">
+            Order Archives
           </h1>
+          <div className="w-24 h-[1px] bg-[#737144]/40 mt-4" />
         </div>
 
         {error && (
-          <div className="mb-8 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-            {error}
-          </div>
+          <p className="mb-8 text-sm text-red-500">{error}</p>
         )}
 
         {loading ? (
-          <div className="space-y-8">
+          <div className="space-y-10">
             {[...Array(3)].map((_, i) => (
               <SkeletonOrderCard key={i} />
             ))}
           </div>
         ) : orders.length === 0 ? (
-          <div className="bg-white border border-gray-100 rounded-2xl p-12 text-center shadow-sm">
-            <Package className="h-14 w-14 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-gray-700 mb-2">
-              No Orders Yet
-            </h3>
-            <p className="text-gray-500">
-              Start shopping to see your orders here.
+          <div className="border border-[#737144]/15 p-16 text-center">
+            <Package className="h-10 w-10 mx-auto text-[#737144]/50 mb-6" />
+            <p className="text-sm tracking-wide text-[#737144]/70">
+              You have not placed any orders yet.
             </p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-12">
             {orders.map((order) => (
               <div
                 key={order._id}
-                className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
+                className="border border-[#737144]/20 bg-[#f9f6ef]"
               >
-                {/* Order Header */}
-                <div className="bg-gray-50 px-6 py-3 border-b border-gray-200 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                {/* HEADER */}
+                <div className="px-8 py-6 border-b border-[#737144]/15 grid md:grid-cols-4 gap-6 text-sm">
                   <div>
-                    <p className="text-xs text-gray-500 uppercase">
+                    <p className="uppercase tracking-wide text-[#737144]/60 text-xs">
                       Order Placed
                     </p>
-                    <p className="text-[var(--color-bg)]  font-medium">
+                    <p className="text-[#737144]">
                       {new Date(order.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 uppercase">Total</p>
-                    <p className="text-[var(--color-bg)]  font-medium">
+                    <p className="uppercase tracking-wide text-[#737144]/60 text-xs">
+                      Total
+                    </p>
+                    <p className="text-[#737144]">
                       ₹ {order.totalPrice.toFixed(2)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 uppercase">Ship To</p>
-                    <a
-                      href="#"
-                      className="text-[var(--color-bg)] hover:underline font-medium flex items-center"
-                    >
-                      {user?.fullName || "Customer"}{" "}
-                      <ChevronDown className="h-4 w-4 ml-1" />
-                    </a>
+                    <p className="uppercase tracking-wide text-[#737144]/60 text-xs">
+                      Ship To
+                    </p>
+                    <span className="flex items-center gap-1 text-[#737144]">
+                      {user?.fullName}
+                      <ChevronDown size={14} />
+                    </span>
                   </div>
                   <div className="text-left md:text-right">
-                    <p className="text-xs text-gray-500 uppercase">
-                      Order # {order.orderNumber}
+                    <p className="uppercase tracking-wide text-[#737144]/60 text-xs">
+                      Order #
                     </p>
-                    <div className="flex items-center gap-2 justify-start md:justify-end">
-                      <button
-                        onClick={() => navigate(`/order/${order._id}`)}
-                        className="text-green-700 hover:underline font-medium"
-                      >
-                        View order details
-                      </button> 
-                    </div>
+                    <button
+                      onClick={() => navigate(`/order/${order._id}`)}
+                      className="text-[#737144] underline underline-offset-4"
+                    >
+                      View Details
+                    </button>
                   </div>
                 </div>
 
-                {/* Order Body */}
-                <div className="p-6">
-                  <div className="flex flex-col md:flex-row gap-6">
-                    <div className="flex-grow">
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-[var(--color-bg)]  capitalize">
-                          {order.status === "delivered"
-                            ? `Delivered on ${new Date(
-                                order.deliveredAt
-                              ).toLocaleDateString()}`
-                            : `${order.status}`}
-                        </h3>
-                        <span className={getStatusStyle(order.status)}>
-                          {getStatusIcon(order.status)}
-                          <span className="capitalize">{order.status}</span>
-                        </span>
-                      </div>
-
-                      <div className="space-y-4">
-                        {order.orderItems.map((item, idx) => (
-                          <div key={idx} className="flex items-center gap-4">
-                            <div className="w-20 h-20 bg-white border border-gray-200 rounded-md flex-shrink-0">
-                              <img
-                                src={item.image}
-                                alt={item.name}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-
-                            <div className="flex-1 min-w-0">
-                              <h4
-                                onClick={() =>
-                                  navigate(`/feature/${item.product?._id}`)
-                                }
-                                className="text-base font-medium text-[var(--color-bg)] hover:underline cursor-pointer"
-                              >
-                                {item.name}
-                              </h4>
-                              <p className="text-sm text-gray-500 mt-1">
-                                Qty: {item.quantity}
-                              </p>
-
-                              <div className="mt-2">
-                                <button
-                                  onClick={() =>
-                                    navigate(`/feature/${item.product?._id}`)
-                                  }
-                                  className="py-2 px-4 text-sm font-light tracking-wide border border-neutral-300 bg-white text-[#555] hover:border-[#737144]/60 hover:text-[#737144] transition-all duration-300 rounded-md"
-                                >
-                                  Buy it again
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                {/* BODY */}
+                <div className="px-8 py-8 flex flex-col md:flex-row gap-10">
+                  <div className="flex-1 space-y-6">
+                    <div className="flex justify-between items-center">
+                      <h3 className="uppercase tracking-[0.15em] text-sm text-[#737144]">
+                        {order.status}
+                      </h3>
+                      <span className={statusStyle(order.status)}>
+                        {order.status === "delivered" && (
+                          <CheckCircle size={14} />
+                        )}
+                        {order.status === "shipped" && <Truck size={14} />}
+                        {order.status === "confirmed" && <Package size={14} />}
+                        {order.status}
+                      </span>
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex-shrink-0 md:w-56 space-y-3">
-                      <button className="w-full py-2 px-4 text-sm font-light tracking-wide border border-neutral-300 bg-white text-[#555] hover:border-[#737144]/60 hover:text-[#737144] transition-all duration-300 rounded-md flex items-center justify-center gap-2">
-                        <Truck className="h-4 w-4" />
-                        Track Package
-                      </button>
-                      <button className="w-full py-2 px-4 text-sm font-light tracking-wide border border-neutral-300 bg-white text-[#555] hover:border-[#737144]/60 hover:text-[#737144] transition-all duration-300 rounded-md flex items-center justify-center gap-2">
-                        <MessageSquare className="h-4 w-4" />
-                        Get product support
-                      </button>
-                      <button className="w-full py-2 px-4 text-sm font-light tracking-wide border border-neutral-300 bg-white text-[#555] hover:border-[#737144]/60 hover:text-[#737144] transition-all duration-300 rounded-md flex items-center justify-center gap-2">
-                        <Star className="h-4 w-4" />
-                        Write a product review
-                      </button>
+                    {order.orderItems.map((item, i) => (
+                      <div key={i} className="flex gap-6 items-start">
+                        <div className="w-20 h-20 bg-[#efeada] flex-shrink-0" />
+                        <div>
+                          <p
+                            onClick={() =>
+                              navigate(`/feature/${item.product?._id}`)
+                            }
+                            className="text-sm text-[#737144] cursor-pointer hover:underline"
+                          >
+                            {item.name}
+                          </p>
+                          <p className="text-xs text-[#737144]/60 mt-1">
+                            Quantity: {item.quantity}
+                          </p>
+                          <button
+                            onClick={() =>
+                              navigate(`/feature/${item.product?._id}`)
+                            }
+                            className="mt-3 text-xs uppercase tracking-[0.15em] border border-[#737144]/40 px-4 py-2 hover:bg-[#737144]/10 transition"
+                          >
+                            Buy Again
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
 
-                      {order.status === "pending" && (
-                        <button
-                          onClick={() => cancelOrder(order._id)}
-                          className="w-full py-2 px-4 text-sm font-light tracking-wide border border-red-300 text-red-600 bg-white hover:bg-red-50 hover:border-red-400 transition-all duration-300 rounded-md flex items-center justify-center gap-2"
-                        >
-                          <XCircle className="h-4 w-4" />
-                          Cancel Order
-                        </button>
-                      )}
-                    </div>
+                  {/* ACTIONS */}
+                  <div className="md:w-56 space-y-3">
+                    <button className="w-full py-3 text-xs uppercase tracking-[0.15em] border border-[#737144]/40 hover:bg-[#737144]/10 transition flex justify-center gap-2">
+                      <Truck size={14} /> Track Package
+                    </button>
+
+                    <button className="w-full py-3 text-xs uppercase tracking-[0.15em] border border-[#737144]/40 hover:bg-[#737144]/10 transition flex justify-center gap-2">
+                      <MessageSquare size={14} /> Support
+                    </button>
+
+                    <button className="w-full py-3 text-xs uppercase tracking-[0.15em] border border-[#737144]/40 hover:bg-[#737144]/10 transition flex justify-center gap-2">
+                      <Star size={14} /> Review
+                    </button>
+{/* 
+                    {order.status === "pending" && (
+                      <button
+                        onClick={() => cancelOrder(order._id)}
+                        className="w-full py-3 text-xs uppercase tracking-[0.15em] border border-red-400 text-red-500 hover:bg-red-50 transition flex justify-center gap-2"
+                      >
+                        <XCircle size={14} /> Cancel Order
+                      </button>
+                    )} */}
                   </div>
                 </div>
               </div>
@@ -319,53 +241,24 @@ const Orders = () => {
           </div>
         )}
 
-        {/* Pagination */}
+        {/* PAGINATION */}
         {pagination.pages > 1 && (
-          <div className="mt-10 flex justify-center flex-wrap gap-3">
-            {/* Previous Button */}
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-              disabled={currentPage === 1}
-              className={`relative py-2 px-3 text-sm font-light tracking-wide border transition-all duration-300 ${
-                currentPage === 1
-                  ? "opacity-40 cursor-not-allowed border-neutral-300 bg-neutral-100 text-neutral-400"
-                  : "border-neutral-300 bg-white text-[#555] hover:border-[#737144]/60 hover:text-[#737144]"
-              }`}
-            >
-              Previous
-            </button>
-
-            {/* Page Buttons */}
+          <div className="mt-16 flex justify-center gap-3">
             {Array.from({ length: pagination.pages }, (_, i) => i + 1).map(
-              (page) => (
+              (p) => (
                 <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`relative py-2 px-3 text-sm font-light tracking-wide border transition-all duration-300 ${
-                    currentPage === page
-                      ? "border-[#737144] bg-[#737144]/10 text-[#737144] shadow-inner"
-                      : "border-neutral-300 bg-white text-[#555] hover:border-[#737144]/60 hover:text-[#737144]"
+                  key={p}
+                  onClick={() => setCurrentPage(p)}
+                  className={`px-4 py-2 text-xs tracking-[0.15em] border ${
+                    currentPage === p
+                      ? "border-[#737144] bg-[#737144]/10"
+                      : "border-[#737144]/30 hover:bg-[#737144]/10"
                   }`}
                 >
-                  {page}
+                  {p}
                 </button>
               )
             )}
-
-            {/* Next Button */}
-            <button
-              onClick={() =>
-                setCurrentPage((p) => Math.min(p + 1, pagination.pages))
-              }
-              disabled={currentPage === pagination.pages}
-              className={`relative py-2 px-3 text-sm font-light tracking-wide border transition-all duration-300 ${
-                currentPage === pagination.pages
-                  ? "opacity-40 cursor-not-allowed border-neutral-300 bg-neutral-100 text-neutral-400"
-                  : "border-neutral-300 bg-white text-[#555] hover:border-[#737144]/60 hover:text-[#737144]"
-              }`}
-            >
-              Next
-            </button>
           </div>
         )}
       </div>

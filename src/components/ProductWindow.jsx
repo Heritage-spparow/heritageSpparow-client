@@ -147,7 +147,7 @@ export default function ProductWindow() {
       }
 
       if (filterInputs.sortBy === "price-low-high") {
-        result.sort((a, b) => a.price - b.price);
+        result.sort((a, b) => a.price - b.price); 
       }
 
       if (filterInputs.sortBy === "price-high-low") {

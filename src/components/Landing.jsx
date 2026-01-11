@@ -5,7 +5,7 @@ import { landingAPI } from "../services/api";
 import { cloudinaryOptimize } from "../utils/loudinary";
 
 export default function FashionLanding() {
-  const { fetchCategories } = useProduct();
+  const { fetchCategories, loading } = useProduct();
   const navigate = useNavigate();
 
   const [landing, setLanding] = useState(null);
@@ -149,6 +149,15 @@ export default function FashionLanding() {
     }
   }, [currentSlide, originalImages.length]);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F3ED]">
+        <div className="loader"></div>
+        <p className="mt-4 text-[#737144] uppercase tracking-[0.25em] text-sm font-light"></p>
+      </div>
+    );
+  }
+
   /* ---------------- RENDER ---------------- */
   return (
     <div className="w-full bg-[#f9f6ef]">
@@ -169,6 +178,22 @@ export default function FashionLanding() {
         >
           {/* IMAGE */}
           <div className="absolute inset-0">
+            <div
+              className={` absolute inset-0 bg-gradient-to-br from-[#f9f6ef] to-[#f4f3ed] transition-opacity duration-300 ${
+                loaded[item.id] ? "opacity-0" : "opacity-100"
+              }`}
+            />
+            {item.type === "static" && item.image && (
+              <img
+                src={cloudinaryOptimize(
+                  item.image.url,
+                  "q_auto,f_auto,w_100,e_blur:150"
+                )}
+                alt=""
+                className="absolute inset-0 w-full h-full object-contain blur-sm"
+                aria-hidden="true"
+              />
+            )}
             {item.type === "static" && (
               <img
                 src={cloudinaryOptimize(item.image, "hero")}
@@ -176,12 +201,10 @@ export default function FashionLanding() {
                 loading={item.id === 1 ? "eager" : "lazy"}
                 fetchpriority={item.id === 1 ? "high" : "auto"}
                 decoding="async"
-                onLoad={() =>
-                  setLoaded((p) => ({ ...p, [item.id]: true }))
-                }
+                onLoad={() => setLoaded((p) => ({ ...p, [item.id]: true }))}
                 className={`
                   w-full h-full object-contain
-                  transition-opacity duration-100
+                  transition-opacity duration-300
                   ${loaded[item.id] ? "opacity-100" : "opacity-0"}
                 `}
               />

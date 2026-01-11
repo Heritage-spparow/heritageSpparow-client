@@ -214,7 +214,7 @@ export default function FeatureProduct() {
     }
 
     navigate("/payment");
-  };
+  }; 
   // const handleViewCart = () => {
   //   if (error) {
   //     alert(error);
@@ -715,7 +715,7 @@ export default function FeatureProduct() {
                 >
                   <div className="aspect-[3/4] bg-gray-100 mb-3 overflow-hidden">
                     <img
-                      src={rel.coverImage?.url || img}
+                      src={cloudinaryOptimize(rel.coverImage?.url, "card")}
                       alt={rel.name}
                       loading="lazy"
                       decoding="async"
