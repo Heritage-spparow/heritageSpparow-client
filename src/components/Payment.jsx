@@ -147,10 +147,35 @@ export default function Payment() {
       if (found) setSelectedAddress(formatAddress(found));
     }
   };
+  const isAddressValid = (addr) => {
+  if (!addr) return false;
 
+  const requiredFields = [
+    addr.firstName,
+    addr.lastName,
+    addr.phone,
+    addr.street,
+    addr.city,
+    addr.state,
+    addr.zipCode,
+  ];
+
+  return requiredFields.every(
+    (field) => typeof field === "string" && field.trim().length > 0
+  );
+};
   const handlePayment = async () => {
-    if (!selectedAddress) return alert("Please enter delivery address.");
-    if (!selectedPaymentMethod) return alert("Select a payment method.");
+    if (!isAddressValid(selectedAddress)) {
+      alert(
+        "Please enter a complete delivery address."
+      );
+      return;
+    }
+
+    if (!selectedPaymentMethod) {
+      alert("Please select a payment method.");
+      return;
+    }
 
     setIsProcessing(true);
 
