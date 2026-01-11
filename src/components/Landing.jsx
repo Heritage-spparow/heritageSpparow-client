@@ -181,7 +181,7 @@ export default function FashionLanding() {
                 }
                 className={`
                   w-full h-full object-contain
-                  transition-opacity duration-200
+                  transition-opacity duration-100
                   ${loaded[item.id] ? "opacity-100" : "opacity-0"}
                 `}
               />
