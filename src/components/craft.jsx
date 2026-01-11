@@ -6,13 +6,17 @@ import heritage from "../assets/craft/DSC_7360.jpg";
 const steps = [
   {
     title: "Sketching the Heritage",
-    text: "Each design begins as a hand drawn exploration of heritage  inspired by age old motifs, traditional patterns, and stories preserved through generations.",
-    src: videoSketch,
+    text: "Each design begins as a hand drawn exploration of heritage inspired by age old motifs, traditional patterns, and stories preserved through generations.",
+    src: "https://res.cloudinary.com/drcy8edfo/video/upload/f_auto,q_auto,vc_auto,w_900/IMG_6233_tr0ug1.mp4",
+    poster:
+      "https://res.cloudinary.com/drcy8edfo/image/upload/f_auto,q_auto,w_900/IMG_6233_tr0ug1.jpg",
   },
   {
     title: "Tracing by Hand",
     text: "The designs are carefully traced by hand onto fabric and soft leather, guided by practiced hands, quiet focus, and respect for traditional methods.",
-    src: videoTrace,
+    src: "https://res.cloudinary.com/drcy8edfo/video/upload/f_auto,q_auto,vc_auto,w_900/IMG_6242_af0h67.mp4",
+    poster:
+      "https://res.cloudinary.com/drcy8edfo/image/upload/f_auto,q_auto,w_900/IMG_6242_af0h67.jpg",
   },
 ];
 
@@ -95,10 +99,12 @@ export default function CraftPage() {
             <div className="aspect-[4/5] bg-[#efeada] overflow-hidden">
               <video
                 src={step.src}
+                poster={step.poster}
                 autoPlay
                 muted
                 loop
                 playsInline
+                preload="metadata"
                 className="w-full h-full object-cover"
               />
             </div>
