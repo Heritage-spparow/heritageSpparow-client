@@ -233,7 +233,7 @@ export default function FashionLanding() {
                 {carouselImages.map((imgObj, i) => (
                   <img
                     key={i}
-                    src={cloudinaryOptimize(imgObj.src, "card")}
+                    src={cloudinaryOptimize(imgObj.src, "detail")}
                     alt={imgObj.category}
                     loading="lazy"
                     decoding="async"
