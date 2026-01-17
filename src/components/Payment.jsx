@@ -5,6 +5,7 @@ import { useOrder } from "../context/OrderContext";
 import api from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { Truck, Check, Info, X, CreditCard } from "lucide-react";
+import { cloudinaryOptimize } from "../utils/loudinary";
 
 import { useForm } from "react-hook-form";
 
@@ -148,27 +149,25 @@ export default function Payment() {
     }
   };
   const isAddressValid = (addr) => {
-  if (!addr) return false;
+    if (!addr) return false;
 
-  const requiredFields = [
-    addr.firstName,
-    addr.lastName,
-    addr.phone,
-    addr.street,
-    addr.city,
-    addr.state,
-    addr.zipCode,
-  ];
+    const requiredFields = [
+      addr.firstName,
+      addr.lastName,
+      addr.phone,
+      addr.street,
+      addr.city,
+      addr.state,
+      addr.zipCode,
+    ];
 
-  return requiredFields.every(
-    (field) => typeof field === "string" && field.trim().length > 0
-  );
-};
+    return requiredFields.every(
+      (field) => typeof field === "string" && field.trim().length > 0
+    );
+  };
   const handlePayment = async () => {
     if (!isAddressValid(selectedAddress)) {
-      alert(
-        "Please enter a complete delivery address."
-      );
+      alert("Please enter a complete delivery address.");
       return;
     }
 
@@ -275,8 +274,20 @@ export default function Payment() {
               signature: response.razorpay_signature,
               ...orderPayload,
             });
-
             if (captureRes.data.success) {
+              window.gtag?.("event", "purchase", {
+                transaction_id: rzOrder.id,
+                currency: "INR",
+                value: finalTotal,
+                items: items.map((item) => ({
+                  item_id: item.product._id,
+                  item_name: item.product.name,
+                  price: item.product.discountPrice || item.product.price,
+                  quantity: item.quantity,
+                  size: item.size,
+                })),
+              });
+
               await clearCart();
               setShowModal(true);
             } else {
@@ -661,10 +672,10 @@ export default function Payment() {
                   <div key={item._id} className="flex gap-4">
                     <div className="relative">
                       <img
-                        src={
-                          item.product.coverImage?.url ||
-                          "/api/placeholder/80/80"
-                        }
+                        src={cloudinaryOptimize(
+                          item.product?.coverImage?.url,
+                          "card"
+                        )}
                         alt={item.product.name}
                         className="w-20 h-20 object-cover rounded-lg border border-[#d6d4c2]"
                       />

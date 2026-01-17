@@ -160,6 +160,23 @@ export default function FeatureProduct() {
     ),
   ].filter(Boolean);
 
+  useEffect(() => {
+    if (!currentProduct) return;
+
+    window.gtag?.("event", "view_item", {
+      currency: "INR",
+      value: currentProduct.price,
+      items: [
+        {
+          item_id: currentProduct._id,
+          item_name: currentProduct.name,
+          price: currentProduct.price,
+          category: currentProduct.category,
+        },
+      ],
+    });
+  }, [currentProduct]);
+
   const handleAddToCart = async () => {
     if (isAddingToCart) return;
 
@@ -191,6 +208,20 @@ export default function FeatureProduct() {
       );
 
       if (response?.success) {
+        window.gtag?.("event", "add_to_cart", {
+          currency: "INR",
+          value: currentProduct.price * quantity,
+          items: [
+            {
+              item_id: currentProduct._id,
+              item_name: currentProduct.name,
+              price: currentProduct.price,
+              quantity,
+              size: selectedSize,
+            },
+          ],
+        });
+
         setAddedToCart(true);
       } else {
         alert(response?.message || "Failed to add item to cart");
@@ -214,7 +245,7 @@ export default function FeatureProduct() {
     }
 
     navigate("/payment");
-  }; 
+  };
   // const handleViewCart = () => {
   //   if (error) {
   //     alert(error);
@@ -624,12 +655,13 @@ export default function FeatureProduct() {
                   {activeTab === "shipping" && (
                     <div className="space-y-3 text-sm text-[#555] leading-relaxed">
                       <p>
-                       <li className="text-[#737144]">Delivery across India typically takes{" "}
-                        <span className="text-[#737144]">
-                          8–10 working days
-                        </span>{" "}
-                        from dispatch .{" "}
-                        </li> 
+                        <li className="text-[#737144]">
+                          Delivery across India typically takes{" "}
+                          <span className="text-[#737144]">
+                            8–10 working days
+                          </span>{" "}
+                          from dispatch .{" "}
+                        </li>
                         <span className="text-[#737144] font-medium">
                           <li>shipping is complimentary across India .</li>
                         </span>

@@ -57,7 +57,17 @@ export default function Checkout() {
       navigate("/login");
       return;
     }
-
+    window.gtag?.("event", "begin_checkout", {
+      currency: "INR",
+      value: grandTotal,
+      items: items.map((item) => ({
+        item_id: item.product._id,
+        item_name: item.product.name,
+        price: item.product.price,
+        quantity: item.quantity,
+        size: item.size,
+      })),
+    });
     navigate("/payment");
     setIsProcessing(false);
   };
@@ -191,10 +201,7 @@ export default function Checkout() {
                     <div className="flex items-center border border-[#737144]/30">
                       <button
                         onClick={() =>
-                          handleQuantityChange(
-                            item._id,
-                            item.quantity - 1
-                          )
+                          handleQuantityChange(item._id, item.quantity - 1)
                         }
                         disabled={item.quantity <= 1}
                         className="p-2 hover:bg-[#737144]/10 transition"
@@ -208,10 +215,7 @@ export default function Checkout() {
 
                       <button
                         onClick={() =>
-                          handleQuantityChange(
-                            item._id,
-                            item.quantity + 1
-                          )
+                          handleQuantityChange(item._id, item.quantity + 1)
                         }
                         className="p-2 hover:bg-[#737144]/10 transition"
                       >
@@ -231,8 +235,7 @@ export default function Checkout() {
                   </div>
 
                   <p className="mt-4 text-sm text-right text-[#737144]">
-                    Subtotal:{" "}
-                    {convert(item.product.price * item.quantity)}
+                    Subtotal: {convert(item.product.price * item.quantity)}
                   </p>
                 </div>
               </div>
@@ -254,7 +257,9 @@ export default function Checkout() {
 
             <div className="flex justify-between">
               <span>Shipping</span>
-              <span>{shippingCost === 0 ? "Complimentary" : convert(shippingCost)}</span>
+              <span>
+                {shippingCost === 0 ? "Complimentary" : convert(shippingCost)}
+              </span>
             </div>
 
             <hr className="border-[#737144]/20 my-4" />
