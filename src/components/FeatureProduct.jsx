@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import sizeChart from "../assets/SizeChart-01.png";
 import FullscreenImageViewer from "./FullscreenImageViewer";
 import { cloudinaryOptimize } from "../utils/loudinary";
-
+ 
 export default function FeatureProduct() {
   const { id } = useParams();
   const navigate = useNavigate();

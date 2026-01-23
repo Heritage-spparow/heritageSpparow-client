@@ -47,6 +47,7 @@ const Orders = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState({});
 
+
   useEffect(() => {
     if (isAuthenticated) fetchOrders();
   }, [isAuthenticated, currentPage]);
@@ -187,13 +188,8 @@ const Orders = () => {
                       <div key={i} className="flex gap-6 items-start">
                         <img
                           src={
-                            item.product?.images?.[0]
-                              ? cloudinaryOptimize(item.product.images[0], {
-                                  width: 160,
-                                  height: 160,
-                                  crop: "fill",
-                                  quality: "auto",
-                                })
+                            item?.image
+                              ? cloudinaryOptimize(item.image,"card")
                               : "/placeholder-product.png"
                           }
                           alt={item.name}
