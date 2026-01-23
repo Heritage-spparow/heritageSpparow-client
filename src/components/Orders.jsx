@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { orderAPI } from "../services/api";
 import { useNavigate } from "react-router-dom";
+import { cloudinaryOptimize } from "../utils/loudinary";
 import {
   Package,
   Truck,
@@ -84,7 +85,7 @@ const Orders = () => {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#f9f6ef] flex items-center justify-center">
+      <div className="min-h-screen bg-[#f9f6ef] text-[#737144] flex items-center justify-center">
         <p className="text-sm tracking-[0.25em] uppercase text-[#737144]">
           Please login to view orders
         </p>
@@ -93,7 +94,7 @@ const Orders = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f6ef] py-20">
+    <div className="min-h-screen bg-[#f9f6ef] text-[#737144] py-20">
       <div className="max-w-5xl mx-auto px-6">
         {/* HEADER */}
         <div className="mb-16">
@@ -103,9 +104,7 @@ const Orders = () => {
           <div className="w-24 h-[1px] bg-[#737144]/40 mt-4" />
         </div>
 
-        {error && (
-          <p className="mb-8 text-sm text-red-500">{error}</p>
-        )}
+        {error && <p className="mb-8 text-sm text-red-500">{error}</p>}
 
         {loading ? (
           <div className="space-y-10">
@@ -121,11 +120,11 @@ const Orders = () => {
             </p>
           </div>
         ) : (
-          <div className="space-y-12">
+          <div className="space-y-12 text-[#737144]">
             {orders.map((order) => (
               <div
                 key={order._id}
-                className="border border-[#737144]/20 bg-[#f9f6ef]"
+                className="border text-[#737144] border-[#737144]/20 bg-[#f9f6ef]"
               >
                 {/* HEADER */}
                 <div className="px-8 py-6 border-b border-[#737144]/15 grid md:grid-cols-4 gap-6 text-sm">
@@ -156,7 +155,7 @@ const Orders = () => {
                   </div>
                   <div className="text-left md:text-right">
                     <p className="uppercase tracking-wide text-[#737144]/60 text-xs">
-                      Order #
+                      Order # {order._id}
                     </p>
                     <button
                       onClick={() => navigate(`/order/${order._id}`)}
@@ -186,7 +185,21 @@ const Orders = () => {
 
                     {order.orderItems.map((item, i) => (
                       <div key={i} className="flex gap-6 items-start">
-                        <div className="w-20 h-20 bg-[#efeada] flex-shrink-0" />
+                        <img
+                          src={
+                            item.product?.images?.[0]
+                              ? cloudinaryOptimize(item.product.images[0], {
+                                  width: 160,
+                                  height: 160,
+                                  crop: "fill",
+                                  quality: "auto",
+                                })
+                              : "/placeholder-product.png"
+                          }
+                          alt={item.name}
+                          className="w-20 h-20 object-cover border border-[#737144]/20 flex-shrink-0"
+                        />
+
                         <div>
                           <p
                             onClick={() =>
@@ -218,14 +231,20 @@ const Orders = () => {
                       <Truck size={14} /> Track Package
                     </button>
 
-                    <button className="w-full py-3 text-xs uppercase tracking-[0.15em] border border-[#737144]/40 hover:bg-[#737144]/10 transition flex justify-center gap-2">
+                    <button
+                      onClick={() =>
+                        (window.location.href =
+                          "mailto:support@heritagesparrow.com")
+                      }
+                      className="w-full py-3 text-xs uppercase tracking-[0.15em] border border-[#737144]/40 hover:bg-[#737144]/10 transition flex justify-center gap-2 items-center"
+                    >
                       <MessageSquare size={14} /> Support
                     </button>
 
-                    <button className="w-full py-3 text-xs uppercase tracking-[0.15em] border border-[#737144]/40 hover:bg-[#737144]/10 transition flex justify-center gap-2">
+                    {/* <button className="w-full py-3 text-xs uppercase tracking-[0.15em] border border-[#737144]/40 hover:bg-[#737144]/10 transition flex justify-center gap-2">
                       <Star size={14} /> Review
-                    </button>
-{/* 
+                    </button> */}
+                    {/* 
                     {order.status === "pending" && (
                       <button
                         onClick={() => cancelOrder(order._id)}
@@ -257,7 +276,7 @@ const Orders = () => {
                 >
                   {p}
                 </button>
-              )
+              ),
             )}
           </div>
         )}
