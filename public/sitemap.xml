@@ -4,6 +4,9 @@
     <loc>https://www.heritagesparrow.com/</loc>
   </url>
   <url>
+    <loc>https://www.heritagesparrow.com/product/Women</loc>
+  </url>
+  <url>
     <loc>https://www.heritagesparrow.com/search</loc>
   </url>
   <url>
@@ -24,4 +27,8 @@
   <url>
     <loc>https://www.heritagesparrow.com/policies/shipping-returns-refund</loc>
   </url>
+  <url>
+    <loc>https://www.heritagesparrow.com/sitemap-images.xml</loc>
+  </url>
+
 </urlset>
