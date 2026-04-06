@@ -156,6 +156,14 @@ export default function FeatureProduct() {
   }, [id, fetchProductById]);
 
   useEffect(() => {
+    // Ensure a clean product view when navigating between related products.
+    setAddedToCart(false);
+    setQuantity(1);
+    setActiveImage(0);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [id]);
+
+  useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
 
@@ -795,7 +803,7 @@ export default function FeatureProduct() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {relatedProducts.slice(0, 4).map((rel) => (
                 <div
-                  key={rel.id}
+                  key={rel._id || rel.id}
                   className="group cursor-pointer"
                   onClick={() => navigate(buildProductPath(rel))}
                 >
