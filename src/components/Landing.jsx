@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useProduct } from "../context/ProductContext";
 import { landingAPI } from "../services/api";
 import { cloudinaryOptimize } from "../utils/loudinary";
+import { buildProductPath } from "../utils/productUrl";
+import SEO from "./SEO";
 
 export default function FashionLanding() {
   const { fetchCategories, categories } = useProduct();
@@ -119,7 +121,7 @@ export default function FashionLanding() {
               : item?.productId;
 
           if (productId) {
-            navigate(`/feature/${productId}`);
+            navigate(buildProductPath({ _id: productId, name: item?.label }));
           }
         },
         position: "left",
@@ -184,6 +186,11 @@ export default function FashionLanding() {
   /* ---------------- RENDER ---------------- */
   return (
     <div className="w-full bg-[#f9f6ef]">
+      <SEO
+        title="HERITAGE SPARROW | Handcrafted Collections"
+        description="Discover handcrafted Heritage Sparrow collections and shop directly from the official store."
+        canonicalPath="/"
+      />
       {landingLoading && <ImageSkeleton />}
       {/* LCP PRELOAD (NO DESIGN IMPACT) */}
       {collectionsData[0]?.image && (

@@ -14,4 +14,3 @@ export const cloudinaryOptimize = (url, type = "detail") => {
     `/upload/${presets[type]}/`
   );
 };
- 

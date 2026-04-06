@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { orderAPI } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { cloudinaryOptimize } from "../utils/loudinary";
+import { buildProductPath } from "../utils/productUrl";
 import {
   Package,
   Truck,
@@ -199,7 +200,12 @@ const Orders = () => {
                         <div>
                           <p
                             onClick={() =>
-                              navigate(`/feature/${item.product?._id}`)
+                              navigate(
+                                buildProductPath({
+                                  _id: item.product?._id,
+                                  name: item.name,
+                                })
+                              )
                             }
                             className="text-sm text-[#737144] cursor-pointer hover:underline"
                           >
@@ -210,7 +216,12 @@ const Orders = () => {
                           </p>
                           <button
                             onClick={() =>
-                              navigate(`/feature/${item.product?._id}`)
+                              navigate(
+                                buildProductPath({
+                                  _id: item.product?._id,
+                                  name: item.name,
+                                })
+                              )
                             }
                             className="mt-3 text-xs uppercase tracking-[0.15em] border border-[#737144]/40 px-4 py-2 hover:bg-[#737144]/10 transition"
                           >

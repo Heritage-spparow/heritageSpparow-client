@@ -6,7 +6,10 @@ import { useAuth } from "../context/AuthContext";
 import sizeChart from "../assets/SizeChart-01.png";
 import FullscreenImageViewer from "./FullscreenImageViewer";
 import { cloudinaryOptimize } from "../utils/loudinary";
- 
+import { absoluteUrl } from "../utils/site";
+import { buildProductPath } from "../utils/productUrl";
+import SEO from "./SEO";
+
 export default function FeatureProduct() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -135,12 +138,15 @@ export default function FeatureProduct() {
   useEffect(() => {
     const loadProduct = async () => {
       const response = await fetchProductById(id);
-      // console.log(response);
-      const defaultSizeObj = sizes.find((s) => s.stock > 0) || sizes[0];
 
       if (response.success && response.product) {
+        const sizes = Array.isArray(response.product.sizes)
+          ? response.product.sizes
+          : [];
+        const defaultSizeObj = sizes.find((s) => s.stock > 0) || sizes[0];
+
         setSelectedColor(response.product.colors?.[0]?.name || "");
-        setSelectedSize(response.product.sizes?.[0]?.size || "");
+        setSelectedSize(defaultSizeObj?.size || response.product.sizes?.[0]?.size || "");
         setSelectedStock(defaultSizeObj?.stock || 0);
       } else {
         alert(response.error || "Product not found");
@@ -162,7 +168,7 @@ export default function FeatureProduct() {
 
   useEffect(() => {
     if (!currentProduct) return;
-
+ 
     window.gtag?.("event", "view_item", {
       currency: "INR",
       value: currentProduct.price,
@@ -280,6 +286,43 @@ export default function FeatureProduct() {
     );
   }
   const currentProductId = currentProduct._id || currentProduct.id;
+  const canonicalPath = buildProductPath(currentProduct);
+  const primaryImage =
+    currentProduct?.coverImage?.url ||
+    currentProduct?.galleryImages?.[0]?.url ||
+    "/heitageSparrow.png";
+  const allProductImages = [
+    currentProduct?.coverImage?.url,
+    ...(currentProduct?.galleryImages || []).map((img) => img?.url),
+  ]
+    .filter(Boolean)
+    .slice(0, 6);
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: currentProduct?.name,
+    description:
+      currentProduct?.description ||
+      currentProduct?.specifications?.care ||
+      "Handcrafted product by Heritage Sparrow",
+    image: allProductImages,
+    sku: currentProductId,
+    brand: {
+      "@type": "Brand",
+      name: "Heritage Sparrow",
+    },
+    offers: {
+      "@type": "Offer",
+      url: absoluteUrl(canonicalPath),
+      priceCurrency: "INR",
+      price: String(currentProduct?.price || 0),
+      availability:
+        Number(currentProduct?.countInStock || 1) > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+      itemCondition: "https://schema.org/NewCondition",
+    },
+  };
 
   const relatedProducts = products.filter(
     (item) =>
@@ -288,6 +331,17 @@ export default function FeatureProduct() {
   );
   return (
     <div style={dinStyle} className="bg-[#f9f6ef]">
+      <SEO
+        title={`${currentProduct?.name} | HERITAGE SPARROW`}
+        description={
+          currentProduct?.description ||
+          "Shop handcrafted products from Heritage Sparrow."
+        }
+        canonicalPath={canonicalPath}
+        image={primaryImage}
+        type="product"
+        jsonLd={productJsonLd}
+      />
       <div className=" min-h-screen ">
         <div className="grid grid-cols-1 lg:grid-cols-2 ">
           <div className="w-full  md:p-8">
@@ -317,7 +371,7 @@ export default function FeatureProduct() {
                 </div>
 
                 {/* Main image */}
-                <v className="flex-1 flex items-center justify-center">
+                <div className="flex-1 flex items-center justify-center">
                   <div
                     ref={imageContainerRef}
                     className="relative w-full md:max-w-full  overflow-hidden flex items-center justify-center touch-pan-y"
@@ -416,7 +470,7 @@ export default function FeatureProduct() {
                       ))}
                     </div>
                   </div>
-                </v>
+                </div>
               </div>
             </div>
           </div>
@@ -743,7 +797,7 @@ export default function FeatureProduct() {
                 <div
                   key={rel.id}
                   className="group cursor-pointer"
-                  onClick={() => navigate(`/feature/${rel._id}`)}
+                  onClick={() => navigate(buildProductPath(rel))}
                 >
                   <div className="aspect-[3/4] bg-gray-100 mb-3 overflow-hidden">
                     <img

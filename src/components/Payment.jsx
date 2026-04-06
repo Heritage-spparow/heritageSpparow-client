@@ -212,7 +212,7 @@ export default function Payment() {
           price: item.product.discountPrice || item.product.price,
           quantity: item.quantity,
           color: item.color || item.selectedColor,
-          size: Number(item.size || item.selectedSize),
+          size: item.size || item.selectedSize,
         })),
         shippingAddress: {
           address: selectedAddress.street,
@@ -241,6 +241,7 @@ export default function Payment() {
           // fire-and-forget (do NOT block UI)
           clearCart().catch((err) => console.error("Clear cart failed:", err));
         }
+        setIsProcessing(false);
         return;
       }
 
@@ -268,7 +269,7 @@ export default function Payment() {
 
         handler: async function (response) {
           try {
-            const captureRes = await api.post("/orders/capture", {
+            const captureRes = await api.post("/orders/razorpay/verify", {
               paymentId: response.razorpay_payment_id,
               razorpayOrderId: response.razorpay_order_id,
               signature: response.razorpay_signature,
@@ -298,12 +299,15 @@ export default function Payment() {
               "Order confirmation failed. Contact support with Payment ID: " +
                 response.razorpay_payment_id
             );
+          } finally {
+            setIsProcessing(false);
           }
         },
 
         modal: {
           ondismiss: function () {
             alert("Payment cancelled");
+            setIsProcessing(false);
           },
         },
       };
@@ -313,7 +317,6 @@ export default function Payment() {
     } catch (error) {
       console.error(error);
       alert("Payment failed. Please try again.");
-    } finally {
       setIsProcessing(false);
     }
   };
@@ -335,8 +338,15 @@ export default function Payment() {
       const res = await addAddress(newAddress);
 
       if (res.success) {
+        const latestAddress =
+          Array.isArray(res.addresses) && res.addresses.length > 0
+            ? res.addresses[res.addresses.length - 1]
+            : null;
+
         setSelectedAddress(
-          formatAddress({ ...newAddress, _id: res.address._id })
+          latestAddress
+            ? formatAddress(latestAddress)
+            : formatAddress({ ...newAddress, _id: Date.now().toString() })
         );
         setShowAddressModal(false);
         reset();

@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import classNames from "classnames";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useProduct } from "../context/ProductContext";
+import { buildProductPath } from "../utils/productUrl";
+import { cloudinaryOptimize } from "../utils/loudinary";
+import SEO from "./SEO";
 
 /* ---------------- THEME ---------------- */
 const BRAND_COLOR = "#737144";
@@ -18,7 +21,6 @@ export default function Search() {
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const navigate = useNavigate();
   const { searchProducts } = useProduct();
 
   const shouldLift = focused || query.length > 0;
@@ -65,15 +67,16 @@ export default function Search() {
   }, [query, searchProducts]);
 
   /* ---------------- NAVIGATION ---------------- */
-  const handleProductClick = (product) => {
-    navigate(`/feature/${product._id}`);
-  };
-
   return (
     <div
       style={{ ...DIN_STYLE, backgroundColor: BG_COLOR }}
       className="min-h-screen flex items-center justify-center px-4 transition-all duration-500"
     >
+      <SEO
+        title="Search Products | HERITAGE SPARROW"
+        description="Search handcrafted Heritage Sparrow products and buy directly."
+        canonicalPath="/search"
+      />
       <div
         className={classNames(
           "w-full max-w-6xl transition-all duration-500",
@@ -146,10 +149,12 @@ export default function Search() {
                     "
                   >
                     {searchResults.map((item) => (
-                      <div
+                      <Link
                         key={item._id}
-                        onClick={() => handleProductClick(item)}
+                        to={buildProductPath(item)}
+                        aria-label={`Buy ${item.name}`}
                         className="
+                          block
                           w-[160px] sm:w-[180px] md:w-[200px]
                           flex-shrink-0
                           cursor-pointer
@@ -159,11 +164,12 @@ export default function Search() {
                         {/* IMAGE */}
                         <div className="aspect-[3/4] bg-[#f4f3ed] mb-4 overflow-hidden">
                           <img
-                            src={
+                            src={cloudinaryOptimize(
                               item.coverImage?.url ||
-                              item.galleryImages?.[0]?.url ||
-                              "/placeholder.jpg"
-                            }
+                                item.galleryImages?.[0]?.url ||
+                                "/placeholder.jpg",
+                              "card"
+                            )}
                             alt={item.name}
                             className="
                               w-full h-full object-cover
@@ -177,7 +183,13 @@ export default function Search() {
                         <p className="text-center text-[11px] uppercase tracking-[0.18em] text-[#737144] font-light">
                           {item.name}
                         </p>
-                      </div>
+                        <p className="mt-1 text-center text-[11px] text-[#737144]/80">
+                          INR {Number(item.price || 0).toLocaleString()}
+                        </p>
+                        <p className="mt-2 text-center text-[10px] uppercase tracking-[0.2em] text-[#737144] border border-[#737144]/40 py-1">
+                          Buy Now
+                        </p>
+                      </Link>
                     ))}
                   </div>
                 ) : (

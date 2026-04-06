@@ -88,6 +88,7 @@ function AppContent() {
             }
           />
           <Route path="/feature/:id" element={<FeatureProduct />} />
+          <Route path="/products/:slug/:id" element={<FeatureProduct />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route
             path="/payment"

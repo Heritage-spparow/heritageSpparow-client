@@ -4,6 +4,8 @@ import banner from "../assets/DSC_5888.jpg";
 import { motion } from "framer-motion";
 import { useProduct } from "../context/ProductContext";
 import { cloudinaryOptimize } from "../utils/loudinary";
+import { buildProductPath } from "../utils/productUrl";
+import SEO from "./SEO";
 
 export default function ProductWindow() {
   const { name } = useParams();
@@ -193,6 +195,13 @@ export default function ProductWindow() {
 
   return (
     <div className="min-h-screen bg-[#f9f6ef] text-[#737144]">
+      <SEO
+        title={`${decodeURIComponent(name)} | HERITAGE SPARROW`}
+        description={`Explore ${decodeURIComponent(
+          name
+        )} handcrafted products from Heritage Sparrow.`}
+        canonicalPath={`/product/${encodeURIComponent(decodeURIComponent(name))}`}
+      />
       {/* collection banner*/}
       <div className="relative w-full h-[60vh] sm:h-[50vh] md:h-[70vh] lg:h-[100vh]">
         <img
@@ -251,7 +260,7 @@ export default function ProductWindow() {
               <motion.div
                 key={product.id}
                 className="group cursor-pointer"
-                onClick={() => navigate(`/feature/${product._id}`)}
+                onClick={() => navigate(buildProductPath(product))}
                 variants={{
                   hidden: { opacity: 0, y: 30 },
                   visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
