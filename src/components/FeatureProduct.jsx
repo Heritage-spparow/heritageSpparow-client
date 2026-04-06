@@ -371,7 +371,7 @@ export default function FeatureProduct() {
                         src={image}
                         loading="lazy"
                         decoding="async"
-                        alt={`${currentProduct.name}-${index}`}
+                        alt={`${currentProduct.name}-${index}+{"https://www.heritagesparrow.com/}`}
                         className="w-full h-full object-cover"
                       />
                     </button>
@@ -418,7 +418,7 @@ export default function FeatureProduct() {
                                 className="w-full max-h-[85vh] object-contain select-none"
                                 loading="lazy"
                                 decoding="async"
-                                alt={`${currentProduct.name}-${index}`}
+                                alt={`${currentProduct.name} handmade jutti Heritage Sparrow`}
                                 draggable={false}
                               />
                               <button
@@ -810,7 +810,7 @@ export default function FeatureProduct() {
                   <div className="aspect-[3/4] bg-gray-100 mb-3 overflow-hidden">
                     <img
                       src={cloudinaryOptimize(rel.coverImage?.url, "card")}
-                      alt={rel.name}
+                      alt={`${rel.name} handmade jutti Heritage Sparrow`}
                       loading="lazy"
                       decoding="async"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
