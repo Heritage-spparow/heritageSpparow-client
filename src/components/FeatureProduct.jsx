@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContex";
 import { useProduct } from "../context/ProductContext";
-import { useAuth } from "../context/AuthContext";
 import sizeChart from "../assets/SizeChart-01.png";
 import FullscreenImageViewer from "./FullscreenImageViewer";
 import { cloudinaryOptimize } from "../utils/loudinary";
@@ -10,7 +9,7 @@ import { absoluteUrl } from "../utils/site";
 import { buildProductPath } from "../utils/productUrl";
 import SEO from "./SEO";
 
-export default function FeatureProduct() {
+export default function FeatureProduct({ resolvedProduct = null }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
@@ -20,10 +19,7 @@ export default function FeatureProduct() {
     products,
     currentProduct,
     loading,
-    error,
-    clearError,
   } = useProduct();
-  const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
   const [activeTab, setActiveTab] = useState("description");
   const [isAddingToCart, setIsAddingToCart] = useState(false);
@@ -44,6 +40,7 @@ export default function FeatureProduct() {
 
   const lastDistance = useRef(null);
   const dragStart = useRef({ x: 0, y: 0 });
+  const activeProduct = resolvedProduct || currentProduct;
 
   const getDistance = (touches) => {
     const dx = touches[0].clientX - touches[1].clientX;
@@ -60,8 +57,6 @@ export default function FeatureProduct() {
   //     "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=800&h=1000&fit=crop"
   //   ]
   // };
-  const minSwipeDistance = 50;
-
   const onTouchStart = (e) => {
     if (e.touches.length === 2) {
       e.preventDefault();
@@ -136,6 +131,10 @@ export default function FeatureProduct() {
   }, [activeImage]);
 
   useEffect(() => {
+    if (resolvedProduct) {
+      return;
+    }
+
     const loadProduct = async () => {
       const response = await fetchProductById(id);
 
@@ -145,7 +144,6 @@ export default function FeatureProduct() {
           : [];
         const defaultSizeObj = sizes.find((s) => s.stock > 0) || sizes[0];
 
-        setSelectedColor(response.product.colors?.[0]?.name || "");
         setSelectedSize(defaultSizeObj?.size || response.product.sizes?.[0]?.size || "");
         setSelectedStock(defaultSizeObj?.stock || 0);
       } else {
@@ -153,7 +151,19 @@ export default function FeatureProduct() {
       }
     };
     loadProduct();
-  }, [id, fetchProductById]);
+  }, [id, fetchProductById, resolvedProduct]);
+
+  useEffect(() => {
+    if (!activeProduct) return;
+
+    const sizes = Array.isArray(activeProduct.sizes) ? activeProduct.sizes : [];
+    const defaultSizeObj = sizes.find((s) => s.stock > 0) || sizes[0];
+
+    setSelectedSize(
+      defaultSizeObj?.size || activeProduct.sizes?.[0]?.size || ""
+    );
+    setSelectedStock(defaultSizeObj?.stock || 0);
+  }, [activeProduct]);
 
   useEffect(() => {
     // Ensure a clean product view when navigating between related products.
@@ -168,28 +178,28 @@ export default function FeatureProduct() {
   }, [fetchProducts]);
 
   const images = [
-    cloudinaryOptimize(currentProduct?.coverImage?.url, "detail"),
-    ...(currentProduct?.galleryImages || []).map((img) =>
+    cloudinaryOptimize(activeProduct?.coverImage?.url, "detail"),
+    ...(activeProduct?.galleryImages || []).map((img) =>
       cloudinaryOptimize(img.url, "detail")
     ),
   ].filter(Boolean);
 
   useEffect(() => {
-    if (!currentProduct) return;
+    if (!activeProduct) return;
  
     window.gtag?.("event", "view_item", {
       currency: "INR",
-      value: currentProduct.price,
+      value: activeProduct.price,
       items: [
         {
-          item_id: currentProduct._id,
-          item_name: currentProduct.name,
-          price: currentProduct.price,
-          category: currentProduct.category,
+          item_id: activeProduct._id,
+          item_name: activeProduct.name,
+          price: activeProduct.price,
+          category: activeProduct.category,
         },
       ],
     });
-  }, [currentProduct]);
+  }, [activeProduct]);
 
   const handleAddToCart = async () => {
     if (isAddingToCart) return;
@@ -216,7 +226,7 @@ export default function FeatureProduct() {
 
     try {
       const response = await addToCart(
-        currentProduct,
+        activeProduct,
         selectedSize,
         quantity // 👈 IMPORTANT: use quantity, not 1
       );
@@ -224,12 +234,12 @@ export default function FeatureProduct() {
       if (response?.success) {
         window.gtag?.("event", "add_to_cart", {
           currency: "INR",
-          value: currentProduct.price * quantity,
+          value: activeProduct.price * quantity,
           items: [
             {
-              item_id: currentProduct._id,
-              item_name: currentProduct.name,
-              price: currentProduct.price,
+              item_id: activeProduct._id,
+              item_name: activeProduct.name,
+              price: activeProduct.price,
               quantity,
               size: selectedSize,
             },
@@ -274,7 +284,7 @@ export default function FeatureProduct() {
     fontWeight: 400,
   };
 
-  if (loading) {
+  if (loading && !resolvedProduct) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F3ED]">
         <div className="loader"></div>
@@ -283,7 +293,7 @@ export default function FeatureProduct() {
     );
   }
 
-  if (error || !currentProduct) {
+  if (!activeProduct) {
     return (
       <div className="p-10 text-center">
         <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F3ED]">
@@ -293,25 +303,25 @@ export default function FeatureProduct() {
       </div>
     );
   }
-  const currentProductId = currentProduct._id || currentProduct.id;
-  const canonicalPath = buildProductPath(currentProduct);
+  const currentProductId = activeProduct._id || activeProduct.id;
+  const canonicalPath = buildProductPath(activeProduct);
   const primaryImage =
-    currentProduct?.coverImage?.url ||
-    currentProduct?.galleryImages?.[0]?.url ||
+    activeProduct?.coverImage?.url ||
+    activeProduct?.galleryImages?.[0]?.url ||
     "/heitageSparrow.png";
   const allProductImages = [
-    currentProduct?.coverImage?.url,
-    ...(currentProduct?.galleryImages || []).map((img) => img?.url),
+    activeProduct?.coverImage?.url,
+    ...(activeProduct?.galleryImages || []).map((img) => img?.url),
   ]
     .filter(Boolean)
     .slice(0, 6);
   const productJsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
-    name: currentProduct?.name,
+    name: activeProduct?.name,
     description:
-      currentProduct?.description ||
-      currentProduct?.specifications?.care ||
+      activeProduct?.description ||
+      activeProduct?.specifications?.care ||
       "Handcrafted product by Heritage Sparrow",
     image: allProductImages,
     sku: currentProductId,
@@ -323,9 +333,9 @@ export default function FeatureProduct() {
       "@type": "Offer",
       url: absoluteUrl(canonicalPath),
       priceCurrency: "INR",
-      price: String(currentProduct?.price || 0),
+      price: String(activeProduct?.price || 0),
       availability:
-        Number(currentProduct?.countInStock || 1) > 0
+        Number(activeProduct?.countInStock || 1) > 0
           ? "https://schema.org/InStock"
           : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
@@ -335,14 +345,14 @@ export default function FeatureProduct() {
   const relatedProducts = products.filter(
     (item) =>
       (item._id || item.id) !== currentProductId &&
-      item.category === currentProduct.category
+      item.category === activeProduct.category
   );
   return (
     <div style={dinStyle} className="bg-[#f9f6ef]">
       <SEO
-        title={`${currentProduct?.name} | HERITAGE SPARROW`}
+        title={`${activeProduct?.name} | HERITAGE SPARROW`}
         description={
-          currentProduct?.description ||
+          activeProduct?.description ||
           "Shop handcrafted products from Heritage Sparrow."
         }
         canonicalPath={canonicalPath}
@@ -371,7 +381,7 @@ export default function FeatureProduct() {
                         src={image}
                         loading="lazy"
                         decoding="async"
-                        alt={`${currentProduct.name}-${index}+{"https://www.heritagesparrow.com/}`}
+                        alt={`${activeProduct.name}-${index}+{"https://www.heritagesparrow.com/}`}
                         className="w-full h-full object-cover"
                       />
                     </button>
@@ -418,7 +428,7 @@ export default function FeatureProduct() {
                                 className="w-full max-h-[85vh] object-contain select-none"
                                 loading="lazy"
                                 decoding="async"
-                                alt={`${currentProduct.name} handmade jutti Heritage Sparrow`}
+                                alt={`${activeProduct.name} handmade jutti Heritage Sparrow`}
                                 draggable={false}
                               />
                               <button
@@ -488,26 +498,26 @@ export default function FeatureProduct() {
             {/* Product Name */}
             <div>
               <h1 className="text-lg font-bold text-[#737144] tracking-wide mb-6">
-                {currentProduct.name}
+                {activeProduct.name}
               </h1>
 
               {/* Price */}
               <div className="flex items-center gap-3 mt-2">
-                {currentProduct.comparePrice &&
-                currentProduct.comparePrice < currentProduct.price ? (
+                {activeProduct.comparePrice &&
+                activeProduct.comparePrice < activeProduct.price ? (
                   <>
                     <span className="text-xl font-medium text-[#737144]">
-                      INR {Number(currentProduct.comparePrice).toLocaleString()}
+                      INR {Number(activeProduct.comparePrice).toLocaleString()}
                     </span>
 
                     <span className="text-base text-neutral-500 line-through">
-                      INR {Number(currentProduct.price).toLocaleString()}
+                      INR {Number(activeProduct.price).toLocaleString()}
                     </span>
 
                     <span className="text-xs text-[#737144] bg-[#f4f3ed] px-2 py-0.5 rounded-md tracking-wider">
                       {Math.round(
-                        ((currentProduct.price - currentProduct.comparePrice) /
-                          currentProduct.price) *
+                        ((activeProduct.price - activeProduct.comparePrice) /
+                          activeProduct.price) *
                           100
                       )}
                       % OFF
@@ -515,7 +525,7 @@ export default function FeatureProduct() {
                   </>
                 ) : (
                   <span className="text-xl font-medium text-[#737144]">
-                    INR {Number(currentProduct.price).toLocaleString()}
+                    INR {Number(activeProduct.price).toLocaleString()}
                   </span>
                 )}
               </div>
@@ -553,7 +563,7 @@ export default function FeatureProduct() {
             )} */}
 
             {/* Size Selection */}
-            {currentProduct.sizes && currentProduct.sizes.length > 0 && (
+            {activeProduct.sizes && activeProduct.sizes.length > 0 && (
               <div className="mt-6">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4">
@@ -602,7 +612,7 @@ export default function FeatureProduct() {
                 )}
                 {/* Size Buttons */}
                 <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
-                  {currentProduct.sizes.map((size) => (
+                  {activeProduct.sizes.map((size) => (
                     <button
                       key={size._id}
                       onClick={() => {
@@ -706,9 +716,9 @@ export default function FeatureProduct() {
                 <div className="text-sm text-[#555] leading-relaxed max-w-3xl">
                   {activeTab === "description" && (
                     <div className="space-y-4">
-                      <p>{currentProduct.description}</p>
+                      <p>{activeProduct.description}</p>
                       <p>
-                        {currentProduct.origin ||
+                        {activeProduct.origin ||
                           "Made in India with love and care."}
                       </p>
                     </div>
@@ -750,7 +760,7 @@ export default function FeatureProduct() {
 
                   {activeTab === "care" && (
                     <p>
-                      {currentProduct.specifications?.care ||
+                      {activeProduct.specifications?.care ||
                         "Dry clean only. Avoid moisture and direct contact with water. After use, allow the pair to air out and store it in the Heritage Sparrow dust bag provided to preserve its shape and embroidery."}
                     </p>
                   )}

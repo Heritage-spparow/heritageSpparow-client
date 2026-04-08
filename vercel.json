@@ -1,6 +1,18 @@
 {
   "rewrites": [
     {
+      "source": "/product/:name",
+      "destination": "/api/legacy-redirect?type=category&name=:name"
+    },
+    {
+      "source": "/feature/:id",
+      "destination": "/api/legacy-redirect?type=product&id=:id"
+    },
+    {
+      "source": "/products/:slug/:id",
+      "destination": "/api/legacy-redirect?type=product&id=:id"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

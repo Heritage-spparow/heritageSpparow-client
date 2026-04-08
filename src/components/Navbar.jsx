@@ -18,7 +18,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useCart } from "../context/CartContex";
 import { useAuth } from "../context/AuthContext";
 import { useProduct } from "../context/ProductContext";
-import logo from "../assets/logo.png";
+import { buildCategoryPath } from "../utils/productUrl";
 
 const Navbar = () => {
   const { categories } = useProduct();
@@ -39,7 +39,7 @@ const Navbar = () => {
   const [isShopMenuOpen, setIsShopMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const navigate = useNavigate();
-  const { items, totalItems, error, clearError } = useCart();
+  const { totalItems, error, clearError } = useCart();
   const { user, isAuthenticated, logout } = useAuth();
   const [expandedSections, setExpandedSections] = useState({
     CATEGORY: false,
@@ -119,7 +119,7 @@ const Navbar = () => {
           <button
             onClick={() => {
               if (firstCategorySlug) {
-                navigate(`/product/${encodeURIComponent(firstCategorySlug)}`);
+                navigate(buildCategoryPath(firstCategorySlug));
               }
             }}
             className="hover:underline font-medium cursor-pointer"
@@ -252,7 +252,7 @@ const Navbar = () => {
             {categories.map((category) => (
               <Link
                 key={category}
-                to={`/product/${encodeURIComponent(category)}`}
+                to={buildCategoryPath(category)}
                 className="block text-white hover:opacity-90 text-xl font-light"
                 onClick={() => {
                   setIsShopMenuOpen(false);
@@ -303,7 +303,7 @@ const Navbar = () => {
                 {categories.map((category) => (
                   <Link
                     key={category}
-                    to={`/product/${encodeURIComponent(category)}`}
+                    to={buildCategoryPath(category)}
                     className="block text-white hover:text-gray-300 text-base transition-all duration-300"
                     onClick={() => setIsShopMenuOpen(false)}
                   >
@@ -360,12 +360,12 @@ const Navbar = () => {
 
           <div className="flex flex-col px-8 py-8 space-y-8">
             {categories.map((category) => (
-              <Link
-                key={category}
-                to={`/product/${encodeURIComponent(category)}`}
-                className="text-left text-white border-b border-[var(--color-border)] pb-4"
-                onClick={() => {
-                  setIsShopMenuOpen(false);
+                <Link
+                  key={category}
+                  to={buildCategoryPath(category)}
+                  className="text-left text-white border-b border-[var(--color-border)] pb-4"
+                  onClick={() => {
+                    setIsShopMenuOpen(false);
                   setIsMenuOpen(false);
                 }}
               >

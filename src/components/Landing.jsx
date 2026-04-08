@@ -1,18 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useProduct } from "../context/ProductContext";
 import { landingAPI } from "../services/api";
 import { cloudinaryOptimize } from "../utils/loudinary";
-import { buildProductPath } from "../utils/productUrl";
+import { buildCategoryPath, buildProductPath } from "../utils/productUrl";
 import SEO from "./SEO";
 
 export default function FashionLanding() {
-  const { fetchCategories, categories } = useProduct();
   const navigate = useNavigate();
 
   const [landing, setLanding] = useState(null);
   const [heroLoaded, setHeroLoaded] = useState(false);
-  const [loaded, setLoaded] = useState({});
 
   const [currentSlide, setCurrentSlide] = useState(1);
   const [enableTransition, setEnableTransition] = useState(true);
@@ -94,10 +91,7 @@ export default function FashionLanding() {
       image: sectionOne?.image?.url,
       cta: {
         label: sectionOne?.ctaLabel || "Explore Collection",
-        action: () =>
-          navigate(
-            `/product/${encodeURIComponent(sectionOne?.category || "")}`
-          ),
+        action: () => navigate(buildCategoryPath(sectionOne?.category)),
         position: "center",
       },
     },
@@ -110,22 +104,33 @@ export default function FashionLanding() {
           category: i.label,
           id: typeof i.productId === "object" ? i.productId._id : i.productId,
         })) || [],
-      cta: {
-        label: sectionTwo?.ctaLabel || "Shop Now",
-        action: () => {
-          const item = sectionTwo?.items?.[currentSlide - 1];
+          cta: {
+            label: sectionTwo?.ctaLabel || "Shop Now",
+            action: () => {
+              const item = sectionTwo?.items?.[currentSlide - 1];
 
-          const productId =
-            typeof item?.productId === "object"
-              ? item.productId._id
-              : item?.productId;
+              const productId =
+                typeof item?.productId === "object"
+                  ? item.productId._id
+                  : item?.productId;
 
-          if (productId) {
-            navigate(buildProductPath({ _id: productId, name: item?.label }));
-          }
-        },
-        position: "left",
-      },
+              if (productId) {
+                navigate(
+                  buildProductPath({
+                    _id: productId,
+                    name: item?.label,
+                    category:
+                      item?.productId?.category ||
+                      item?.category ||
+                      sectionOne?.category ||
+                      sectionTwo?.category ||
+                      "",
+                  })
+                );
+              }
+            },
+            position: "left",
+          },
     },
     {
       id: 3,

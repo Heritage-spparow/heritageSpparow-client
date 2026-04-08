@@ -1,12 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
 import { ChevronDown } from "lucide-react";
-import heritage from "../assets/craft/DSC_7360.jpg";
 import { useNavigate } from "react-router-dom";
 import { useProduct } from "../context/ProductContext";
+import { buildCategoryPath } from "../utils/productUrl";
 
 export default function AboutPage() {
-  const [activeAccordion, setActiveAccordion] = useState(null);
-    const { fetchCategories, categories } = useProduct();
+  const { categories } = useProduct();
   const navigate = useNavigate();
 
   const dinStyle = {
@@ -35,30 +34,6 @@ export default function AboutPage() {
       title: "Authenticity",
       description:
         "Every piece is handmade, inherently unique, and shaped through hours of careful craftsmanship.",
-    },
-  ];
-
-  const timeline = [
-    {
-      year: "2015",
-      event: "Founded in a small village workshop with three master weavers",
-    },
-    {
-      year: "2017",
-      event: "Expanded to support 50+ artisan families across rural India",
-    },
-    { year: "2019", event: "Launched our first sustainable silk collection" },
-    {
-      year: "2021",
-      event: "Recognized for preserving traditional Banarasi techniques",
-    },
-    {
-      year: "2023",
-      event: "Grew to a community of 200+ artisans and craftspeople",
-    },
-    {
-      year: "2025",
-      event: "Continuing our mission to weave tradition into tomorrow",
     },
   ];
 
@@ -280,7 +255,7 @@ export default function AboutPage() {
         </p>
         <button
           className="bg-[#737144] text-white px-12 py-4 tracking-[0.15em] uppercase text-sm font-light hover:bg-[#5f5d3d] transition-all duration-300 hover:shadow-lg"
-          onClick={() => navigate(`/product/${encodeURIComponent(categories[0] || "")}`)}
+          onClick={() => navigate(buildCategoryPath(categories[0] || ""))}
         >
           Explore Our Collection
         </button>

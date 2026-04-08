@@ -6,12 +6,11 @@ import {
   Route,
   useLocation,
 } from "react-router-dom";
-import{ useEffect } from "react";
+import { useEffect } from "react";
 import Navbar from "./components/Navbar";
 import Landing from "./components/Landing";
 import Search from "./components/Search";
 import ProductWindow from "./components/ProductWindow";
-import FeatureProduct from "./components/FeatureProduct";
 import Checkout from "./components/Checkout";
 import Payment from "./components/Payment";
 import Profile from "./components/Profile";
@@ -25,6 +24,11 @@ import CraftPage from "./components/craft";
 import GoogleAuthCallback from "./components/GoogleAuthCallback";
 import CampaignPage from "./components/Campaign";
 import ScrollToTop from "./tool/ScrollToTop";
+import {
+  CategoryRouteResolver,
+  LegacyCategoryRedirect,
+  LegacyProductRedirect,
+} from "./components/RouteResolvers";
 // ✅ Policy imports
 import PolicyLayout from "./policies/PolicyLayout";
 import PrivacyPolicyPage from "./policies/PrivacyPolicyPage";
@@ -56,7 +60,20 @@ function AppContent() {
           {/* Public pages */}
           <Route path="/" element={<Landing />} />
           <Route path="/search" element={<Search />} />
-          <Route path="/product/:name" element={<ProductWindow />} />
+          <Route path="/product/:name" element={<LegacyCategoryRedirect />} />
+          <Route
+            path="/feature/:id"
+            element={<LegacyProductRedirect />}
+          />
+          <Route
+            path="/products/:slug/:id" 
+            element={<LegacyProductRedirect />}
+          />
+          <Route
+            path="/:categorySlug/:itemSlug"
+            element={<CategoryRouteResolver />}
+          />
+          <Route path="/:categorySlug" element={<ProductWindow />} />
           <Route path="/about" element={<About />} />
           <Route path="/craft" element={<CraftPage />} />
           <Route path="/campaign" element={<CampaignPage />} />
@@ -87,8 +104,6 @@ function AppContent() {
               </PrivateRoute>
             }
           />
-          <Route path="/feature/:id" element={<FeatureProduct />} />
-          <Route path="/products/:slug/:id" element={<FeatureProduct />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route
             path="/payment"

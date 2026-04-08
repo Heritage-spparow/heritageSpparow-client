@@ -1,15 +1,29 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import banner from "../assets/DSC_5888.jpg";
 import { motion } from "framer-motion";
 import { useProduct } from "../context/ProductContext";
 import { cloudinaryOptimize } from "../utils/loudinary";
-import { buildProductPath } from "../utils/productUrl";
+import {
+  buildCategoryPath,
+  buildProductPath,
+  buildSubcategoryPath,
+  humanizeCategorySlug,
+  matchesCategorySlug,
+  slugify,
+} from "../utils/productUrl";
 import SEO from "./SEO";
 
-export default function ProductWindow() {
-  const { name } = useParams();
+export default function ProductWindow({
+  categorySlug: categorySlugProp,
+  subcategorySlug: subcategorySlugProp,
+}) {
+  const params = useParams();
+  const categorySlug = categorySlugProp || params.categorySlug || params.name || "";
+  const subcategorySlug =
+    subcategorySlugProp || params.subcategorySlug || params.itemSlug || "";
   const navigate = useNavigate();
+  const MotionDiv = motion.div;
   const [matchingProducts, setMatchingProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -48,22 +62,33 @@ export default function ProductWindow() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const decodedName = decodeURIComponent(name);
-        const response = await fetchProducts({
-          category: decodedName,
-          inStock: true,
-        });
-        // console.log(response);
+        const response = await fetchProducts({ inStock: true });
 
         if (response.success) {
-          const products = response.products;
-          setMatchingProducts(products);
-          // console.log(products);
-          setFilteredProducts(products);
+          const products = response.products || [];
+          const categoryProducts = products.filter((product) =>
+            matchesCategorySlug(product, categorySlug)
+          );
+
+          const visibleProducts = subcategorySlug
+            ? categoryProducts.filter((product) => {
+                const normalizedSubcategory = slugify(
+                  product?.subCategory ||
+                    product?.subcategory ||
+                    product?.subCategoryName ||
+                    product?.subcategoryName ||
+                    ""
+                );
+                return normalizedSubcategory === slugify(subcategorySlug);
+              })
+            : categoryProducts;
+
+          setMatchingProducts(visibleProducts);
+          setFilteredProducts(visibleProducts);
 
           const colors = [
             ...new Set(
-              products
+              visibleProducts
                 .flatMap((product) =>
                   Array.isArray(product.colors) ? product.colors : []
                 )
@@ -74,7 +99,7 @@ export default function ProductWindow() {
 
           const sizes = [
             ...new Set(
-              products
+              visibleProducts
                 .flatMap((product) =>
                   Array.isArray(product.sizes)
                     ? product.sizes.map((s) => String(s.size))
@@ -84,7 +109,7 @@ export default function ProductWindow() {
             ),
           ];
 
-          const prices = products
+          const prices = visibleProducts
             .map((p) => (typeof p.price === "number" ? p.price : null))
             .filter((p) => p !== null);
           const priceRange = {
@@ -107,7 +132,23 @@ export default function ProductWindow() {
     };
 
     fetchData();
-  }, [name, fetchProducts]);
+  }, [categorySlug, fetchProducts, subcategorySlug]);
+
+  const displayTitle = useMemo(() => {
+    if (subcategorySlug) {
+      return humanizeCategorySlug(subcategorySlug);
+    }
+
+    return humanizeCategorySlug(categorySlug);
+  }, [categorySlug, subcategorySlug]);
+
+  const canonicalPath = useMemo(() => {
+    if (subcategorySlug) {
+      return buildSubcategoryPath(categorySlug, subcategorySlug);
+    }
+
+    return buildCategoryPath(categorySlug);
+  }, [categorySlug, subcategorySlug]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -196,11 +237,9 @@ export default function ProductWindow() {
   return (
     <div className="min-h-screen bg-[#f9f6ef] text-[#737144]">
       <SEO
-        title={`${decodeURIComponent(name)} | HERITAGE SPARROW`}
-        description={`Explore ${decodeURIComponent(
-          name
-        )} handcrafted products from Heritage Sparrow.`}
-        canonicalPath={`/product/${encodeURIComponent(decodeURIComponent(name))}`}
+        title={`${displayTitle} | HERITAGE SPARROW`}
+        description={`Explore ${displayTitle} handcrafted products from Heritage Sparrow.`}
+        canonicalPath={canonicalPath}
       />
       {/* collection banner*/}
       <div className="relative w-full h-[60vh] sm:h-[50vh] md:h-[70vh] lg:h-[100vh]">
@@ -208,7 +247,7 @@ export default function ProductWindow() {
           src={banner}
           loading="lazy"
           decoding="async"
-          alt={decodeURIComponent(name)}
+          alt={displayTitle}
           className="w-full h-full object-cover object-center"
         />
         <div className="absolute  inset-0 flex flex-col items-center justify-center  bg-opacity-40">
@@ -216,7 +255,7 @@ export default function ProductWindow() {
             className="bannerName text-3xl sm:text-5xl  max-[767px]:mt-[36%]
     max-[472px]:mt-[36%] md:mt-[40%] mt-[77%] font-light text-white uppercase tracking-[0.2em]"
           >
-            {decodeURIComponent(name)}
+            {displayTitle}
           </h1>
         </div>
       </div>
@@ -246,7 +285,7 @@ export default function ProductWindow() {
             <p className="text-lg text-[#737144]">No products found.</p>
           </div>
         ) : (
-          <motion.div
+          <MotionDiv
             className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-8 gap-y-12"
             initial="hidden"
             animate="visible"
@@ -257,7 +296,7 @@ export default function ProductWindow() {
             }}
           >
             {filteredProducts.map((product) => (
-              <motion.div
+              <MotionDiv
                 key={product.id}
                 className="group cursor-pointer"
                 onClick={() => navigate(buildProductPath(product))}
@@ -306,9 +345,9 @@ export default function ProductWindow() {
                     Ready to Ship
                   </p>
                 </div>
-              </motion.div>
+              </MotionDiv>
             ))}
-          </motion.div>
+          </MotionDiv>
         )}
       </div>
 

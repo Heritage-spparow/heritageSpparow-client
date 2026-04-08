@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useOrder } from "../context/OrderContext";
 import api from "../services/api";
 import { useNavigate } from "react-router-dom";
-import { Truck, Check, Info, X, CreditCard } from "lucide-react";
+import { Check, Info, X, CreditCard } from "lucide-react";
 import { cloudinaryOptimize } from "../utils/loudinary";
 
 import { useForm } from "react-hook-form";
@@ -12,6 +12,203 @@ import { useForm } from "react-hook-form";
 // THEME COLORS (same as FeatureProduct)
 const BRAND_COLOR = "#737144";
 const BG_COLOR = "#f9f6ef";
+
+const COUNTRY_OPTIONS = [
+  "Afghanistan",
+  "Albania",
+  "Algeria",
+  "Andorra",
+  "Angola",
+  "Antigua and Barbuda",
+  "Argentina",
+  "Armenia",
+  "Australia",
+  "Austria",
+  "Azerbaijan",
+  "Bahamas",
+  "Bahrain",
+  "Bangladesh",
+  "Barbados",
+  "Belarus",
+  "Belgium",
+  "Belize",
+  "Benin",
+  "Bhutan",
+  "Bolivia",
+  "Bosnia and Herzegovina",
+  "Botswana",
+  "Brazil",
+  "Brunei",
+  "Bulgaria",
+  "Burkina Faso",
+  "Burundi",
+  "Cabo Verde",
+  "Cambodia",
+  "Cameroon",
+  "Canada",
+  "Central African Republic",
+  "Chad",
+  "Chile",
+  "China",
+  "Colombia",
+  "Comoros",
+  "Congo",
+  "Costa Rica",
+  "Croatia",
+  "Cuba",
+  "Cyprus",
+  "Czech Republic",
+  "Democratic Republic of the Congo",
+  "Denmark",
+  "Djibouti",
+  "Dominica",
+  "Dominican Republic",
+  "Ecuador",
+  "Egypt",
+  "El Salvador",
+  "Equatorial Guinea",
+  "Eritrea",
+  "Estonia",
+  "Eswatini",
+  "Ethiopia",
+  "Fiji",
+  "Finland",
+  "France",
+  "Gabon",
+  "Gambia",
+  "Georgia",
+  "Germany",
+  "Ghana",
+  "Greece",
+  "Grenada",
+  "Guatemala",
+  "Guinea",
+  "Guinea-Bissau",
+  "Guyana",
+  "Haiti",
+  "Honduras",
+  "Hungary",
+  "Iceland",
+  "India",
+  "Indonesia",
+  "Iran",
+  "Iraq",
+  "Ireland",
+  "Israel",
+  "Italy",
+  "Jamaica",
+  "Japan",
+  "Jordan",
+  "Kazakhstan",
+  "Kenya",
+  "Kiribati",
+  "Kuwait",
+  "Kyrgyzstan",
+  "Laos",
+  "Latvia",
+  "Lebanon",
+  "Lesotho",
+  "Liberia",
+  "Libya",
+  "Liechtenstein",
+  "Lithuania",
+  "Luxembourg",
+  "Madagascar",
+  "Malawi",
+  "Malaysia",
+  "Maldives",
+  "Mali",
+  "Malta",
+  "Marshall Islands",
+  "Mauritania",
+  "Mauritius",
+  "Mexico",
+  "Micronesia",
+  "Moldova",
+  "Monaco",
+  "Mongolia",
+  "Montenegro",
+  "Morocco",
+  "Mozambique",
+  "Myanmar",
+  "Namibia",
+  "Nauru",
+  "Nepal",
+  "Netherlands",
+  "New Zealand",
+  "Nicaragua",
+  "Niger",
+  "Nigeria",
+  "North Korea",
+  "North Macedonia",
+  "Norway",
+  "Oman",
+  "Pakistan",
+  "Palau",
+  "Panama",
+  "Papua New Guinea",
+  "Paraguay",
+  "Peru",
+  "Philippines",
+  "Poland",
+  "Portugal",
+  "Qatar",
+  "Romania",
+  "Russia",
+  "Rwanda",
+  "Saint Kitts and Nevis",
+  "Saint Lucia",
+  "Saint Vincent and the Grenadines",
+  "Samoa",
+  "San Marino",
+  "Sao Tome and Principe",
+  "Saudi Arabia",
+  "Senegal",
+  "Serbia",
+  "Seychelles",
+  "Sierra Leone",
+  "Singapore",
+  "Slovakia",
+  "Slovenia",
+  "Solomon Islands",
+  "Somalia",
+  "South Africa",
+  "South Korea",
+  "South Sudan",
+  "Spain",
+  "Sri Lanka",
+  "Sudan",
+  "Suriname",
+  "Sweden",
+  "Switzerland",
+  "Syria",
+  "Taiwan",
+  "Tajikistan",
+  "Tanzania",
+  "Thailand",
+  "Timor-Leste",
+  "Togo",
+  "Tonga",
+  "Trinidad and Tobago",
+  "Tunisia",
+  "Turkey",
+  "Turkmenistan",
+  "Tuvalu",
+  "Uganda",
+  "Ukraine",
+  "United Arab Emirates",
+  "United Kingdom",
+  "United States",
+  "Uruguay",
+  "Uzbekistan",
+  "Vanuatu",
+  "Vatican City",
+  "Venezuela",
+  "Vietnam",
+  "Yemen",
+  "Zambia",
+  "Zimbabwe",
+];
 
 export default function Payment() {
   const { items, totalPrice, clearCart } = useCart();
@@ -23,7 +220,6 @@ export default function Payment() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [showAddressModal, setShowAddressModal] = useState(false);
-  const [showAddAddressForm, setShowAddAddressForm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [emailNews, setEmailNews] = useState(false);
@@ -46,7 +242,7 @@ export default function Payment() {
         state: { from: "/payment" },
       });
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, navigate]);
 
   const currentUser = {
     firstName: user?.firstName || "Guest",
@@ -55,6 +251,11 @@ export default function Payment() {
     phone: user?.phone || "",
     addresses: user?.addresses ?? [],
   };
+
+  const shippingCountry = String(selectedAddress?.country || "India").trim();
+  const shippingPrice =
+    shippingCountry.toLowerCase() === "india" ? 0 : 1500;
+  const grandTotal = totalPrice + shippingPrice;
 
   const paymentMethods = [
     {
@@ -114,7 +315,7 @@ export default function Payment() {
             zipCode: addr.postcode || "",
             country: addr.country || "India",
           });
-        } catch (err) {
+        } catch {
           console.warn("Location fetch failed");
         }
       },
@@ -136,18 +337,9 @@ export default function Payment() {
     state: addr.state,
     zipCode: addr.postalCode,
     addressLine2: addr.addressLine2,
+    country: addr.country || "India",
   });
 
-  const handleAddressChange = (e) => {
-    const val = e.target.value;
-    if (val === "addNew") {
-      setShowAddressModal(true);
-      setShowAddAddressForm(true);
-    } else {
-      const found = currentUser.addresses.find((addr) => addr._id === val);
-      if (found) setSelectedAddress(formatAddress(found));
-    }
-  };
   const isAddressValid = (addr) => {
     if (!addr) return false;
 
@@ -159,6 +351,7 @@ export default function Payment() {
       addr.city,
       addr.state,
       addr.zipCode,
+      addr.country,
     ];
 
     return requiredFields.every(
@@ -190,19 +383,18 @@ export default function Payment() {
           city: selectedAddress.city,
           state: selectedAddress.state,
           postalCode: selectedAddress.zipCode,
-          country: "India",
+          country: shippingCountry,
         };
 
         try {
           await addAddress(newAddress);
-        } catch (err) {
+        } catch {
           console.log("Address save failed... continuing with payment.");
         }
       }
       const itemsPrice = totalPrice;
-      const taxPrice = itemsPrice * 1;
-      const shippingPrice = itemsPrice > 100 ? 0 : 10;
-      const finalTotal = itemsPrice;
+      const taxPrice = 0;
+      const finalTotal = grandTotal;
 
       const orderPayload = {
         orderItems: items.map((item) => ({
@@ -220,7 +412,7 @@ export default function Payment() {
           postalCode: selectedAddress.zipCode,
           state: selectedAddress.state,
           phone: selectedAddress.phone,
-          country: "India",
+          country: shippingCountry,
         },
         itemsPrice,
         taxPrice,
@@ -294,7 +486,7 @@ export default function Payment() {
             } else {
               alert("Payment succeeded but order not confirmed.");
             }
-          } catch (err) {
+          } catch {
             alert(
               "Order confirmation failed. Contact support with Payment ID: " +
                 response.razorpay_payment_id
@@ -314,26 +506,25 @@ export default function Payment() {
 
       const rzp = new window.Razorpay(options);
       rzp.open();
-    } catch (error) {
-      console.error(error);
+    } catch {
       alert("Payment failed. Please try again.");
       setIsProcessing(false);
     }
   };
   const onAddAddress = async (data) => {
     try {
-      const newAddress = {
-        label: data.label,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        phone: data.phone,
-        address: data.street,
-        city: data.city,
-        postalCode: data.zipCode,
-        country: "India",
-        state: data.state,
-        addressLine2: data.addressLine2,
-      };
+        const newAddress = {
+          label: data.label,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone,
+          address: data.street,
+          city: data.city,
+          postalCode: data.zipCode,
+          country: data.country || shippingCountry,
+          state: data.state,
+          addressLine2: data.addressLine2,
+        };
 
       const res = await addAddress(newAddress);
 
@@ -351,7 +542,7 @@ export default function Payment() {
         setShowAddressModal(false);
         reset();
       }
-    } catch (error) {
+    } catch {
       alert("Failed to add address");
     }
   };
@@ -417,12 +608,21 @@ export default function Payment() {
                     Country/Region
                   </label>
                   <select
+                    value={selectedAddress?.country || "India"}
+                    onChange={(e) =>
+                      setSelectedAddress((prev) => ({
+                        ...(prev || {}),
+                        country: e.target.value,
+                      }))
+                    }
                     className="w-full px-4 py-3 border border-[#d6d4c2]  bg-white text-[#555]
                      focus:ring-2 focus:ring-[#737144]/30 focus:border-[#737144]"
-                    defaultValue="India"
-                    disabled
                   >
-                    <option>India</option>
+                    {COUNTRY_OPTIONS.map((country) => (
+                      <option key={country} value={country}>
+                        {country}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -748,7 +948,9 @@ export default function Payment() {
                       onClick={() => setShowShippingInfo(true)}
                     />
                   </div>
-                  <span className="text-[#777] text-xs">00.0</span>
+                  <span className="text-[#777] text-xs">
+                    ₹{shippingPrice.toFixed(2)}
+                  </span>
                 </div>
 
                 <div className="flex justify-between text-lg font-medium pt-3 border-t border-[#e5e4da]">
@@ -759,7 +961,7 @@ export default function Payment() {
                     </p>
                   </span>
                   <div className="text-right">
-                    <div className="text-[#555]">₹{totalPrice.toFixed(2)}</div>
+                    <div className="text-[#555]">₹{grandTotal.toFixed(2)}</div>
                   </div>
                 </div>
               </div>
@@ -848,6 +1050,17 @@ export default function Payment() {
                 placeholder="State"
                 className="luxInput"
               />
+              <select
+                {...register("country")}
+                defaultValue={shippingCountry}
+                className="luxInput"
+              >
+                {COUNTRY_OPTIONS.map((country) => (
+                  <option key={country} value={country}>
+                    {country}
+                  </option>
+                ))}
+              </select>
               <input
                 {...register("zipCode")}
                 placeholder="Zip Code"
@@ -908,10 +1121,10 @@ export default function Payment() {
                 </p>
                 <p>
                   We currently offer{" "}
-                  <span className="font-medium text-[#737144]">
+                    <span className="font-medium text-[#737144]">
                     complimentary shipping across India
-                  </span>
-                  .
+                    </span>
+                  , and a flat ₹1,500 shipping fee for all other countries.
                 </p>
               </div>
 
@@ -953,6 +1166,3 @@ export default function Payment() {
     </div>
   );
 }
-
-const luxInput =
-  "w-full px-4 py-3 border border-[#d6d4c2] rounded-md bg-white text-[#555] focus:ring-2 focus:ring-[#737144]/30 focus:border-[#737144]";

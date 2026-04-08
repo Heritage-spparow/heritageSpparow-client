@@ -13,7 +13,7 @@ import {
   MessageSquare,
   Star,
 } from "lucide-react";
-
+ 
 /* ---------------- SKELETON ---------------- */
 const SkeletonOrderCard = () => (
   <div className="border border-[#737144]/15 bg-[#f9f6ef] p-8 animate-pulse">
@@ -204,6 +204,10 @@ const Orders = () => {
                                 buildProductPath({
                                   _id: item.product?._id,
                                   name: item.name,
+                                  category:
+                                    item.product?.category ||
+                                    item.category ||
+                                    "",
                                 })
                               )
                             }
@@ -220,6 +224,10 @@ const Orders = () => {
                                 buildProductPath({
                                   _id: item.product?._id,
                                   name: item.name,
+                                  category:
+                                    item.product?.category ||
+                                    item.category ||
+                                    "",
                                 })
                               )
                             }
