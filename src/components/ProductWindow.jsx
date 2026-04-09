@@ -19,7 +19,8 @@ export default function ProductWindow({
   subcategorySlug: subcategorySlugProp,
 }) {
   const params = useParams();
-  const categorySlug = categorySlugProp || params.categorySlug || params.name || "";
+  const categorySlug =
+    categorySlugProp || params.categorySlug || params.name || "";
   const subcategorySlug =
     subcategorySlugProp || params.subcategorySlug || params.itemSlug || "";
   const navigate = useNavigate();
@@ -67,7 +68,7 @@ export default function ProductWindow({
         if (response.success) {
           const products = response.products || [];
           const categoryProducts = products.filter((product) =>
-            matchesCategorySlug(product, categorySlug)
+            matchesCategorySlug(product, categorySlug),
           );
 
           const visibleProducts = subcategorySlug
@@ -77,23 +78,27 @@ export default function ProductWindow({
                     product?.subcategory ||
                     product?.subCategoryName ||
                     product?.subcategoryName ||
-                    ""
+                    "",
                 );
                 return normalizedSubcategory === slugify(subcategorySlug);
               })
             : categoryProducts;
 
-          setMatchingProducts(visibleProducts);
-          setFilteredProducts(visibleProducts);
+          const sortedProducts = [...visibleProducts].sort(
+            (a, b) => b.price - a.price,
+          );
+
+          setMatchingProducts(sortedProducts);
+          setFilteredProducts(sortedProducts);
 
           const colors = [
             ...new Set(
               visibleProducts
                 .flatMap((product) =>
-                  Array.isArray(product.colors) ? product.colors : []
+                  Array.isArray(product.colors) ? product.colors : [],
                 )
                 .filter((c) => typeof c === "string" && c.trim() !== "")
-                .map((c) => c.toLowerCase())
+                .map((c) => c.toLowerCase()),
             ),
           ];
 
@@ -103,9 +108,9 @@ export default function ProductWindow({
                 .flatMap((product) =>
                   Array.isArray(product.sizes)
                     ? product.sizes.map((s) => String(s.size))
-                    : []
+                    : [],
                 )
-                .filter(Boolean)
+                .filter(Boolean),
             ),
           ];
 
@@ -171,26 +176,26 @@ export default function ProductWindow({
       // ✅ PRICE FILTER
       if (filterInputs.price.min !== "") {
         result = result.filter(
-          (p) => p.price >= Number(filterInputs.price.min)
+          (p) => p.price >= Number(filterInputs.price.min),
         );
       }
 
       if (filterInputs.price.max !== "") {
         result = result.filter(
-          (p) => p.price <= Number(filterInputs.price.max)
+          (p) => p.price <= Number(filterInputs.price.max),
         );
       }
 
       if (filterInputs.size) {
         result = result.filter((product) =>
           product.sizes?.some(
-            (s) => String(s.size) === String(filterInputs.size)
-          )
+            (s) => String(s.size) === String(filterInputs.size),
+          ),
         );
       }
 
       if (filterInputs.sortBy === "price-low-high") {
-        result.sort((a, b) => a.price - b.price); 
+        result.sort((a, b) => a.price - b.price);
       }
 
       if (filterInputs.sortBy === "price-high-low") {
@@ -216,7 +221,7 @@ export default function ProductWindow({
       size: "",
       stock: "all",
       type: "",
-      sortBy: "featured",
+      sortBy: "price-high-low",
     });
     setActiveFilters({});
     setFilteredProducts(matchingProducts);
@@ -322,7 +327,7 @@ export default function ProductWindow({
                     src={cloudinaryOptimize(
                       product.galleryImages?.[0]?.url ||
                         product.coverImage?.url,
-                      "card"
+                      "card",
                     )}
                     alt={`${product.name} hover`}
                     loading="lazy"
