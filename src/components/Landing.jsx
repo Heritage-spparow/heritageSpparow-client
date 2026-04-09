@@ -58,7 +58,7 @@ export default function FashionLanding() {
         setLandingLoading(true);
 
         const res = await landingAPI.get();
-        console.log(res);
+     
 
 
         if (isMounted) {
