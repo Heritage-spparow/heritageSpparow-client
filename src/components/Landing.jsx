@@ -58,6 +58,8 @@ export default function FashionLanding() {
         setLandingLoading(true);
 
         const res = await landingAPI.get();
+        console.log(res);
+
 
         if (isMounted) {
           setLanding(res.data.landing || null);
@@ -101,36 +103,18 @@ export default function FashionLanding() {
       images:
         sectionTwo?.items?.map((i) => ({
           src: i.image?.url,
-          category: i.label,
-          id: typeof i.productId === "object" ? i.productId._id : i.productId,
+          product: typeof i.productId === "object" ? i.productId : null,
         })) || [],
-          cta: {
-            label: sectionTwo?.ctaLabel || "Shop Now",
-            action: () => {
-              const item = sectionTwo?.items?.[currentSlide - 1];
-
-              const productId =
-                typeof item?.productId === "object"
-                  ? item.productId._id
-                  : item?.productId;
-
-              if (productId) {
-                navigate(
-                  buildProductPath({
-                    _id: productId,
-                    name: item?.label,
-                    category:
-                      item?.productId?.category ||
-                      item?.category ||
-                      sectionOne?.category ||
-                      sectionTwo?.category ||
-                      "",
-                  })
-                );
-              }
-            },
-            position: "left",
-          },
+      cta: {
+        label: sectionTwo?.ctaLabel || "Shop Now",
+        action: () => {
+          const item = originalImages[currentSlide - 1];
+          if (item?.product) {
+            navigate(buildProductPath(item.product));
+          }
+        },
+        position: "left",
+      },
     },
     {
       id: 3,
