@@ -24,11 +24,7 @@ import CraftPage from "./components/craft";
 import GoogleAuthCallback from "./components/GoogleAuthCallback";
 import CampaignPage from "./components/Campaign";
 import ScrollToTop from "./tool/ScrollToTop";
-import {
-  CategoryRouteResolver,
-  LegacyCategoryRedirect,
-  LegacyProductRedirect,
-} from "./components/RouteResolvers";
+import { CategoryRouteResolver } from "./components/RouteResolvers";
 // ✅ Policy imports
 import PolicyLayout from "./policies/PolicyLayout";
 import PrivacyPolicyPage from "./policies/PrivacyPolicyPage";
@@ -60,25 +56,23 @@ function AppContent() {
           {/* Public pages */}
           <Route path="/" element={<Landing />} />
           <Route path="/search" element={<Search />} />
-          <Route path="/product/:name" element={<LegacyCategoryRedirect />} />
+          {/* <Route path="/product/:name" element={<LegacyCategoryRedirect />} />
+          <Route path="/feature/:id" element={<LegacyProductRedirect />} />
           <Route
-            path="/feature/:id"
+            path="/products/:slug/:id"
             element={<LegacyProductRedirect />}
-          />
-          <Route
-            path="/products/:slug/:id" 
-            element={<LegacyProductRedirect />}
-          />
+          /> */}
           <Route
             path="/:categorySlug/:itemSlug"
             element={<CategoryRouteResolver />}
           />
+
           <Route path="/:categorySlug" element={<ProductWindow />} />
           <Route path="/about" element={<About />} />
           <Route path="/craft" element={<CraftPage />} />
           <Route path="/campaign" element={<CampaignPage />} />
           <Route path="/campaigns/shringar-album" element={<ShringarAlbum />} />
-          <Route path="/order/:orderId" element={<OrderDetail/>} />
+          <Route path="/order/:orderId" element={<OrderDetail />} />
           <Route
             path="/auth/google/callback"
             element={<GoogleAuthCallback />}

@@ -12,115 +12,77 @@ import {
 } from "../utils/productUrl";
 
 const LoadingState = () => (
-  <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F3ED]">
+  <div className="min-h-screen flex items-center justify-center bg-[#F4F3ED]">
     <div className="loader"></div>
-    <p className="mt-4 text-[#737144] uppercase tracking-[0.25em] text-sm font-light"></p>
   </div>
 );
-
-export function LegacyCategoryRedirect() {
-  const { name } = useParams();
-  return <Navigate replace to={buildCategoryPath(name)} />;
-}
-
-export function LegacyProductRedirect() {
-  const { id } = useParams();
-  const { fetchProductById } = useProduct();
-  const [targetPath, setTargetPath] = useState(null);
-
-  useEffect(() => {
-    let active = true;
-
-    const resolve = async () => {
-      const response = await fetchProductById(id);
-      if (!active) return;
-
-      if (response?.success && response?.product) {
-        setTargetPath(buildProductPath(response.product));
-        return;
-      }
-
-      setTargetPath("/search");
-    };
-
-    resolve();
-
-    return () => {
-      active = false;
-    };
-  }, [fetchProductById, id]);
-
-  if (!targetPath) {
-    return <LoadingState />;
-  }
-
-  return <Navigate replace to={targetPath} />;
-}
 
 export function CategoryRouteResolver() {
   const { categorySlug, itemSlug } = useParams();
   const location = useLocation();
   const { fetchProducts } = useProduct();
+
   const [isLoading, setIsLoading] = useState(true);
   const [resolvedProduct, setResolvedProduct] = useState(null);
   const [resolvedSubcategorySlug, setResolvedSubcategorySlug] = useState("");
 
+  // 🔥 MAIN RESOLVER
   useEffect(() => {
     let active = true;
 
     const resolveRoute = async () => {
+      // ✅ RESET STATE (prevents stale product bug)
+      setResolvedProduct(null);
+      setResolvedSubcategorySlug("");
       setIsLoading(true);
 
       const response = await fetchProducts({ inStock: true });
       if (!active) return;
+
       const sourceProducts = response?.products || [];
 
-      if (!active) return;
-
       const categoryProducts = sourceProducts.filter((product) =>
-        matchesCategorySlug(product, categorySlug)
+        matchesCategorySlug(product, categorySlug),
       );
 
+      // 👉 If no itemSlug → category page
       if (!itemSlug) {
-        setResolvedProduct(null);
-        setResolvedSubcategorySlug("");
         setIsLoading(false);
         return;
       }
 
       const normalizedItemSlug = slugify(itemSlug);
 
+      // ✅ PRODUCT MATCH
       const productMatch = categoryProducts.find(
-        (product) => getProductSlug(product) === normalizedItemSlug
+        (product) => slugify(getProductSlug(product)) === normalizedItemSlug,
       );
 
       if (productMatch) {
         setResolvedProduct(productMatch);
-        setResolvedSubcategorySlug("");
         setIsLoading(false);
         return;
       }
 
+      // ✅ SUBCATEGORY MATCH
       const subcategoryMatch = categoryProducts.some((product) => {
         const productSubcategory = slugify(
           product?.subCategory ||
             product?.subcategory ||
             product?.subCategoryName ||
             product?.subcategoryName ||
-            ""
+            "",
         );
         return productSubcategory === normalizedItemSlug;
       });
 
       if (subcategoryMatch) {
-        setResolvedProduct(null);
         setResolvedSubcategorySlug(normalizedItemSlug);
         setIsLoading(false);
         return;
       }
 
-      setResolvedProduct(null);
-      setResolvedSubcategorySlug("");
+      // ❌ NOTHING FOUND → fallback to category
       setIsLoading(false);
     };
 
@@ -129,25 +91,41 @@ export function CategoryRouteResolver() {
     return () => {
       active = false;
     };
-  }, [categorySlug, fetchProducts, itemSlug]);
+  }, [categorySlug, itemSlug, location.pathname, fetchProducts]);
 
+  // ✅ CANONICAL PATH
   const canonicalProductPath = useMemo(() => {
     if (!resolvedProduct) return null;
     return buildProductPath(resolvedProduct);
   }, [resolvedProduct]);
 
+  // ✅ LOADING
   if (isLoading) {
     return <LoadingState />;
   }
 
+  // ✅ PRODUCT VIEW
   if (resolvedProduct) {
-    if (canonicalProductPath && canonicalProductPath !== location.pathname) {
+    const currentSlug = slugify(itemSlug);
+    const productSlug = slugify(getProductSlug(resolvedProduct));
+
+    // 🔥 Prevent wrong product flash
+    if (currentSlug !== productSlug) {
+      return <LoadingState />;
+    }
+
+    // 🔥 Safe canonical redirect
+    if (
+      canonicalProductPath &&
+      location.pathname.toLowerCase() !== canonicalProductPath.toLowerCase()
+    ) {
       return <Navigate replace to={canonicalProductPath} />;
     }
 
     return <FeatureProduct resolvedProduct={resolvedProduct} />;
   }
 
+  // ✅ SUBCATEGORY VIEW
   if (resolvedSubcategorySlug) {
     return (
       <ProductWindow
@@ -157,6 +135,7 @@ export function CategoryRouteResolver() {
     );
   }
 
+  // ✅ FALLBACK → CATEGORY
   if (itemSlug) {
     return <Navigate replace to={buildCategoryPath(categorySlug)} />;
   }

@@ -47,8 +47,6 @@ export default function FashionLanding() {
     setTouchStartX(null);
     setTouchEndX(null);
   };
-
-  /* ---------------- FETCH LANDING ---------------- */
   /* ---------------- FETCH LANDING ---------------- */
   useEffect(() => {
     let isMounted = true;

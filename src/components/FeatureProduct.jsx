@@ -13,13 +13,8 @@ export default function FeatureProduct({ resolvedProduct = null }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
-  const {
-    fetchProductById,
-    fetchProducts,
-    products,
-    currentProduct,
-    loading,
-  } = useProduct();
+  const { fetchProductById, fetchProducts, products, currentProduct, loading } =
+    useProduct();
   const [selectedSize, setSelectedSize] = useState("");
   const [activeTab, setActiveTab] = useState("description");
   const [isAddingToCart, setIsAddingToCart] = useState(false);
@@ -113,7 +108,7 @@ export default function FeatureProduct({ resolvedProduct = null }) {
     setActiveImage((prev) =>
       distance > 0
         ? Math.min(prev + 1, images.length - 1)
-        : Math.max(prev - 1, 0)
+        : Math.max(prev - 1, 0),
     );
   };
 
@@ -144,7 +139,9 @@ export default function FeatureProduct({ resolvedProduct = null }) {
           : [];
         const defaultSizeObj = sizes.find((s) => s.stock > 0) || sizes[0];
 
-        setSelectedSize(defaultSizeObj?.size || response.product.sizes?.[0]?.size || "");
+        setSelectedSize(
+          defaultSizeObj?.size || response.product.sizes?.[0]?.size || "",
+        );
         setSelectedStock(defaultSizeObj?.stock || 0);
       } else {
         alert(response.error || "Product not found");
@@ -160,7 +157,7 @@ export default function FeatureProduct({ resolvedProduct = null }) {
     const defaultSizeObj = sizes.find((s) => s.stock > 0) || sizes[0];
 
     setSelectedSize(
-      defaultSizeObj?.size || activeProduct.sizes?.[0]?.size || ""
+      defaultSizeObj?.size || activeProduct.sizes?.[0]?.size || "",
     );
     setSelectedStock(defaultSizeObj?.stock || 0);
   }, [activeProduct]);
@@ -180,13 +177,13 @@ export default function FeatureProduct({ resolvedProduct = null }) {
   const images = [
     cloudinaryOptimize(activeProduct?.coverImage?.url, "detail"),
     ...(activeProduct?.galleryImages || []).map((img) =>
-      cloudinaryOptimize(img.url, "detail")
+      cloudinaryOptimize(img.url, "detail"),
     ),
   ].filter(Boolean);
 
   useEffect(() => {
     if (!activeProduct) return;
- 
+
     window.gtag?.("event", "view_item", {
       currency: "INR",
       value: activeProduct.price,
@@ -228,7 +225,7 @@ export default function FeatureProduct({ resolvedProduct = null }) {
       const response = await addToCart(
         activeProduct,
         selectedSize,
-        quantity // 👈 IMPORTANT: use quantity, not 1
+        quantity, // 👈 IMPORTANT: use quantity, not 1
       );
 
       if (response?.success) {
@@ -345,8 +342,9 @@ export default function FeatureProduct({ resolvedProduct = null }) {
   const relatedProducts = products.filter(
     (item) =>
       (item._id || item.id) !== currentProductId &&
-      item.category === activeProduct.category
+      item.category === activeProduct.category,
   );
+  // console.log(relatedProducts);
   return (
     <div style={dinStyle} className="bg-[#f9f6ef]">
       <SEO
@@ -518,7 +516,7 @@ export default function FeatureProduct({ resolvedProduct = null }) {
                       {Math.round(
                         ((activeProduct.price - activeProduct.comparePrice) /
                           activeProduct.price) *
-                          100
+                          100,
                       )}
                       % OFF
                     </span>
@@ -627,8 +625,8 @@ export default function FeatureProduct({ resolvedProduct = null }) {
               size.stock === 0
                 ? "opacity-40 cursor-not-allowed border-neutral-300 bg-neutral-100 text-neutral-400"
                 : selectedSize === size.size
-                ? "border-[#737144] bg-[#737144]/10 text-[#737144] shadow-inner"
-                : "border-neutral-300 bg-white text-[#555] hover:border-[#737144]/60 hover:text-[#737144]"
+                  ? "border-[#737144] bg-[#737144]/10 text-[#737144] shadow-inner"
+                  : "border-neutral-300 bg-white text-[#555] hover:border-[#737144]/60 hover:text-[#737144]"
             }`}
                     >
                       {size.size}
@@ -815,7 +813,10 @@ export default function FeatureProduct({ resolvedProduct = null }) {
                 <div
                   key={rel._id || rel.id}
                   className="group cursor-pointer"
-                  onClick={() => navigate(buildProductPath(rel))}
+                  onClick={() => {
+                    const path = buildProductPath(rel);
+                    navigate(path);
+                  }}
                 >
                   <div className="aspect-[3/4] bg-gray-100 mb-3 overflow-hidden">
                     <img
