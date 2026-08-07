@@ -842,7 +842,6 @@ export default function FeatureProduct({ resolvedProduct = null }) {
         </div>
       )}
 
-      {/* ✅ ADD FULLSCREEN VIEWER HERE */}
       {viewerOpen && (
         <FullscreenImageViewer
           images={images}

@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { landingAPI } from "../services/api";
 import { cloudinaryOptimize } from "../utils/loudinary";
-import { buildCategoryPath, buildProductPath } from "../utils/productUrl";
+import { buildCollectionPath, buildProductPath } from "../utils/productUrl";
 import SEO from "./SEO";
 
 export default function FashionLanding() {
@@ -56,8 +56,6 @@ export default function FashionLanding() {
         setLandingLoading(true);
 
         const res = await landingAPI.get();
-     
-
 
         if (isMounted) {
           setLanding(res.data.landing || null);
@@ -78,56 +76,98 @@ export default function FashionLanding() {
     };
   }, []);
 
-  /* ---------------- SAFE FALLBACKS ---------------- */
   const sectionOne = landing?.sectionOne;
   const sectionTwo = landing?.sectionTwo;
   const sectionThree = landing?.sectionThree;
 
-  /* ---------------- DATA (STRUCTURE UNCHANGED) ---------------- */
-  const collectionsData = [
-    {
-      id: 1,
-      type: "static",
-      image: sectionOne?.image?.url,
-      cta: {
-        label: sectionOne?.ctaLabel || "Explore Collection",
-        action: () => navigate(buildCategoryPath(sectionOne?.category)),
-        position: "center",
-      },
-    },
-    {
-      id: 2,
-      type: "carousel",
-      images:
-        sectionTwo?.items?.map((i) => ({
-          src: i.image?.url,
-          product: typeof i.productId === "object" ? i.productId : null,
-        })) || [],
-      cta: {
-        label: sectionTwo?.ctaLabel || "Shop Now",
-        action: () => {
-          const item = originalImages[currentSlide - 1];
-          if (item?.product) {
-            navigate(buildProductPath(item.product));
-          }
-        },
-        position: "left",
-      },
-    },
-    {
-      id: 3,
-      type: "static",
-      image: sectionThree?.image?.url,
-      cta: {
-        label: sectionThree?.ctaLabel || "Explore Campaign",
-        action: () => navigate(sectionThree?.link || "/campaign"),
-        position: "center",
-      },
-    },
-  ];
+  const collectionsData = useMemo(() => {
+    return [
+      {
+        id: 1,
 
-  /* ---------------- CAROUSEL LOGIC (UNCHANGED) ---------------- */
-  const originalImages = collectionsData[1].images;
+        type: "static",
+
+        image: sectionOne?.coverImage?.url || "",
+
+        cta: {
+          label: sectionOne?.ctaLabel || "Explore Collection",
+
+          action: () => navigate(buildCollectionPath(sectionOne?.collection)),
+
+          position: "center",
+        },
+      },
+
+      {
+        id: 2,
+
+        type: "carousel",
+
+        images:
+          sectionTwo?.items?.map((item) => ({
+            src: item.image?.url,
+
+            product: typeof item.productId === "object" ? item.productId : null,
+
+            collection:
+              typeof item.productId === "object"
+                ? item.productId.collection
+                : "",
+          })) || [],
+
+        cta: {
+          label: sectionTwo?.ctaLabel || "Shop Now",
+          action: () => {
+            if (!originalImages.length) return;
+
+            let activeIndex = currentSlide - 1;
+
+            if (activeIndex < 0) {
+              activeIndex = originalImages.length - 1;
+            }
+
+            if (activeIndex >= originalImages.length) {
+              activeIndex = 0;
+            }
+
+            const current = originalImages[activeIndex];
+
+            if (current?.product) {
+              console.log("Current Product:", current.product);
+              console.log("Category:", current.product?.category);
+              console.log("Collection:", current.product?.collection);
+              console.log("URL:", buildProductPath(current.product));
+              navigate(buildProductPath(current.product));
+            }
+          },
+
+          position: "left",
+        },
+      },
+
+      {
+        id: 3,
+
+        type: "static",
+
+        image: sectionThree?.image?.url,
+
+        cta: {
+          label: sectionThree?.ctaLabel || "Explore Campaign",
+
+          action: () => navigate(sectionThree?.link || "/campaign"),
+
+          position: "center",
+        },
+      },
+    ];
+  }, [sectionOne, sectionTwo, sectionThree, currentSlide, navigate]);
+
+  const carouselSection = collectionsData.find(
+    (section) => section.type === "carousel",
+  );
+
+  const originalImages = carouselSection?.images || [];
 
   const carouselImages =
     originalImages.length > 0
@@ -138,7 +178,6 @@ export default function FashionLanding() {
         ]
       : [];
 
-  /* ---------------- AUTO SCROLL ---------------- */
   useEffect(() => {
     if (!originalImages.length) return;
 
@@ -150,7 +189,6 @@ export default function FashionLanding() {
     return () => clearInterval(interval);
   }, [originalImages.length]);
 
-  /* ---------------- LOOP RESET ---------------- */
   useEffect(() => {
     const total = originalImages.length;
     if (!total) return;
@@ -170,7 +208,6 @@ export default function FashionLanding() {
     }
   }, [currentSlide, originalImages.length]);
 
-  /* ---------------- RENDER ---------------- */
   return (
     <div className="w-full bg-[#f9f6ef]">
       <SEO
@@ -198,16 +235,17 @@ export default function FashionLanding() {
           <div className="absolute inset-0">
             {item.type === "static" && (
               <img
-                src={cloudinaryOptimize(item.image, "detail")}
-                alt="campaign"
+                src={cloudinaryOptimize(item.image || "", "detail")}
+                alt={sectionOne?.collection || "Heritage Sparrow"}
                 onLoad={() => setHeroLoaded(true)}
-                loading="lazy"
+                loading="eager"
+                fetchPriority="high"
                 decoding="async"
                 className={`
-    w-full h-full object-contain
-    transition-opacity duration-200
-    ${heroLoaded ? "opacity-100" : "opacity-0"}
-  `}
+        w-full h-full object-contain
+        transition-opacity duration-300
+        ${heroLoaded ? "opacity-100" : "opacity-0"}
+      `}
               />
             )}
 
@@ -224,11 +262,11 @@ export default function FashionLanding() {
                     : "none",
                 }}
               >
-                {carouselImages.map((imgObj, i) => (
+                {carouselImages.map((imgObj, index) => (
                   <img
-                    key={i}
+                    key={index}
                     src={cloudinaryOptimize(imgObj.src, "detail")}
-                    alt={imgObj.category}
+                    alt={imgObj.product?.name || "Featured Product"}
                     loading="lazy"
                     decoding="async"
                     className="w-full h-full flex-shrink-0 object-contain"
@@ -249,20 +287,22 @@ export default function FashionLanding() {
             <button
               onClick={item.cta.action}
               className="
-                campaign-cta
-                border border-white/80
-                px-10 py-4
-                text-xs md:text-sm
-                tracking-[0.10em]
-                uppercase
-                font-light
-                text-white
-                backdrop-blur-sm
-                hover:bg-white
-                hover:text-black
-                transition-all duration-300
-              "
-              style={{ fontFamily: "'Cormorant Garamond', serif" }}
+    campaign-cta
+    border border-white/80
+    px-10 py-4
+    text-xs md:text-sm
+    tracking-[0.10em]
+    uppercase
+    font-light
+    text-white
+    backdrop-blur-sm
+    hover:bg-white
+    hover:text-black
+    transition-all duration-300
+  "
+              style={{
+                fontFamily: "'Cormorant Garamond', serif",
+              }}
             >
               {item.cta.label}
             </button>

@@ -94,11 +94,25 @@ export function getSubcategorySlug(product) {
 }
 
 export function buildCategoryPath(category) {
-  const slug = getCategorySlug(category);
+  const slug =
+    typeof category === "object"
+      ? slugify(getProductCategoryName(category))
+      : slugify(category);
+
   if (!slug) return "/search";
+
   return `/${slug}`;
 }
+export function buildCollectionPath(collection, category = "Women") {
+  const categorySlug = slugify(category);
+  const collectionSlug = slugify(collection);
 
+  if (!collectionSlug) {
+    return `/${categorySlug}`;
+  }
+
+  return `/${categorySlug}/collections/${collectionSlug}`;
+}
 export function buildSubcategoryPath(category, subcategory) {
   const categorySlug = getCategorySlug(category);
   const subcategorySlug = slugify(subcategory);
@@ -111,16 +125,28 @@ export function buildSubcategoryPath(category, subcategory) {
 }
 
 export function buildProductPath(product) {
-  const categorySlug = getCategorySlug(product);
+  const categorySlug = slugify(
+    getProductCategoryName(product)
+  );
+
+  const collectionSlug = slugify(
+    product?.collection
+  );
+
   const productSlug = getProductSlug(product);
 
   if (!productSlug) return "/search";
+
+  if (categorySlug && collectionSlug) {
+    return `/${categorySlug}/collections/${collectionSlug}/${productSlug}`;
+  }
 
   if (categorySlug) {
     return `/${categorySlug}/${productSlug}`;
   }
 
   const id = getProductId(product);
+
   if (id) {
     return `/products/${productSlug}/${id}`;
   }
@@ -129,9 +155,11 @@ export function buildProductPath(product) {
 }
 
 export function matchesCategorySlug(product, categorySlug) {
-  return getCategorySlug(product) === slugify(categorySlug);
+  return (
+    slugify(getProductCategoryName(product)) ===
+    slugify(categorySlug)
+  );
 }
-
 export function matchesSubcategorySlug(product, subcategorySlug) {
   const normalized = slugify(subcategorySlug);
   if (!normalized) return false;

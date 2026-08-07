@@ -16,9 +16,18 @@ export default function Footer() {
   return (
     <>
       <footer className="w-full">
-        <div className="bg-[var(--color-bg)] text-white flex flex-col w-full">
+        <div className="bg-[var(--color-bg)] text-white flex flex-col w-full"
+              style={{
+                  backgroundImage: "url('/olivegreenBackground.png')",
+                  backgroundRepeat: "no-repeat",
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  backgroundBlendMode: "lighten",
+                }}>
           {/* Brand */}
-          <div className="mb-6 px-6 md:px-16 py-4 flex items-center justify-between">
+          <div className="mb-6 px-6 md:px-16 py-4 flex items-center justify-between" 
+         
+          >
             <h2 className="text-l md:text-2xl  mt-4 font-light">
               HERITAGE SPARROW
             </h2>

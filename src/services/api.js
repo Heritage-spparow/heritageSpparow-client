@@ -62,7 +62,12 @@ export const productAPI = {
   getFeatured: () => api.get('/products-enhanced/featured'),
   getTopRated: () => api.get('/products-enhanced/top/rated'),
   getCategories: () => api.get('/products-enhanced/categories'),
+  getCollections: () => api.get("/products-enhanced/collections"),
   search: (query) => api.get('/products-enhanced', { params: { search: query } }),
+  getBySlug: (category, collection, slug) =>
+    api.get(
+      `/products-enhanced/slug/${category}/${collection}/${slug}`
+    ),
 };
 
 // Cart API calls
@@ -93,7 +98,10 @@ export const orderAPI = {
   verifyRazorpayPayment: (data) =>
     api.post('/orders/razorpay/verify', data),
 };
+export const collectionAPI = {
+  getAll: () => api.get("/collections"),
 
+};
 export const landingAPI = {
   get: () => api.get("/landing"),
   update: (data) => api.post("/landing", data),

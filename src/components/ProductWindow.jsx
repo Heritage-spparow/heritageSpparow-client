@@ -6,29 +6,23 @@ import { useProduct } from "../context/ProductContext";
 import { cloudinaryOptimize } from "../utils/loudinary";
 import {
   buildCategoryPath,
+  buildCollectionPath,
   buildProductPath,
-  buildSubcategoryPath,
   humanizeCategorySlug,
   matchesCategorySlug,
   slugify,
+  humanizeSlug,
 } from "../utils/productUrl";
 import SEO from "./SEO";
 
-export default function ProductWindow({
-  categorySlug: categorySlugProp,
-  subcategorySlug: subcategorySlugProp,
-}) {
-  const params = useParams();
-  const categorySlug =
-    categorySlugProp || params.categorySlug || params.name || "";
-  const subcategorySlug =
-    subcategorySlugProp || params.subcategorySlug || params.itemSlug || "";
+export default function ProductWindow({ categorySlug: categorySlugProp }) {
+  const { categorySlug = "", collectionSlug = "", itemSlug = "" } = useParams();
   const navigate = useNavigate();
   const MotionDiv = motion.div;
   const [matchingProducts, setMatchingProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { fetchProducts } = useProduct();
+  const { fetchProducts, collections, fetchCollections } = useProduct();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filterInputs, setFilterInputs] = useState({
     price: { min: "", max: "" },
@@ -64,25 +58,23 @@ export default function ProductWindow({
       try {
         setLoading(true);
         const response = await fetchProducts({ inStock: true });
-
+       
         if (response.success) {
           const products = response.products || [];
           const categoryProducts = products.filter((product) =>
             matchesCategorySlug(product, categorySlug),
           );
-
-          const visibleProducts = subcategorySlug
-            ? categoryProducts.filter((product) => {
-                const normalizedSubcategory = slugify(
-                  product?.subCategory ||
-                    product?.subcategory ||
-                    product?.subCategoryName ||
-                    product?.subcategoryName ||
-                    "",
-                );
-                return normalizedSubcategory === slugify(subcategorySlug);
-              })
-            : categoryProducts;
+         
+          let visibleProducts = categoryProducts;
+          
+          // Collection filter
+          if (collectionSlug) {
+            visibleProducts = visibleProducts.filter(
+              (product) =>
+                slugify(product.collection) === slugify(collectionSlug),
+            );
+          }
+          
 
           const sortedProducts = [...visibleProducts].sort(
             (a, b) => b.price - a.price,
@@ -137,23 +129,35 @@ export default function ProductWindow({
     };
 
     fetchData();
-  }, [categorySlug, fetchProducts, subcategorySlug]);
+  }, [categorySlug, collectionSlug, fetchProducts]);
+
+  useEffect(() => {
+    fetchCollections();
+  }, [fetchCollections]);
 
   const displayTitle = useMemo(() => {
-    if (subcategorySlug) {
-      return humanizeCategorySlug(subcategorySlug);
+    if (collectionSlug) {
+      return humanizeSlug(collectionSlug);
     }
 
     return humanizeCategorySlug(categorySlug);
-  }, [categorySlug, subcategorySlug]);
+  }, [categorySlug, collectionSlug]);
+
+  const currentCollection = useMemo(() => {
+    if (!collectionSlug) return null;
+
+    return collections.find((c) => slugify(c.name) === slugify(collectionSlug));
+  }, [collections, collectionSlug]);
+
+  const bannerImage = currentCollection?.coverImage?.url || banner;
 
   const canonicalPath = useMemo(() => {
-    if (subcategorySlug) {
-      return buildSubcategoryPath(categorySlug, subcategorySlug);
+    if (collectionSlug) {
+      return buildCollectionPath(collectionSlug, categorySlug);
     }
 
     return buildCategoryPath(categorySlug);
-  }, [categorySlug, subcategorySlug]);
+  }, [categorySlug, collectionSlug]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -249,8 +253,8 @@ export default function ProductWindow({
       {/* collection banner*/}
       <div className="relative w-full h-[60vh] sm:h-[50vh] md:h-[70vh] lg:h-[100vh]">
         <img
-          src={banner}
-          loading="lazy"
+          src={cloudinaryOptimize(bannerImage, "detail")}
+          loading="eager"
           decoding="async"
           alt={displayTitle}
           className="w-full h-full object-cover object-center"
@@ -302,7 +306,7 @@ export default function ProductWindow({
           >
             {filteredProducts.map((product) => (
               <MotionDiv
-                key={product.id}
+                key={product._id}
                 className="group cursor-pointer"
                 onClick={() => navigate(buildProductPath(product))}
                 variants={{

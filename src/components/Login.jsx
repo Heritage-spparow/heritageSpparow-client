@@ -97,7 +97,14 @@ navigate(redirectTo, { replace: true });
     window.location.href = `${baseURL}/auth/google`;
   };
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[var(--color-bg)] flex flex-col justify-center py-12 sm:px-6 lg:px-8"
+          style={{
+                  backgroundImage: "url('/olivegreenBackground.png')",
+                  backgroundRepeat: "no-repeat",
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  backgroundBlendMode: "lighten",
+                }}>
       <h2
         className="flex items-start flex-col justify-start  font-semibold
                        border-l-[5px] border-solid px-3 ml-[3%] text-white

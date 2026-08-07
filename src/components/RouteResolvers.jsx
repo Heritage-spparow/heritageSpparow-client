@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Navigate, useLocation, useParams } from "react-router-dom";
 import { useProduct } from "../context/ProductContext";
+import { productAPI } from "../services/api";
 import FeatureProduct from "./FeatureProduct";
 import ProductWindow from "./ProductWindow";
 import {
@@ -8,7 +9,7 @@ import {
   buildProductPath,
   getProductSlug,
   matchesCategorySlug,
-  slugify,
+  slugify, 
 } from "../utils/productUrl";
 
 const LoadingState = () => (
@@ -18,80 +19,56 @@ const LoadingState = () => (
 );
 
 export function CategoryRouteResolver() {
-  const { categorySlug, itemSlug } = useParams();
+  const { categorySlug, collectionSlug, itemSlug } = useParams();
   const location = useLocation();
-  const { fetchProducts } = useProduct();
+
 
   const [isLoading, setIsLoading] = useState(true);
   const [resolvedProduct, setResolvedProduct] = useState(null);
   const [resolvedSubcategorySlug, setResolvedSubcategorySlug] = useState("");
 
   // 🔥 MAIN RESOLVER
-  useEffect(() => {
-    let active = true;
+useEffect(() => {
+  let active = true;
 
-    const resolveRoute = async () => {
-      // ✅ RESET STATE (prevents stale product bug)
-      setResolvedProduct(null);
-      setResolvedSubcategorySlug("");
-      setIsLoading(true);
+  const resolveRoute = async () => {
+    setResolvedProduct(null);
+    setResolvedSubcategorySlug("");
+    setIsLoading(true);
 
-      const response = await fetchProducts({ inStock: true });
+    // Category page only
+    if (!itemSlug) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const res = await productAPI.getBySlug(
+        categorySlug,
+        collectionSlug,
+        itemSlug
+      );
+
       if (!active) return;
 
-      const sourceProducts = response?.products || [];
-
-      const categoryProducts = sourceProducts.filter((product) =>
-        matchesCategorySlug(product, categorySlug),
-      );
-
-      // 👉 If no itemSlug → category page
-      if (!itemSlug) {
-        setIsLoading(false);
-        return;
+      if (res.data.success) {
+        setResolvedProduct(res.data.product);
       }
-
-      const normalizedItemSlug = slugify(itemSlug);
-
-      // ✅ PRODUCT MATCH
-      const productMatch = categoryProducts.find(
-        (product) => slugify(getProductSlug(product)) === normalizedItemSlug,
-      );
-
-      if (productMatch) {
-        setResolvedProduct(productMatch);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      if (active) {
         setIsLoading(false);
-        return;
       }
+    }
+  };
 
-      // ✅ SUBCATEGORY MATCH
-      const subcategoryMatch = categoryProducts.some((product) => {
-        const productSubcategory = slugify(
-          product?.subCategory ||
-            product?.subcategory ||
-            product?.subCategoryName ||
-            product?.subcategoryName ||
-            "",
-        );
-        return productSubcategory === normalizedItemSlug;
-      });
+  resolveRoute();
 
-      if (subcategoryMatch) {
-        setResolvedSubcategorySlug(normalizedItemSlug);
-        setIsLoading(false);
-        return;
-      }
-
-      // ❌ NOTHING FOUND → fallback to category
-      setIsLoading(false);
-    };
-
-    resolveRoute();
-
-    return () => {
-      active = false;
-    };
-  }, [categorySlug, itemSlug, location.pathname, fetchProducts]);
+  return () => {
+    active = false;
+  };
+}, [categorySlug, collectionSlug, itemSlug]);
 
   // ✅ CANONICAL PATH
   const canonicalProductPath = useMemo(() => {

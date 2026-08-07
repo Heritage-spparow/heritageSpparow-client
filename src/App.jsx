@@ -39,10 +39,10 @@ import OrderDetail from "./components/OrderDetail";
 function AppContent() {
   const location = useLocation();
   const { fetchCategories } = useProduct();
-  const maintenance = true;
+  const maintenance = false;
   if (maintenance) {
-  return <Maintenance />;
-}
+    return <Maintenance />;
+  }
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
@@ -67,11 +67,16 @@ function AppContent() {
             element={<LegacyProductRedirect />}
           /> */}
           <Route
-            path="/:categorySlug/:itemSlug"
+            path="/:categorySlug/collections/:collectionSlug/:itemSlug"
             element={<CategoryRouteResolver />}
           />
-
+          {/* Category */}
           <Route path="/:categorySlug" element={<ProductWindow />} />
+
+          <Route
+            path="/:categorySlug/collections/:collectionSlug"
+            element={<ProductWindow />}
+          />
           <Route path="/about" element={<About />} />
           <Route path="/craft" element={<CraftPage />} />
           <Route path="/campaign" element={<CampaignPage />} />
