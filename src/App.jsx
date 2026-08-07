@@ -7,6 +7,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import { useEffect } from "react";
+import Maintenance from "./Maintainance";
 import Navbar from "./components/Navbar";
 import Landing from "./components/Landing";
 import Search from "./components/Search";
@@ -38,7 +39,10 @@ import OrderDetail from "./components/OrderDetail";
 function AppContent() {
   const location = useLocation();
   const { fetchCategories } = useProduct();
-
+  const maintenance = true;
+  if (maintenance) {
+  return <Maintenance />;
+}
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
