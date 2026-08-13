@@ -57,8 +57,8 @@ export default function ProductWindow({ categorySlug: categorySlugProp }) {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetchProducts({ inStock: true });
-       
+        const response = await fetchProducts({ inStock: true }); 
+        console.log(response)
         if (response.success) {
           const products = response.products || [];
           const categoryProducts = products.filter((product) =>
