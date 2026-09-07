@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useCart } from "../context/CartContex";
 import { useAuth } from "../context/AuthContext";
 import { useOrder } from "../context/OrderContext";
-import api from "../services/api";
+import api, { couponAPI } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { Check, Info, X, CreditCard } from "lucide-react";
 import { cloudinaryOptimize } from "../utils/loudinary";
@@ -227,11 +227,18 @@ export default function Payment() {
   const [showShippingInfo, setShowShippingInfo] = useState(false);
   const [sameAsBilling, setSameAsBilling] = useState(true);
 
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [automaticDiscount, setAutomaticDiscount] = useState(0);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState("");
+
   const { register, handleSubmit, reset } = useForm();
 
   const reverseGeocode = async (lat, lon) => {
     const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
     );
     return res.json();
   };
@@ -244,6 +251,32 @@ export default function Payment() {
     }
   }, [isAuthenticated, navigate]);
 
+  useEffect(() => {
+    if (!isAuthenticated || !items.length) {
+      setAutomaticDiscount(0);
+      return;
+    }
+
+    const loadAutomaticDiscount = async () => {
+      try {
+        const response = await couponAPI.automatic({
+          orderItems: items.map((item) => ({
+            product: item.product._id,
+            quantity: item.quantity,
+            size: item.size || item.selectedSize,
+            color: item.color || item.selectedColor,
+          })),
+        });
+
+        setAutomaticDiscount(Number(response.data?.discountPrice || 0));
+      } catch {
+        setAutomaticDiscount(0);
+      }
+    };
+
+    loadAutomaticDiscount();
+  }, [isAuthenticated, items]);
+
   const currentUser = {
     firstName: user?.firstName || "Guest",
     lastName: user?.lastName || "",
@@ -253,9 +286,9 @@ export default function Payment() {
   };
 
   const shippingCountry = String(selectedAddress?.country || "India").trim();
-  const shippingPrice =
-    shippingCountry.toLowerCase() === "india" ? 0 : 1500;
-  const grandTotal = totalPrice + shippingPrice;
+  const shippingPrice = shippingCountry.toLowerCase() === "india" ? 0 : 1500;
+  const totalDiscount = automaticDiscount + couponDiscount;
+  const grandTotal = Math.max(0, totalPrice - totalDiscount + shippingPrice);
 
   const paymentMethods = [
     {
@@ -322,7 +355,7 @@ export default function Payment() {
       () => {
         console.warn("User denied location access");
       },
-      { enableHighAccuracy: false, timeout: 8000 }
+      { enableHighAccuracy: false, timeout: 8000 },
     );
   }, [currentUser.addresses.length]);
 
@@ -355,9 +388,71 @@ export default function Payment() {
     ];
 
     return requiredFields.every(
-      (field) => typeof field === "string" && field.trim().length > 0
+      (field) => typeof field === "string" && field.trim().length > 0,
     );
   };
+
+  const handleApplyCoupon = async () => {
+    const code = couponCode.trim();
+
+    if (!code) {
+      setCouponError("Please enter a coupon code.");
+      return;
+    }
+
+    if (!items.length) {
+      setCouponError("Your cart is empty.");
+      return;
+    }
+
+    setCouponLoading(true);
+    setCouponError("");
+
+    try {
+      const orderItems = items.map((item) => ({
+        product: item.product._id,
+        quantity: item.quantity,
+        size: item.size || item.selectedSize,
+        color: item.color || item.selectedColor,
+      }));
+
+      const response = await couponAPI.apply({
+        code,
+        orderItems,
+        shippingAddress: selectedAddress,
+      });
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || "Invalid coupon");
+      }
+
+      const data = response.data;
+
+      setAppliedCoupon(data.coupon);
+      setCouponDiscount(Number(data.pricing?.discountPrice || 0));
+
+      setCouponCode(data.coupon.code);
+    } catch (error) {
+      setAppliedCoupon(null);
+      setCouponDiscount(0);
+
+      setCouponError(
+        error.response?.data?.message ||
+          error.message ||
+          "Unable to apply coupon.",
+      );
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponDiscount(0);
+    setCouponCode("");
+    setCouponError("");
+  };
+
   const handlePayment = async () => {
     if (!isAddressValid(selectedAddress)) {
       alert("Please enter a complete delivery address.");
@@ -439,7 +534,9 @@ export default function Payment() {
 
       // Razorpay Payment Flow
       const rzResponse = await api.post("/orders/razorpay", {
-        amount: finalTotal,
+        orderItems: orderPayload.orderItems,
+        shippingAddress: orderPayload.shippingAddress,
+        couponCode: couponCode.trim() || null,
       });
 
       const { key, order: rzOrder } = rzResponse.data;
@@ -462,10 +559,11 @@ export default function Payment() {
         handler: async function (response) {
           try {
             const captureRes = await api.post("/orders/razorpay/verify", {
-              paymentId: response.razorpay_payment_id,
-              razorpayOrderId: response.razorpay_order_id,
-              signature: response.razorpay_signature,
-              ...orderPayload,
+              razorpay_payment_id: response.razorpay_payment_id,
+
+              razorpay_order_id: response.razorpay_order_id,
+
+              razorpay_signature: response.razorpay_signature,
             });
             if (captureRes.data.success) {
               window.gtag?.("event", "purchase", {
@@ -489,7 +587,7 @@ export default function Payment() {
           } catch {
             alert(
               "Order confirmation failed. Contact support with Payment ID: " +
-                response.razorpay_payment_id
+                response.razorpay_payment_id,
             );
           } finally {
             setIsProcessing(false);
@@ -513,18 +611,18 @@ export default function Payment() {
   };
   const onAddAddress = async (data) => {
     try {
-        const newAddress = {
-          label: data.label,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          phone: data.phone,
-          address: data.street,
-          city: data.city,
-          postalCode: data.zipCode,
-          country: data.country || shippingCountry,
-          state: data.state,
-          addressLine2: data.addressLine2,
-        };
+      const newAddress = {
+        label: data.label,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone,
+        address: data.street,
+        city: data.city,
+        postalCode: data.zipCode,
+        country: data.country || shippingCountry,
+        state: data.state,
+        addressLine2: data.addressLine2,
+      };
 
       const res = await addAddress(newAddress);
 
@@ -537,7 +635,7 @@ export default function Payment() {
         setSelectedAddress(
           latestAddress
             ? formatAddress(latestAddress)
-            : formatAddress({ ...newAddress, _id: Date.now().toString() })
+            : formatAddress({ ...newAddress, _id: Date.now().toString() }),
         );
         setShowAddressModal(false);
         reset();
@@ -884,7 +982,7 @@ export default function Payment() {
                       <img
                         src={cloudinaryOptimize(
                           item.product?.coverImage?.url,
-                          "card"
+                          "card",
                         )}
                         alt={item.product.name}
                         className="w-20 h-20 object-cover rounded-lg border border-[#d6d4c2]"
@@ -916,17 +1014,66 @@ export default function Payment() {
               </div>
 
               {/* DISCOUNT CODE */}
+              {/* DISCOUNT CODE */}
               <div className="mb-6">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Discount code or gift card"
-                    className="flex-1 px-4 py-3 border border-[#d6d4c2] rounded-md focus:ring-2 focus:ring-[#737144]/30 text-sm bg-white text-[#555]"
-                  />
-                  <button className="px-6 py-3 bg-[#f4f3ed] text-[#737144] rounded-md text-sm font-medium hover:bg-[#e8e5d6] transition-all">
-                    Apply
-                  </button>
-                </div>
+                {!appliedCoupon ? (
+                  <>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={couponCode}
+                        onChange={(e) => {
+                          setCouponCode(e.target.value.toUpperCase());
+                          setCouponError("");
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleApplyCoupon();
+                          }
+                        }}
+                        placeholder="Discount code"
+                        className="flex-1 px-4 py-3 border border-[#d6d4c2] rounded-md focus:ring-2 focus:ring-[#737144]/30 text-sm bg-white text-[#555] uppercase"
+                        disabled={couponLoading}
+                      />
+
+                      <button
+                        type="button"
+                        onClick={handleApplyCoupon}
+                        disabled={couponLoading || !couponCode.trim()}
+                        className="px-6 py-3 bg-[#f4f3ed] text-[#737144] rounded-md text-sm font-medium hover:bg-[#e8e5d6] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {couponLoading ? "Applying..." : "Apply"}
+                      </button>
+                    </div>
+
+                    {couponError && (
+                      <p className="mt-2 text-sm text-[#9a6b5a]">
+                        {couponError}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <div className="flex items-center justify-between border border-[#d6d4c2] rounded-md px-4 py-3 bg-[#f9f6ef]">
+                    <div>
+                      <p className="text-sm font-medium text-[#737144]">
+                        {appliedCoupon.code}
+                      </p>
+
+                      <p className="text-xs text-[#737144] mt-1">
+                        Coupon applied · You saved ₹{couponDiscount.toFixed(2)}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleRemoveCoupon}
+                      className="text-xs text-[#8a6658] hover:text-[#6f5045] uppercase tracking-wide transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* TOTALS */}
@@ -939,7 +1086,15 @@ export default function Payment() {
                     ₹{totalPrice.toFixed(2)}
                   </span>
                 </div>
+                {totalDiscount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[#737144]">Discount</span>
 
+                    <span className="font-medium text-[#737144]">
+                      -₹{totalDiscount.toFixed(2)}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <div className="flex items-center gap-1">
                     <span className="text-[#777]">Shipping</span>
@@ -1121,9 +1276,9 @@ export default function Payment() {
                 </p>
                 <p>
                   We currently offer{" "}
-                    <span className="font-medium text-[#737144]">
+                  <span className="font-medium text-[#737144]">
                     complimentary shipping across India
-                    </span>
+                  </span>
                   , and a flat ₹1,500 shipping fee for all other countries.
                 </p>
               </div>

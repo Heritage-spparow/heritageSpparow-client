@@ -30,7 +30,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token expired or invalid
-      localStorage.removeItem('token'); 
+      localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
     }
@@ -76,9 +76,9 @@ export const cartAPI = {
   add: (productData) => api.post('/cart/add', productData),
   update: (itemId, updateData) => api.put(`/cart/item/${itemId}`, updateData),
   remove: ({ productId, size }) =>
-  api.delete('/cart/item', {
-    params: { productId, size }
-  }),
+    api.delete('/cart/item', {
+      params: { productId, size }
+    }),
   clear: () => api.delete('/cart/clear'),
   getCount: () => api.get('/cart/count'),
 };
@@ -92,8 +92,8 @@ export const orderAPI = {
   cancel: (id) => api.put(`/orders/${id}/cancel`),
   invoice: (id) => api.get(`/orders/${id}/invoice`, { responseType: 'blob' }),
 
-  createRazorpayOrder: (amount) =>
-    api.post('/orders/razorpay', { amount }),
+  createRazorpayOrder: (data) =>
+    api.post('/orders/razorpay', data),
 
   verifyRazorpayPayment: (data) =>
     api.post('/orders/razorpay/verify', data),
@@ -101,6 +101,12 @@ export const orderAPI = {
 export const collectionAPI = {
   getAll: () => api.get("/collections"),
 
+};
+export const couponAPI = {
+  apply: (data) =>
+    api.post("/coupons/apply", data),
+  automatic: (data) =>
+    api.post("/coupons/automatic", data),
 };
 export const landingAPI = {
   get: () => api.get("/landing"),

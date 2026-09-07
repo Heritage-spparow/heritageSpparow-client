@@ -233,9 +233,9 @@ export default function FashionLanding() {
         >
           {/* IMAGE */}
           <div className="absolute inset-0">
-            {item.type === "static" && (
+            {item.type === "static" && item.image && (
               <img
-                src={cloudinaryOptimize(item.image || "", "detail")}
+                src={cloudinaryOptimize(item.image, "detail")}
                 alt={sectionOne?.collection || "Heritage Sparrow"}
                 onLoad={() => setHeroLoaded(true)}
                 loading="eager"
@@ -262,16 +262,18 @@ export default function FashionLanding() {
                     : "none",
                 }}
               >
-                {carouselImages.map((imgObj, index) => (
-                  <img
-                    key={index}
-                    src={cloudinaryOptimize(imgObj.src, "detail")}
-                    alt={imgObj.product?.name || "Featured Product"}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full flex-shrink-0 object-contain"
-                  />
-                ))}
+                {carouselImages.map((imgObj, index) =>
+                  imgObj.src ? (
+                    <img
+                      key={index}
+                      src={cloudinaryOptimize(imgObj.src, "detail")}
+                      alt={imgObj.product?.name || "Featured Product"}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full flex-shrink-0 object-contain"
+                    />
+                  ) : null,
+                )}
               </div>
             )}
           </div>
