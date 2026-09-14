@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import banner from "../assets/DSC_5888.jpg";
 import { motion } from "framer-motion";
 import { useProduct } from "../context/ProductContext";
@@ -15,9 +15,8 @@ import {
 } from "../utils/productUrl";
 import SEO from "./SEO";
 
-export default function ProductWindow({ categorySlug: categorySlugProp }) {
-  const { categorySlug = "", collectionSlug = "", itemSlug = "" } = useParams();
-  const navigate = useNavigate();
+export default function ProductWindow() {
+  const { categorySlug = "", collectionSlug = "" } = useParams();
   const MotionDiv = motion.div;
   const [matchingProducts, setMatchingProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -243,7 +242,7 @@ export default function ProductWindow({ categorySlug: categorySlugProp }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f6ef] text-[#737144]">
+    <main className="min-h-screen bg-[#f9f6ef] text-[#737144]" aria-labelledby="category-heading">
       <SEO
         title={`${displayTitle} | HERITAGE SPARROW`}
         description={`Explore ${displayTitle} handcrafted products from Heritage Sparrow.`}
@@ -259,7 +258,7 @@ export default function ProductWindow({ categorySlug: categorySlugProp }) {
           className="w-full h-full object-cover object-center"
         />
         <div className="absolute  inset-0 flex flex-col items-center justify-center  bg-opacity-40">
-          <h1
+          <h1 id="category-heading"
             className="bannerName text-3xl sm:text-5xl  max-[767px]:mt-[36%]
     max-[472px]:mt-[36%] md:mt-[40%] mt-[77%] font-light text-white uppercase tracking-[0.2em]"
           >
@@ -304,15 +303,15 @@ export default function ProductWindow({ categorySlug: categorySlugProp }) {
             }}
           >
             {filteredProducts.map((product) => (
-              <MotionDiv
+              <article
                 key={product._id}
                 className="group cursor-pointer"
-                onClick={() => navigate(buildProductPath(product))}
                 variants={{
                   hidden: { opacity: 0, y: 30 },
                   visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
                 }}
               >
+                <a href={buildProductPath(product)} aria-label={`View ${product.name}`}>
                 <div className="relative overflow-hidden mb-3 bg-gray-50 bg-transparent aspect-square">
                   {/* Default Image */}
                   <img
@@ -353,7 +352,8 @@ export default function ProductWindow({ categorySlug: categorySlugProp }) {
                     Ready to Ship
                   </p>
                 </div>
-              </MotionDiv>
+                </a>
+              </article>
             ))}
           </MotionDiv>
         )}
@@ -512,6 +512,6 @@ export default function ProductWindow({ categorySlug: categorySlugProp }) {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

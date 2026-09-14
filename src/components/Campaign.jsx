@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import hero from "../assets/craft/DSC_7360.jpg";
+import SEO from "./SEO";
 
 export default function ShringarCampaign() {
   const navigate = useNavigate();
@@ -10,6 +11,11 @@ export default function ShringarCampaign() {
       className="bg-[#f9f6ef] p-4 flex  text-[#6f6d45]"
       style={{ fontFamily: "'D-DIN', sans-serif" }}
     >
+      <SEO
+        title="Shringar Campaign | Heritage Sparrow"
+        description="Discover Shringar, a Heritage Sparrow campaign about preparation, adornment, and the quiet moment before celebration."
+        canonicalPath="/campaign"
+      />
       {/* HERO */}
       <section className="min-h-screen flex items-center px-6 md:px-16 lg:px-24">
         <div className="grid md:grid-cols-2 gap-16 items-center">

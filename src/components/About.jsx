@@ -3,6 +3,7 @@ import { ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useProduct } from "../context/ProductContext";
 import { buildCategoryPath } from "../utils/productUrl";
+import SEO from "./SEO";
 
 export default function AboutPage() {
   const { categories } = useProduct();
@@ -39,6 +40,11 @@ export default function AboutPage() {
 
   return (
     <div style={dinStyle} className="min-h-screen bg-[#f9f6ef]">
+      <SEO
+        title="About Heritage Sparrow | Craft, Community, and Heritage"
+        description="Learn how Heritage Sparrow brings Indian craft traditions forward through thoughtful design, handmade work, and community."
+        canonicalPath="/about"
+      />
       {/* Hero Section */}
       <div className="relative h-[60vh] bg-[#737144] overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-[#737144]/90 to-[#737144]/60" />

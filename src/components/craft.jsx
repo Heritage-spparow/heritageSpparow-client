@@ -2,6 +2,7 @@ import React from "react";
 // import videoSketch from "../assets/craft/IMG_6233.mp4";
 // import videoTrace from "../assets/craft/IMG_6242.mp4";
 import heritage from "../assets/craft/DSC_7360.jpg";
+import SEO from "./SEO";
 
 const steps = [
   {
@@ -20,27 +21,17 @@ const steps = [
   },
 ];
 
-const artisans = [
-  {
-    name: "Rafiq ji · Lucknow",
-    role: "Embroidery Master",
-    text: "20+ years on the adda. When he saw our design, he smiled — “ਕਾਮ ਭਾਰੀ ਹੈ… ਪਰ ਹੋ ਜਾਏਗਾ.”",
-    img: "/artisan1.jpg",
-  },
-  {
-    name: "Vijay ji · Amritsar",
-    role: "Jutti Karigar",
-    text: "His family has shaped leather soles since before independence — a lineage stitched through time.",
-    img: "/artisan2.jpg",
-  },
-];
-
 export default function CraftPage() {
   return (
     <main
       className="bg-[#f9f6ef] text-[#6f6d45]"
       style={{ fontFamily: "'D-DIN', sans-serif" }}
     >
+      <SEO
+        title="Our Craft Process | Heritage Sparrow"
+        description="Explore the Heritage Sparrow craft process, from heritage-inspired sketches and hand tracing to patient handmade workmanship."
+        canonicalPath="/craft"
+      />
       {/* HERO */}
       <section className="px-6 md:px-16 lg:px-24 pt-28 pb-20">
         <div className="max-w-4xl">

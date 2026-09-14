@@ -19,6 +19,9 @@
     <loc>https://www.heritagesparrow.com/campaign</loc>
   </url>
   <url>
+    <loc>https://www.heritagesparrow.com/campaigns/shringar-album</loc>
+  </url>
+  <url>
     <loc>https://www.heritagesparrow.com/policies/privacy</loc>
   </url>
   <url>
@@ -27,8 +30,4 @@
   <url>
     <loc>https://www.heritagesparrow.com/policies/shipping-returns-refund</loc>
   </url>
-  <url>
-    <loc>https://www.heritagesparrow.com/sitemap-images.xml</loc>
-  </url>
-
 </urlset>

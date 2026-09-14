@@ -118,26 +118,23 @@ export default function FashionLanding() {
         cta: {
           label: sectionTwo?.ctaLabel || "Shop Now",
           action: () => {
-            if (!originalImages.length) return;
+            const carouselItems = sectionTwo?.items || [];
+            if (!carouselItems.length) return;
 
             let activeIndex = currentSlide - 1;
 
             if (activeIndex < 0) {
-              activeIndex = originalImages.length - 1;
+              activeIndex = carouselItems.length - 1;
             }
 
-            if (activeIndex >= originalImages.length) {
+            if (activeIndex >= carouselItems.length) {
               activeIndex = 0;
             }
 
-            const current = originalImages[activeIndex];
+            const current = carouselItems[activeIndex];
 
-            if (current?.product) {
-              console.log("Current Product:", current.product);
-              console.log("Category:", current.product?.category);
-              console.log("Collection:", current.product?.collection);
-              console.log("URL:", buildProductPath(current.product));
-              navigate(buildProductPath(current.product));
+            if (typeof current?.productId === "object" && current.productId) {
+              navigate(buildProductPath(current.productId));
             }
           },
 
@@ -209,7 +206,7 @@ export default function FashionLanding() {
   }, [currentSlide, originalImages.length]);
 
   return (
-    <div className="w-full bg-[#f9f6ef]">
+    <main className="w-full bg-[#f9f6ef]" aria-labelledby="landing-heading">
       <SEO
         title="HERITAGE SPARROW | Handcrafted Collections"
         description="Discover handcrafted Heritage Sparrow collections and shop directly from the official store."
@@ -225,9 +222,16 @@ export default function FashionLanding() {
         />
       )}
 
-      {collectionsData.map((item) => (
+      {collectionsData.map((item, index) => (
         <section
           key={item.id}
+          aria-label={
+            index === 0
+              ? "Featured handcrafted collection"
+              : index === 1
+                ? "Featured handcrafted products"
+                : "Heritage Sparrow campaign"
+          }
           className="relative w-full overflow-hidden bg-[#f9f6ef]"
           style={{ aspectRatio: "1 / 1" }}
         >
@@ -286,8 +290,20 @@ export default function FashionLanding() {
                 : "justify-center"
             }`}
           >
-            <button
-              onClick={item.cta.action}
+            <a
+              href={
+                index === 0
+                  ? buildCollectionPath(sectionOne?.collection || "women-jutti")
+                  : index === 2
+                    ? sectionThree?.link || "/campaign"
+                    : "/search"
+              }
+              onClick={(event) => {
+                if (index === 1) {
+                  event.preventDefault();
+                  item.cta.action();
+                }
+              }}
               className="
     campaign-cta
     border border-white/80
@@ -307,7 +323,7 @@ export default function FashionLanding() {
               }}
             >
               {item.cta.label}
-            </button>
+            </a>
           </div>
         </section>
       ))}
@@ -317,9 +333,9 @@ export default function FashionLanding() {
         <div className="max-w-4xl mx-auto text-center">
           <div className="w-24 h-[1px] bg-[#737144]/40 mx-auto mb-10" />
 
-          <h2 className="text-3xl md:text-4xl text-[#737144] tracking-[0.18em] uppercase font-light mb-8">
+          <h1 id="landing-heading" className="text-3xl md:text-4xl text-[#737144] tracking-[0.18em] uppercase font-light mb-8">
             Crafted for You, Celebrated with You
-          </h2>
+          </h1>
 
           <p className="text-sm md:text-base text-[#737144]/80 leading-relaxed font-light">
             Every jutti tells a story of celebration, tradition, and
@@ -353,6 +369,6 @@ export default function FashionLanding() {
           <div className="w-24 h-[1px] bg-[#737144]/40 mx-auto mt-10" />
         </div>
       </section>
-    </div>
+    </main>
   );
 }

@@ -6,14 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Heritage Sparrow offers handcrafted products rooted in Indian heritage with modern design."
+      content="Heritage Sparrow creates handcrafted juttis and heritage-inspired products rooted in Indian tradition, thoughtful design, and patient workmanship."
     />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://www.heritagesparrow.com/" />
-    <meta property="og:title" content="HERITAGE SPARROW" />
+    <meta property="og:title" content="Heritage Sparrow | Handcrafted Collections" />
     <meta
       property="og:description"
-      content="Shop handcrafted products from Heritage Sparrow."
+      content="Discover handcrafted juttis and heritage-inspired collections from Heritage Sparrow."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://www.heritagesparrow.com/" />
@@ -56,7 +56,34 @@
 
     <link href="/src/styles.css" rel="stylesheet" />
 
-    <title>HERITAGE SPARROW</title>
+    <title>Heritage Sparrow | Handcrafted Collections</title>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://www.heritagesparrow.com/#organization",
+            "name": "Heritage Sparrow",
+            "url": "https://www.heritagesparrow.com/",
+            "logo": "https://www.heritagesparrow.com/heitageSparrow.png",
+            "sameAs": [
+              "https://www.instagram.com/heritagesparrow",
+              "https://www.facebook.com/share/1HzwoKE9vN/?mibextid=wwXIfr"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://www.heritagesparrow.com/#website",
+            "url": "https://www.heritagesparrow.com/",
+            "name": "Heritage Sparrow",
+            "publisher": { "@id": "https://www.heritagesparrow.com/#organization" },
+            "description": "Handcrafted juttis and heritage-inspired collections rooted in Indian tradition."
+          }
+        ]
+      }
+    </script>
 
     <!-- ✅ Google Analytics (GA4) -->
     <script
@@ -104,8 +131,52 @@
   </head>
 
   <body>
-    <div class="h-full" id="root"></div>
-      <noscript>
+    <div class="h-full" id="root">
+      <header>
+        <nav aria-label="Primary navigation">
+          <a href="/">Heritage Sparrow</a>
+          <a href="/women-jutti">Shop handcrafted juttis</a>
+          <a href="/campaign">Campaign</a>
+          <a href="/craft">Craft</a>
+          <a href="/about">About Heritage Sparrow</a>
+          <a href="/search">Search products</a>
+        </nav>
+      </header>
+      <main>
+        <article>
+          <h1>Crafted for You, Celebrated with You</h1>
+          <p>
+            Every jutti tells a story of celebration, tradition, and individuality.
+            We offer tailored craftsmanship, thoughtfully crafted to reflect your
+            ceremony or festive palette.
+          </p>
+          <p>
+            Heritage Sparrow offers handcrafted products rooted in Indian tradition
+            with modern design and patient workmanship.
+          </p>
+          <p>
+            <a href="/women-jutti">Explore handcrafted collections</a>
+            <span> </span>
+            <a href="https://wa.me/917973926474">Customize your order</a>
+          </p>
+        </article>
+        <section aria-labelledby="homepage-links-heading">
+          <h2 id="homepage-links-heading">Explore Heritage Sparrow</h2>
+          <ul>
+            <li><a href="/women-jutti">Shop products</a></li>
+            <li><a href="/campaign">Explore the Shringar campaign</a></li>
+            <li><a href="/craft">Learn about our craft process</a></li>
+            <li><a href="/about">Read our story and values</a></li>
+          </ul>
+        </section>
+      </main>
+      <footer>
+        <p>Heritage Sparrow creates handmade pieces with care, tradition, and intention.</p>
+        <p><a href="mailto:support@heritagesparrow.com">Contact Heritage Sparrow</a></p>
+        <p><a href="/policies/privacy">Privacy policy</a> · <a href="/policies/shipping-returns-refund">Shipping, returns, and refunds</a></p>
+      </footer>
+    </div>
+    <noscript>
       <img
         height="1"
         width="1"
