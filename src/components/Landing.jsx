@@ -208,9 +208,40 @@ export default function FashionLanding() {
   return (
     <main className="w-full bg-[#f9f6ef]" aria-labelledby="landing-heading">
       <SEO
-        title="HERITAGE SPARROW | Handcrafted Collections"
-        description="Discover handcrafted Heritage Sparrow collections and shop directly from the official store."
+        title="Heritage Sparrow | Handcrafted Indian Juttis & Collections"
+        description="Shop Heritage Sparrow's handcrafted Indian juttis and heritage collections, made with thoughtful design, honest workmanship, and care."
         canonicalPath="/"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          name: "Explore Heritage Sparrow",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Shop Guldasta Collection",
+              url: "https://www.heritagesparrow.com/women/collections/guldasta",
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Shop Shringar Collection",
+              url: "https://www.heritagesparrow.com/women/collections/shringar",
+            },
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: "Heritage Sparrow Campaign",
+              url: "https://www.heritagesparrow.com/campaign",
+            },
+            {
+              "@type": "ListItem",
+              position: 4,
+              name: "About Heritage Sparrow",
+              url: "https://www.heritagesparrow.com/about",
+            },
+          ],
+        }}
       />
       {landingLoading && <ImageSkeleton />}
       {/* LCP PRELOAD (NO DESIGN IMPACT) */}
@@ -333,7 +364,10 @@ export default function FashionLanding() {
         <div className="max-w-4xl mx-auto text-center">
           <div className="w-24 h-[1px] bg-[#737144]/40 mx-auto mb-10" />
 
-          <h1 id="landing-heading" className="text-3xl md:text-4xl text-[#737144] tracking-[0.18em] uppercase font-light mb-8">
+          <h1
+            id="landing-heading"
+            className="text-3xl md:text-4xl text-[#737144] tracking-[0.18em] uppercase font-light mb-8"
+          >
             Crafted for You, Celebrated with You
           </h1>
 
@@ -369,6 +403,7 @@ export default function FashionLanding() {
           <div className="w-24 h-[1px] bg-[#737144]/40 mx-auto mt-10" />
         </div>
       </section>
+
     </main>
   );
 }
