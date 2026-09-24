@@ -39,7 +39,7 @@ import OrderDetail from "./components/OrderDetail";
 function AppContent() {
   const location = useLocation();
   const { fetchCategories } = useProduct();
-  const maintenance = false;
+  const maintenance = true;
   if (maintenance) {
     return <Maintenance />;
   }
