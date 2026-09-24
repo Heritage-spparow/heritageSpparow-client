@@ -131,7 +131,7 @@ navigate(redirectTo, { replace: true });
             backgroundRepeat: "no-repeat",
             backgroundSize: "cover",
             backgroundPosition: "center",
-          }}
+          }} 
         >
           {/* Left Section (Form) */}
           <div className="flex flex-col justifiy-center mt-[4%] w-full sm:w-1/2 px-8 py-10 lg:px-14">

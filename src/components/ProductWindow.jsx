@@ -242,7 +242,15 @@ export default function ProductWindow() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f9f6ef] text-[#737144]" aria-labelledby="category-heading">
+    <main className="min-h-screen  text-[#737144]" aria-labelledby="category-heading"
+     style={{
+              backgroundImage: "url('./sparrow.png')",
+              backgroundRepeat: "no-repeat",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundBlendMode: "lighten",
+            }}
+    >
       <SEO
         title={`${displayTitle} | HERITAGE SPARROW`}
         description={`Explore ${displayTitle} handcrafted products from Heritage Sparrow.`}
@@ -268,7 +276,9 @@ export default function ProductWindow() {
       </div>
 
       {/* Sticky Filter Bar */}
-      <div className="sticky top-0 z-20 bg-[#f9f6ef] border-b border-gray-200 flex items-center justify-between px-6 py-4">
+      <div className="sticky top-0 z-20 bg-[#f9f6ef] border-b border-gray-200 flex items-center justify-between px-6 py-4"
+       
+      >
         <h2 className="text-sm sm:text-base font-light text-[#737144] uppercase tracking-wide">
           {filteredProducts.length} Products
         </h2>
@@ -286,7 +296,9 @@ export default function ProductWindow() {
       </div>
 
       {/* Product Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
+      
+      >
         {!filteredProducts || filteredProducts.length === 0 ? (
           <div className="flex items-center justify-center min-h-[300px]">
             <p className="text-lg text-[#737144]">No products found.</p>

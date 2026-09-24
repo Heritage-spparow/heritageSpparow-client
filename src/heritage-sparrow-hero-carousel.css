@@ -1,0 +1,15 @@
+
+/* Heritage Sparrow hero carousel progress */
+@keyframes heritageProgress {
+  from {
+    width: 0%;
+  }
+
+  to {
+    width: 100%;
+  }
+}
+
+.animate-heritage-progress {
+  animation: heritageProgress 5s linear forwards;
+}

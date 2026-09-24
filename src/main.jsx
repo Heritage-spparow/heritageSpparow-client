@@ -2,7 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import "./App.css";
-
+import "./heritage-sparrow-hero-carousel.css"
 import App from "./App.jsx";
 import { CartProvider } from "./context/CartContex.jsx";
 import { ProductProvider } from "./context/ProductContext";
