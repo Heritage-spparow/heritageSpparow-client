@@ -629,7 +629,6 @@ const heroSlides = useMemo(() => {
           relative
           w-full
           overflow-hidden
-          bg-[#37351f]
           h-[calc(100svh-32px)]
           min-h-[580px]
           max-h-[920px]
