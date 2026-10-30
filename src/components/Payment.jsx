@@ -12,6 +12,7 @@ import { useForm } from "react-hook-form";
 // THEME COLORS (same as FeatureProduct)
 const BRAND_COLOR = "#737144";
 const BG_COLOR = "#f9f6ef";
+const EMPTY_ADDRESSES = [];
 
 const COUNTRY_OPTIONS = [
   "Afghanistan",
@@ -221,6 +222,7 @@ export default function Payment() {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [emailNews, setEmailNews] = useState(false);
   const [saveInfo, setSaveInfo] = useState(false);
@@ -282,7 +284,7 @@ export default function Payment() {
     lastName: user?.lastName || "",
     email: user?.email,
     phone: user?.phone || "",
-    addresses: user?.addresses ?? [],
+    addresses: user?.addresses ?? EMPTY_ADDRESSES,
   };
 
   const shippingCountry = String(selectedAddress?.country || "India").trim();
@@ -359,17 +361,17 @@ export default function Payment() {
     );
   }, [currentUser.addresses.length]);
 
-  const formatAddress = (addr) => ({
+  const formatAddress = (addr = {}) => ({
     id: addr._id,
     label: addr.label,
-    firstName: addr.firstName,
-    lastName: addr.lastName,
-    phone: addr.phone,
-    street: addr.address,
-    city: addr.city,
-    state: addr.state,
-    zipCode: addr.postalCode,
-    addressLine2: addr.addressLine2,
+    firstName: String(addr.firstName ?? ""),
+    lastName: String(addr.lastName ?? ""),
+    phone: String(addr.phone ?? ""),
+    street: String(addr.address || addr.street || ""),
+    city: String(addr.city ?? ""),
+    state: String(addr.state ?? ""),
+    zipCode: String(addr.postalCode || addr.zipCode || ""),
+    addressLine2: String(addr.addressLine2 ?? ""),
     country: addr.country || "India",
   });
 
@@ -380,15 +382,15 @@ export default function Payment() {
       addr.firstName,
       addr.lastName,
       addr.phone,
-      addr.street,
+      addr.street || addr.address,
       addr.city,
       addr.state,
-      addr.zipCode,
+      addr.zipCode || addr.postalCode,
       addr.country,
     ];
 
     return requiredFields.every(
-      (field) => typeof field === "string" && field.trim().length > 0,
+      (field) => String(field ?? "").trim().length > 0,
     );
   };
 
@@ -455,7 +457,21 @@ export default function Payment() {
 
   const handlePayment = async () => {
     if (!isAddressValid(selectedAddress)) {
-      alert("Please enter a complete delivery address.");
+      const requiredAddressFields = {
+        "first name": selectedAddress?.firstName,
+        "last name": selectedAddress?.lastName,
+        phone: selectedAddress?.phone,
+        "street address": selectedAddress?.street || selectedAddress?.address,
+        city: selectedAddress?.city,
+        state: selectedAddress?.state,
+        "postal code": selectedAddress?.zipCode || selectedAddress?.postalCode,
+        country: selectedAddress?.country,
+      };
+      const missingFields = Object.entries(requiredAddressFields)
+        .filter(([, value]) => !String(value ?? "").trim())
+        .map(([label]) => label);
+
+      alert(`Please complete your delivery address: ${missingFields.join(", ")}.`);
       return;
     }
 
@@ -557,6 +573,7 @@ export default function Payment() {
         theme: { color: BRAND_COLOR },
 
         handler: async function (response) {
+          setIsConfirmingPayment(true);
           try {
             const captureRes = await api.post("/orders/razorpay/verify", {
               razorpay_payment_id: response.razorpay_payment_id,
@@ -579,8 +596,10 @@ export default function Payment() {
                 })),
               });
 
-              await clearCart();
               setShowModal(true);
+              clearCart().catch((err) =>
+                console.error("Clear cart failed after confirmed payment:", err),
+              );
             } else {
               alert("Payment succeeded but order not confirmed.");
             }
@@ -590,6 +609,7 @@ export default function Payment() {
                 response.razorpay_payment_id,
             );
           } finally {
+            setIsConfirmingPayment(false);
             setIsProcessing(false);
           }
         },
@@ -729,12 +749,7 @@ export default function Payment() {
                   <input
                     type="text"
                     value={selectedAddress?.firstName || ""}
-                    onChange={(e) =>
-                      setSelectedAddress({
-                        ...selectedAddress,
-                        firstName: e.target.value,
-                      })
-                    }
+                    onChange={(e) => setSelectedAddress((prev) => ({ ...prev, firstName: e.target.value }))}
                     className="luxInput p-2 border border-[#e5e4da] rounded-md"
                     placeholder="First Name"
                   />
@@ -742,12 +757,7 @@ export default function Payment() {
                   <input
                     type="text"
                     value={selectedAddress?.lastName || ""}
-                    onChange={(e) =>
-                      setSelectedAddress({
-                        ...selectedAddress,
-                        lastName: e.target.value,
-                      })
-                    }
+                    onChange={(e) => setSelectedAddress((prev) => ({ ...prev, lastName: e.target.value }))}
                     className="luxInput p-2 border border-[#e5e4da] rounded-md"
                     placeholder="Last Name"
                   />
@@ -756,12 +766,7 @@ export default function Payment() {
                   <input
                     type="text"
                     value={selectedAddress?.street || ""}
-                    onChange={(e) =>
-                      setSelectedAddress({
-                        ...selectedAddress,
-                        street: e.target.value,
-                      })
-                    }
+                    onChange={(e) => setSelectedAddress((prev) => ({ ...prev, street: e.target.value }))}
                     className="luxInput p-2 border border-[#e5e4da] "
                     placeholder="Street Address"
                   />
@@ -769,12 +774,7 @@ export default function Payment() {
                   <input
                     type="text"
                     value={selectedAddress?.addressLine2 || ""}
-                    onChange={(e) =>
-                      setSelectedAddress({
-                        ...selectedAddress,
-                        addressLine2: e.target.value,
-                      })
-                    }
+                    onChange={(e) => setSelectedAddress((prev) => ({ ...prev, addressLine2: e.target.value }))}
                     className="luxInput p-2 border border-[#e5e4da]"
                     placeholder="Address Line 2 (Optional)"
                   />
@@ -784,12 +784,7 @@ export default function Payment() {
                   <input
                     type="text"
                     value={selectedAddress?.city || ""}
-                    onChange={(e) =>
-                      setSelectedAddress({
-                        ...selectedAddress,
-                        city: e.target.value,
-                      })
-                    }
+                    onChange={(e) => setSelectedAddress((prev) => ({ ...prev, city: e.target.value }))}
                     className="luxInput p-2 border border-[#e5e4da]"
                     placeholder="City"
                   />
@@ -797,12 +792,7 @@ export default function Payment() {
                   <input
                     type="text"
                     value={selectedAddress?.state || ""}
-                    onChange={(e) =>
-                      setSelectedAddress({
-                        ...selectedAddress,
-                        state: e.target.value,
-                      })
-                    }
+                    onChange={(e) => setSelectedAddress((prev) => ({ ...prev, state: e.target.value }))}
                     className="luxInput p-2 border border-[#e5e4da]"
                     placeholder="State"
                   />
@@ -811,12 +801,7 @@ export default function Payment() {
                   <input
                     type="tel"
                     value={selectedAddress?.phone || ""}
-                    onChange={(e) =>
-                      setSelectedAddress({
-                        ...selectedAddress,
-                        phone: e.target.value,
-                      })
-                    }
+                    onChange={(e) => setSelectedAddress((prev) => ({ ...prev, phone: e.target.value }))}
                     className="luxInput p-2 border border-[#e5e4da] "
                     placeholder="Phone Number"
                   />
@@ -824,12 +809,7 @@ export default function Payment() {
                   <input
                     type="text"
                     value={selectedAddress?.zipCode || ""}
-                    onChange={(e) =>
-                      setSelectedAddress({
-                        ...selectedAddress,
-                        zipCode: e.target.value,
-                      })
-                    }
+                    onChange={(e) => setSelectedAddress((prev) => ({ ...prev, zipCode: e.target.value }))}
                     className="luxInput p-2 border border-[#e5e4da] "
                     placeholder="Postal Code"
                   />
@@ -963,7 +943,14 @@ export default function Payment() {
                   : "bg-[#737144] text-white hover:bg-[#5f5d3d] hover:shadow-[0_4px_10px_rgba(0,0,0,0.15)]"
               }`}
             >
-              {isProcessing ? "Processing..." : "Complete Your Experience"}
+              {isProcessing ? (
+                <span className="inline-flex items-center justify-center gap-3">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  Processing payment...
+                </span>
+              ) : (
+                "Complete Your Experience"
+              )}
             </button>
           </div>
 
@@ -1012,8 +999,6 @@ export default function Payment() {
                   </div>
                 ))}
               </div>
-
-              {/* DISCOUNT CODE */}
               {/* DISCOUNT CODE */}
               <div className="mb-6">
                 {!appliedCoupon ? (
@@ -1124,6 +1109,22 @@ export default function Payment() {
           </div>
         </div>
       </div>
+
+      {isConfirmingPayment && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="w-full max-w-sm rounded-xl bg-white p-8 text-center shadow-2xl">
+            <div className="mx-auto mb-5 h-12 w-12 animate-spin rounded-full border-4 border-[#737144]/20 border-t-[#737144]" />
+            <h2 className="text-lg font-medium text-[#555]">Confirming your payment</h2>
+            <p className="mt-2 text-sm text-[#777]">
+              We’re creating your order. Please keep this page open.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* SUCCESS MODAL */}
       {showModal && (
