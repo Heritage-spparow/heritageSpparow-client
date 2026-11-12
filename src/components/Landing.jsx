@@ -287,9 +287,8 @@ const heroSlides = useMemo(() => {
   if (featuredCollectionImage) {
     addSlide(featuredCollectionImage, {
       id: "hero-featured-collection",
-      href: sectionOne?.collection
-        ? buildCollectionPath(sectionOne.collection)
-        : HERITAGE_ROUTES.guldasta,
+      // Hero CTA always opens Shringar (was: sectionOne.collection → Guldasta)
+      href: HERITAGE_ROUTES.shringar,
       cta: sectionOne?.ctaLabel || "Shop Now",
       alt:
         sectionOne?.collection
