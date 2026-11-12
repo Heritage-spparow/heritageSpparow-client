@@ -18,6 +18,8 @@ export default function Checkout() {
 
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [itemErrors, setItemErrors] = useState({}); // inline error per cart item
+  const [pendingItem, setPendingItem] = useState(null); // item being updated/removed
 
   const dinStyle = {
     fontFamily:
@@ -35,28 +37,36 @@ export default function Checkout() {
   const grandTotal = (Number(totalPrice) || 0) + shippingCost + taxAmount;
 
   const handleQuantityChange = async (_id, newQuantity) => {
-    if (newQuantity < 1) return;
+    if (newQuantity < 1 || pendingItem) return;
+    const setItemError = (msg) => setItemErrors((prev) => ({ ...prev, [_id]: msg }));
+    setItemError("");
+    setPendingItem(_id);
     try {
       const res = await updateQuantity(_id, newQuantity);
-      if (!res.success) alert(res.error);
+      if (!res?.success) setItemError(res?.error || "Failed to update quantity");
     } catch {
-      alert("Failed to update quantity");
+      setItemError("Failed to update quantity");
+    } finally {
+      setPendingItem(null);
     }
   };
 
-  const handleRemoveItem = async (productId, size) => {
-    await removeFromCart(productId, size);
+  const handleRemoveItem = async (_id, productId, size) => {
+    if (pendingItem) return;
+    setPendingItem(_id);
+    try {
+      const res = await removeFromCart(productId, size);
+      if (!res?.success) {
+        setItemErrors((prev) => ({ ...prev, [_id]: res?.error || "Failed to remove item" }));
+      }
+    } finally {
+      setPendingItem(null);
+    }
   };
 
   const handleCheckout = async () => {
     setIsProcessing(true);
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      localStorage.setItem("redirectAfterLogin", "/payment");
-      navigate("/login");
-      return;
-    }
+    // Guests continue too — email/phone is collected on the payment page
     window.gtag?.("event", "begin_checkout", {
       currency: "INR",
       value: grandTotal,
@@ -80,12 +90,29 @@ export default function Checkout() {
   /* ---------------- STATES ---------------- */
 
   if (loading) {
+    // Skeleton in the same layout as the cart
     return (
-      <div
-        style={dinStyle}
-        className="min-h-screen bg-[#f9f6ef] flex items-center justify-center text-[#737144] tracking-[0.2em] uppercase text-sm"
-      >
-        Preparing your cart…
+      <div style={dinStyle} className="min-h-screen bg-[#f9f6ef] pt-24 pb-16">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-12 px-6 md:px-16 animate-pulse">
+          <div className="lg:col-span-2 space-y-8">
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="border border-[#737144]/15 p-6 md:p-8 flex flex-col sm:flex-row gap-8">
+                <div className="w-full sm:w-1/3 h-40 bg-[#737144]/10" />
+                <div className="flex-1 space-y-3">
+                  <div className="h-3 w-3/4 bg-[#737144]/20" />
+                  <div className="h-3 w-1/3 bg-[#737144]/10" />
+                  <div className="h-3 w-1/4 bg-[#737144]/10" />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="border border-[#737144]/20 p-8 h-64 space-y-4">
+            <div className="h-3 w-1/2 bg-[#737144]/20" />
+            <div className="h-3 w-full bg-[#737144]/10" />
+            <div className="h-3 w-full bg-[#737144]/10" />
+            <div className="h-10 w-full bg-[#737144]/20 mt-8" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -160,7 +187,9 @@ export default function Checkout() {
           {items.map((item) => (
             <div
               key={item._id}
-              className="border border-[#737144]/15 p-6 md:p-8 bg-[#f9f6ef]"
+              className={`border border-[#737144]/15 p-6 md:p-8 bg-[#f9f6ef] transition-opacity ${
+                pendingItem === item._id ? "opacity-60" : ""
+              }`}
             >
               <div className="flex flex-col sm:flex-row gap-8">
                 {/* Image */}
@@ -203,7 +232,7 @@ export default function Checkout() {
                         onClick={() =>
                           handleQuantityChange(item._id, item.quantity - 1)
                         }
-                        disabled={item.quantity <= 1}
+                        disabled={item.quantity <= 1 || !!pendingItem}
                         className="p-2 hover:bg-[#737144]/10 transition"
                       >
                         <Minus size={14} />
@@ -217,6 +246,7 @@ export default function Checkout() {
                         onClick={() =>
                           handleQuantityChange(item._id, item.quantity + 1)
                         }
+                        disabled={!!pendingItem}
                         className="p-2 hover:bg-[#737144]/10 transition"
                       >
                         <Plus size={14} />
@@ -226,13 +256,18 @@ export default function Checkout() {
                     {/* Remove */}
                     <button
                       onClick={() =>
-                        handleRemoveItem(item.product._id, item.size)
+                        handleRemoveItem(item._id, item.product._id, item.size)
                       }
+                      disabled={!!pendingItem}
                       className="text-[#737144]/50 hover:text-[#737144]"
                     >
                       <Trash2 size={16} />
                     </button>
                   </div>
+
+                  {itemErrors[item._id] && (
+                    <p className="mt-3 text-xs text-[#9a6b5a]">{itemErrors[item._id]}</p>
+                  )}
 
                   <p className="mt-4 text-sm text-right text-[#737144]">
                     Subtotal: {convert(item.product.price * item.quantity)}

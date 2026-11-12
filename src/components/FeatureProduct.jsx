@@ -9,10 +9,19 @@ import { absoluteUrl } from "../utils/site";
 import { buildProductPath } from "../utils/productUrl";
 import SEO from "./SEO";
 
+// Show sizes in ascending order (36, 37, 38…) whatever order the backend sends
+const sortSizes = (sizes) =>
+  (Array.isArray(sizes) ? [...sizes] : []).sort((a, b) => {
+    const na = parseFloat(a?.size);
+    const nb = parseFloat(b?.size);
+    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+    return String(a?.size ?? "").localeCompare(String(b?.size ?? ""));
+  });
+
 export default function FeatureProduct({ resolvedProduct = null }) {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { addToCart, updateQuantity, items: cartItems = [] } = useCart();
   const { fetchProductById, fetchProducts, products, currentProduct, loading } =
     useProduct();
   const [selectedSize, setSelectedSize] = useState("");
@@ -27,6 +36,10 @@ export default function FeatureProduct({ resolvedProduct = null }) {
   const [isAnimating, setIsAnimating] = useState(false);
   const [selectedStock, setSelectedStock] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [cartError, setCartError] = useState(""); // inline error near Add to Bag
+  const [productError, setProductError] = useState("");
+  const [showAddedToast, setShowAddedToast] = useState(false);
+  const toastTimer = useRef(null);
 
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -134,9 +147,8 @@ export default function FeatureProduct({ resolvedProduct = null }) {
       const response = await fetchProductById(id);
 
       if (response.success && response.product) {
-        const sizes = Array.isArray(response.product.sizes)
-          ? response.product.sizes
-          : [];
+        setProductError("");
+        const sizes = sortSizes(response.product.sizes);
         const defaultSizeObj = sizes.find((s) => s.stock > 0) || sizes[0];
 
         setSelectedSize(
@@ -144,7 +156,7 @@ export default function FeatureProduct({ resolvedProduct = null }) {
         );
         setSelectedStock(defaultSizeObj?.stock || 0);
       } else {
-        alert(response.error || "Product not found");
+        setProductError(response.error || "Product not found");
       }
     };
     loadProduct();
@@ -153,7 +165,7 @@ export default function FeatureProduct({ resolvedProduct = null }) {
   useEffect(() => {
     if (!activeProduct) return;
 
-    const sizes = Array.isArray(activeProduct.sizes) ? activeProduct.sizes : [];
+    const sizes = sortSizes(activeProduct.sizes);
     const defaultSizeObj = sizes.find((s) => s.stock > 0) || sizes[0];
 
     setSelectedSize(
@@ -167,12 +179,31 @@ export default function FeatureProduct({ resolvedProduct = null }) {
     setAddedToCart(false);
     setQuantity(1);
     setActiveImage(0);
+    setCartError("");
+    setProductError("");
+    setShowAddedToast(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [id]);
+
+  // Same product + size already in the bag → show its quantity here,
+  // and "Add to Bag" sets that quantity instead of adding on top (2 + 2 ≠ 4)
+  const activeId = activeProduct?._id || activeProduct?.id;
+  const cartItem = cartItems.find(
+    (item) =>
+      (item.product?._id || item.product?.id) === activeId &&
+      String(item.size) === String(selectedSize),
+  );
+  const cartQty = cartItem?.quantity || 0;
+
+  useEffect(() => {
+    setQuantity(cartQty || 1);
+  }, [activeId, selectedSize, cartQty]);
 
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
+
+  useEffect(() => () => clearTimeout(toastTimer.current), []);
 
   const images = [
     cloudinaryOptimize(activeProduct?.coverImage?.url, "detail"),
@@ -202,31 +233,30 @@ export default function FeatureProduct({ resolvedProduct = null }) {
     if (isAddingToCart) return;
 
     // size must be selected
+    setCartError("");
     if (!selectedSize) {
-      alert("Please select a size");
+      setCartError("Please select a size");
       return;
     }
 
     // stock check (frontend safety)
     if (selectedStock <= 0) {
-      alert("This size is out of stock");
+      setCartError("This size is out of stock");
       return;
     }
 
     // quantity should never exceed stock
     if (quantity > selectedStock) {
-      alert(`Only ${selectedStock} item(s) available for this size`);
+      setCartError(`Only ${selectedStock} item(s) available for this size`);
       return;
     }
 
     setIsAddingToCart(true);
 
     try {
-      const response = await addToCart(
-        activeProduct,
-        selectedSize,
-        quantity, // 👈 IMPORTANT: use quantity, not 1
-      );
+      const response = cartItem
+        ? await updateQuantity(cartItem._id, quantity)
+        : await addToCart(activeProduct, selectedSize, quantity);
 
       if (response?.success) {
         window.gtag?.("event", "add_to_cart", {
@@ -244,27 +274,24 @@ export default function FeatureProduct({ resolvedProduct = null }) {
         });
 
         setAddedToCart(true);
+        setShowAddedToast(true);
+        clearTimeout(toastTimer.current);
+        toastTimer.current = setTimeout(() => setShowAddedToast(false), 2500);
       } else {
-        alert(response?.message || "Failed to add item to cart");
+        setCartError(
+          response?.message || response?.error || "Failed to add item to cart",
+        );
       }
     } catch (error) {
       console.error("Add to cart error:", error);
-      alert("Something went wrong. Please try again.");
+      setCartError("Something went wrong. Please try again.");
     } finally {
       setIsAddingToCart(false);
     }
   };
 
   const handleProceedToPay = () => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      // 👇 SAME LOGIC
-      localStorage.setItem("redirectAfterLogin", "/payment");
-      navigate("/login");
-      return;
-    }
-
+    // Guests continue too — email/phone is collected on the payment page
     navigate("/payment");
   };
   // const handleViewCart = () => {
@@ -290,12 +317,40 @@ export default function FeatureProduct({ resolvedProduct = null }) {
     );
   }
 
-  if (!activeProduct) {
+  if (!activeProduct && productError) {
     return (
-      <div className="p-10 text-center">
-        <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F3ED]">
-          <div className="loader"></div>
-          <p className="mt-4 text-[#737144] uppercase tracking-[0.25em] text-sm font-light"></p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F3ED] px-6 text-center">
+        <h1 className="text-xl tracking-[0.25em] uppercase text-[#737144] mb-4">
+          {productError}
+        </h1>
+        <button
+          onClick={() => navigate("/")}
+          className="px-10 py-3 border border-[#737144]/40 text-[#737144] uppercase tracking-[0.2em] text-xs hover:bg-[#737144]/10 transition"
+        >
+          Continue Shopping
+        </button>
+      </div>
+    );
+  }
+
+  if (!activeProduct) {
+    // Skeleton in the product page layout
+    return (
+      <div className="min-h-screen bg-[#F4F3ED] px-6 md:px-16 py-12">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 animate-pulse">
+          <div className="aspect-square w-full bg-[#737144]/10" />
+          <div className="space-y-5 pt-4">
+            <div className="h-5 w-3/4 bg-[#737144]/20" />
+            <div className="h-4 w-1/4 bg-[#737144]/15" />
+            <div className="h-3 w-full bg-[#737144]/10" />
+            <div className="h-3 w-5/6 bg-[#737144]/10" />
+            <div className="grid grid-cols-5 gap-3 pt-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="h-9 bg-[#737144]/10" />
+              ))}
+            </div>
+            <div className="h-12 w-full bg-[#737144]/20 mt-6" />
+          </div>
         </div>
       </div>
     );
@@ -339,11 +394,25 @@ export default function FeatureProduct({ resolvedProduct = null }) {
     },
   };
 
-  const relatedProducts = products.filter(
-    (item) =>
-      (item._id || item.id) !== currentProductId &&
-      item.category === activeProduct.category,
-  );
+  // Collection identifiers (id / slug / name) — the field may be populated or a plain id
+  const collectionKeys = (product) => {
+    const c = product?.collection;
+    const raw = c && typeof c === "object"
+      ? [c._id, c.id, c.slug, c.name]
+      : [c, product?.collectionSlug, product?.collectionName];
+    return raw.filter(Boolean).map((v) => String(v).toLowerCase());
+  };
+  const activeCollection = collectionKeys(activeProduct);
+
+  // Related = same collection (Shringar → Shringar, Guldasta → Guldasta);
+  // falls back to same category if the product has no collection
+  const relatedProducts = products.filter((item) => {
+    if ((item._id || item.id) === currentProductId) return false;
+    if (activeCollection.length) {
+      return collectionKeys(item).some((key) => activeCollection.includes(key));
+    }
+    return item.category === activeProduct.category;
+  });
   // console.log(relatedProducts);
   return (
     <div style={dinStyle} className="bg-[#f9f6ef]">
@@ -610,7 +679,7 @@ export default function FeatureProduct({ resolvedProduct = null }) {
                 )}
                 {/* Size Buttons */}
                 <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
-                  {activeProduct.sizes.map((size) => (
+                  {sortSizes(activeProduct.sizes).map((size) => (
                     <button
                       key={size._id}
                       onClick={() => {
@@ -618,6 +687,7 @@ export default function FeatureProduct({ resolvedProduct = null }) {
                         setSelectedStock(size.stock);
                         setQuantity(1);
                         setAddedToCart(false);
+                        setCartError("");
                       }}
                       disabled={size.stock === 0}
                       className={`relative py-2 px-3 text-sm font-light tracking-wide  border transition-all duration-300
@@ -766,6 +836,11 @@ export default function FeatureProduct({ resolvedProduct = null }) {
               </div>
             </div>
             <div className="space-y-4 mt-6">
+              {cartError && (
+                <p className="text-sm text-[#9a6b5a]" role="alert">
+                  {cartError}
+                </p>
+              )}
               {!addedToCart ? (
                 <button
                   onClick={handleAddToCart}
@@ -777,7 +852,11 @@ export default function FeatureProduct({ resolvedProduct = null }) {
             : "bg-[#737144] text-white hover:bg-[#5f5d3d]"
         }`}
                 >
-                  {isAddingToCart ? "Adding to Bag..." : "Add to Bag"}
+                  {isAddingToCart
+                    ? cartItem ? "Updating Bag..." : "Adding to Bag..."
+                    : cartItem
+                      ? "Update Bag"
+                      : "Add to Bag"}
                 </button>
               ) : (
                 <button
@@ -848,6 +927,22 @@ export default function FeatureProduct({ resolvedProduct = null }) {
           startIndex={activeImage}
           onClose={() => setViewerOpen(false)}
         />
+      )}
+
+      {/* "Added to bag" toast */}
+      {showAddedToast && (
+        <div
+          role="status"
+          className="toast-in fixed bottom-8 left-1/2 -translate-x-1/2 z-[900] flex items-center gap-4 bg-[#737144] text-white px-5 py-3 shadow-lg text-xs uppercase tracking-[0.15em]"
+        >
+          <span>Added to bag ✓</span>
+          <button
+            onClick={() => navigate("/checkout")}
+            className="underline underline-offset-2 hover:opacity-80"
+          >
+            View bag
+          </button>
+        </div>
       )}
     </div>
   );

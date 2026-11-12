@@ -7,7 +7,7 @@ const images = [
   "/Campaign/DSC_5670.jpg",
   "/Campaign/DSC_5975.jpg",
   "/Campaign/DSC_5657.jpg",
-  "/Campaign/DSC_5888.jpg",
+  "/Campaign/DSC_5888.webp",
   "/Campaign/DSC_5859.jpg",
   "/Campaign/DSC_6175.jpg",
   "/Campaign/DSC_6209.jpg",

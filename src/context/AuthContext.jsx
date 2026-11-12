@@ -12,6 +12,21 @@ import { useState } from "react";
 ===================== */
 const GUEST_CART_KEY = "guest_cart"; // ✅
 const CART_MERGED_KEY = "cart_merged";
+const GUEST_TOKEN_KEY = "guest_token";
+const GUEST_INFO_KEY = "guest_info";
+
+const readGuest = () => {
+  try {
+    return JSON.parse(localStorage.getItem(GUEST_INFO_KEY)) || null;
+  } catch {
+    return null;
+  }
+};
+
+const clearGuestStorage = () => {
+  localStorage.removeItem(GUEST_TOKEN_KEY);
+  localStorage.removeItem(GUEST_INFO_KEY);
+};
 
 // Auth Context
 const AuthContext = createContext();
@@ -109,6 +124,43 @@ const initialState = {
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
   const [cartMerged, setCartMerged] = useState(localStorage.getItem(CART_MERGED_KEY) === "true");
+  // Guest checkout session: { isGuest, email, phone }
+  const [guest, setGuest] = useState(readGuest);
+
+  const clearGuest = () => {
+    clearGuestStorage();
+    setGuest(null);
+  };
+
+  // Start (or reuse) a guest session with email or phone
+  const startGuestSession = async ({ email, phone, firstName, lastName }) => {
+    try {
+      const response = await authAPI.guest({
+        ...(email ? { email } : {}),
+        ...(phone ? { phone } : {}),
+        ...(firstName ? { firstName } : {}),
+        ...(lastName ? { lastName } : {}),
+      });
+
+      if (response.data.success) {
+        const guestInfo = { isGuest: true, ...response.data.guest };
+        if (response.data.guestToken) {
+          localStorage.setItem(GUEST_TOKEN_KEY, response.data.guestToken);
+        }
+        localStorage.setItem(GUEST_INFO_KEY, JSON.stringify(guestInfo));
+        setGuest(guestInfo);
+        return { success: true, guest: guestInfo };
+      }
+      throw new Error(response.data.message || "Could not continue as guest");
+    } catch (error) {
+      const status = error.response?.status;
+      const errorMessage =
+        status === 429
+          ? "Too many attempts. Please try again in a few minutes."
+          : error.response?.data?.message || error.message || "Could not continue as guest";
+      return { success: false, error: errorMessage };
+    }
+  };
 
   const mergeGuestCartToUser = async () => {
     const guestCart = JSON.parse(localStorage.getItem(GUEST_CART_KEY)) || [];
@@ -147,6 +199,7 @@ export const AuthProvider = ({ children }) => {
           type: AUTH_ACTIONS.LOGIN_SUCCESS,
           payload: { user: response.data.user, token: localStorage.getItem("token") },
         });
+        clearGuest();
         
         // On refresh, if we have a token, check if we need to merge
         await mergeGuestCartToUser();
@@ -182,7 +235,9 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem("user", JSON.stringify(user));
         // Reset merge flag for the new user session
         localStorage.removeItem(CART_MERGED_KEY);
+        setCartMerged(false);
 
+        clearGuest();
         dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { user, token } });
         
         // Trigger merge after successful login
@@ -190,10 +245,15 @@ export const AuthProvider = ({ children }) => {
         
         return { success: true, user };
       }
+      throw new Error(response.data.message || "Login failed");
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Login failed";
+      const code = error.response?.data?.code;
+      const errorMessage =
+        code === "GUEST_ACCOUNT"
+          ? "Please sign up with this email to access your orders"
+          : error.response?.data?.message || error.message || "Login failed";
       dispatch({ type: AUTH_ACTIONS.LOGIN_FAILURE, payload: errorMessage });
-      return { success: false, error: errorMessage };
+      return { success: false, error: errorMessage, code };
     }
   };
 
@@ -210,17 +270,24 @@ export const AuthProvider = ({ children }) => {
         // Store token in localStorage
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
+        localStorage.removeItem(CART_MERGED_KEY);
+        setCartMerged(false);
+        clearGuest();
 
         dispatch({
           type: AUTH_ACTIONS.REGISTER_SUCCESS,
           payload: { user, token },
         });
 
+        // Move guest cart items into the new account
+        await mergeGuestCartToUser();
+
         return { success: true, user };
       }
+      throw new Error(response.data.message || "Registration failed");
     } catch (error) {
       const errorMessage =
-        error.response?.data?.message || "Registration failed";
+        error.response?.data?.message || error.message || "Registration failed";
       dispatch({
         type: AUTH_ACTIONS.REGISTER_FAILURE,
         payload: errorMessage,
@@ -231,11 +298,16 @@ export const AuthProvider = ({ children }) => {
 
   // Logout function with useCallback
   const logout = async () => {
+    // Tell backend (clears cookies) — don't block logout if it fails
+    authAPI.logout().catch(() => {});
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     localStorage.removeItem("cart_merged"); // 👈 Reset this
-    setCartMerged(false);
+    clearGuest();
+    // Guest mode needs no merge — keeps CartContext unlocked after logout
+    setCartMerged(true);
     dispatch({ type: AUTH_ACTIONS.LOGOUT });
-    window.location.href = "/";
+    // No full reload — caller (Navbar) navigates to "/"
   };
 
   // Update user profile
@@ -383,6 +455,10 @@ export const AuthProvider = ({ children }) => {
     updateProfile,
     changePassword,
     cartMerged,
+    guest,
+    isGuest: !state.isAuthenticated && !!guest?.isGuest,
+    startGuestSession,
+    clearGuest,
     addAddress,
     updateAddress,
     deleteAddress,

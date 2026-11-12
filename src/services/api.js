@@ -13,7 +13,8 @@ const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    // Logged-in token first; guest token is only a fallback (cookie already carries it)
+    const token = localStorage.getItem('token') || localStorage.getItem('guest_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -28,11 +29,25 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Guest checkout needs a guest session — let the page show the contact form instead of redirecting
+    if (error.response?.data?.code === 'GUEST_OR_LOGIN_REQUIRED') {
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401) {
       // Token expired or invalid
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+
+      // Don't hard-redirect for auth calls (wrong password, session check)
+      // or when already on login/signup — that caused reload loops and lost error messages
+      const url = error.config?.url || '';
+      const isAuthCall = /\/auth\/(login|register|me|guest|logout)/.test(url);
+      const onAuthPage = ['/login', '/signup'].includes(window.location.pathname);
+      if (!isAuthCall && !onAuthPage) {
+        localStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
@@ -44,6 +59,7 @@ export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
   logout: () => api.post('/auth/logout'),
   getMe: () => api.get('/auth/me'),
+  guest: (data) => api.post('/auth/guest', data),
   updateProfile: (userData) => api.put('/auth/profile', userData),
   changePassword: (passwords) => api.put('/auth/password', passwords),
 

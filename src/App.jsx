@@ -1,4 +1,4 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import "./App.css";
 import {
   BrowserRouter as Router,
@@ -10,42 +10,51 @@ import { useEffect } from "react";
 import Maintenance from "./Maintainance";
 import Navbar from "./components/Navbar";
 import Landing from "./components/Landing";
-import Search from "./components/Search";
 import ProductWindow from "./components/ProductWindow";
-import Checkout from "./components/Checkout";
-import Payment from "./components/Payment";
-import Profile from "./components/Profile";
-import Login from "./components/Login";
-import Signup from "./components/Signup";
-import Orders from "./components/Orders";
 import PrivateRoute from "./components/PrivateRoute";
 import Footer from "./components/Footer";
-import About from "./components/About";
-import CraftPage from "./components/craft";
-import GoogleAuthCallback from "./components/GoogleAuthCallback";
-import CampaignPage from "./components/Campaign";
 import ScrollToTop from "./tool/ScrollToTop";
 import { CategoryRouteResolver } from "./components/RouteResolvers";
-// ✅ Policy imports
-import PolicyLayout from "./policies/PolicyLayout";
-import PrivacyPolicyPage from "./policies/PrivacyPolicyPage";
-import TermsConditionsPage from "./policies/TermsConditionsPage";
-import ShippingReturnsRefundPage from "./policies/ShippingReturnsRefundPage";
-import ShringarAlbum from "./components/ShringarAlbum";
 import { useProduct } from "./context/ProductContext";
-import AuthSuccess from "./components/AuthSuccess";
-import OrderDetail from "./components/OrderDetail";
+
+// Pages loaded on demand — home, category and product pages stay in the main bundle
+const Search = lazy(() => import("./components/Search"));
+const Checkout = lazy(() => import("./components/Checkout"));
+const Payment = lazy(() => import("./components/Payment"));
+const Profile = lazy(() => import("./components/Profile"));
+const Login = lazy(() => import("./components/Login"));
+const Signup = lazy(() => import("./components/Signup"));
+const Orders = lazy(() => import("./components/Orders"));
+const About = lazy(() => import("./components/About"));
+const CraftPage = lazy(() => import("./components/craft"));
+const GoogleAuthCallback = lazy(() => import("./components/GoogleAuthCallback"));
+const CampaignPage = lazy(() => import("./components/Campaign"));
+const PolicyLayout = lazy(() => import("./policies/PolicyLayout"));
+const PrivacyPolicyPage = lazy(() => import("./policies/PrivacyPolicyPage"));
+const TermsConditionsPage = lazy(() => import("./policies/TermsConditionsPage"));
+const ShippingReturnsRefundPage = lazy(() => import("./policies/ShippingReturnsRefundPage"));
+const ShringarAlbum = lazy(() => import("./components/ShringarAlbum"));
+const AuthSuccess = lazy(() => import("./components/AuthSuccess"));
+const OrderDetail = lazy(() => import("./components/OrderDetail"));
+
+const PageLoader = () => (
+  <div className="min-h-[60vh] flex items-center justify-center bg-[#f9f6ef]">
+    <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#737144]/20 border-t-[#737144]" />
+  </div>
+);
 
 function AppContent() {
   const location = useLocation();
   const { fetchCategories } = useProduct();
   const maintenance = false;
-  if (maintenance) {
-    return <Maintenance />;
-  }
+  // Hooks must run before any early return
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
+
+  if (maintenance) {
+    return <Maintenance />;
+  }
 
   // Routes where Navbar should be hidden
   const hideNavbarRoutes = ["/login", "/signup"];
@@ -56,6 +65,7 @@ function AppContent() {
       {!shouldHideNavbar && <Navbar />}
 
       <div className={shouldHideNavbar ? "mt-0" : "mt-14"}>
+        <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Public pages */}
           <Route path="/" element={<Landing />} />
@@ -108,14 +118,8 @@ function AppContent() {
             }
           />
           <Route path="/checkout" element={<Checkout />} />
-          <Route
-            path="/payment"
-            element={
-              <PrivateRoute>
-                <Payment />
-              </PrivateRoute>
-            }
-          />
+          {/* Payment works for logged-in users and guests */}
+          <Route path="/payment" element={<Payment />} />
           <Route
             path="/orders"
             element={
@@ -129,6 +133,7 @@ function AppContent() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
         </Routes>
+        </Suspense>
       </div>
 
       {/* WhatsApp floating button */}

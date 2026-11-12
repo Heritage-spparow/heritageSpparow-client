@@ -4,8 +4,9 @@ import { useAuth } from "../context/AuthContext";
 import { useOrder } from "../context/OrderContext";
 import api, { couponAPI } from "../services/api";
 import { useNavigate } from "react-router-dom";
-import { Check, Info, X, CreditCard } from "lucide-react";
+import { Check, Info, X, CreditCard, MapPin, Trash2 } from "lucide-react";
 import { cloudinaryOptimize } from "../utils/loudinary";
+import NoticeModal from "../shared/NoticeModal";
 
 import { useForm } from "react-hook-form";
 
@@ -212,10 +213,10 @@ const COUNTRY_OPTIONS = [
 ];
 
 export default function Payment() {
-  const { items, totalPrice, clearCart } = useCart();
-  const { user, addAddress } = useAuth();
+  const { items, totalPrice, clearCart, removeFromCart } = useCart();
+  const { user, addAddress, isAuthenticated, isGuest, guest, startGuestSession, clearGuest } =
+    useAuth();
   const { createOrder } = useOrder();
-  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
@@ -236,6 +237,18 @@ export default function Payment() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState("");
 
+  // Guest contact — email only (phone is taken in the delivery address)
+  const [contactValue, setContactValue] = useState(guest?.email || "");
+  const [contactError, setContactError] = useState("");
+  // Show inline "Required" messages after the first submit attempt
+  const [showErrors, setShowErrors] = useState(false);
+  const [placedOrder, setPlacedOrder] = useState(null);
+  const [paymentError, setPaymentError] = useState(""); // inline, above pay button
+  const [addressModalError, setAddressModalError] = useState("");
+  const [notice, setNotice] = useState(null); // site-styled popup for critical messages
+  const [removingItem, setRemovingItem] = useState(null);
+  const [itemErrors, setItemErrors] = useState({}); // inline error per summary item
+
   const { register, handleSubmit, reset } = useForm();
 
   const reverseGeocode = async (lat, lon) => {
@@ -246,15 +259,7 @@ export default function Payment() {
   };
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login", {
-        state: { from: "/payment" },
-      });
-    }
-  }, [isAuthenticated, navigate]);
-
-  useEffect(() => {
-    if (!isAuthenticated || !items.length) {
+    if ((!isAuthenticated && !isGuest) || !items.length) {
       setAutomaticDiscount(0);
       return;
     }
@@ -277,13 +282,13 @@ export default function Payment() {
     };
 
     loadAutomaticDiscount();
-  }, [isAuthenticated, items]);
+  }, [isAuthenticated, isGuest, items]);
 
   const currentUser = {
     firstName: user?.firstName || "Guest",
     lastName: user?.lastName || "",
-    email: user?.email,
-    phone: user?.phone || "",
+    email: user?.email || contactValue.trim() || guest?.email || "",
+    phone: user?.phone || selectedAddress?.phone || guest?.phone || "",
     addresses: user?.addresses ?? EMPTY_ADDRESSES,
   };
 
@@ -307,10 +312,13 @@ export default function Payment() {
     // },
   ];
 
-  // Load Razorpay script
+  // Load Razorpay script once (skip if already on the page)
   useEffect(() => {
+    if (window.Razorpay || document.getElementById("razorpay-checkout-js")) return;
     const script = document.createElement("script");
+    script.id = "razorpay-checkout-js";
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
     document.body.appendChild(script);
   }, []);
 
@@ -325,41 +333,46 @@ export default function Payment() {
     }
   }, [currentUser.addresses]);
 
-  useEffect(() => {
-    // If address already exists → DO NOTHING
-    if (currentUser.addresses.length > 0) return;
+  // Location is asked only when the user taps "Use my location"
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState("");
 
-    if (!navigator.geolocation) return;
+  const handleUseLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError("Location is not supported on this device.");
+      return;
+    }
+    setLocating(true);
+    setLocationError("");
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         try {
           const { latitude, longitude } = position.coords;
           const data = await reverseGeocode(latitude, longitude);
-
           const addr = data.address || {};
 
-          setSelectedAddress({
-            firstName: "",
-            lastName: "",
-            phone: "",
-            street: "",
-            addressLine2: "",
-            city: addr.city || addr.town || addr.village || "",
-            state: addr.state || "",
-            zipCode: addr.postcode || "",
-            country: addr.country || "India",
-          });
+          // Fill only location fields — keep what the user already typed
+          setSelectedAddress((prev) => ({
+            ...(prev || {}),
+            city: addr.city || addr.town || addr.village || prev?.city || "",
+            state: addr.state || prev?.state || "",
+            zipCode: addr.postcode || prev?.zipCode || "",
+            country: addr.country || prev?.country || "India",
+          }));
         } catch {
-          console.warn("Location fetch failed");
+          setLocationError("Couldn't fetch your location. Please fill the address manually.");
+        } finally {
+          setLocating(false);
         }
       },
       () => {
-        console.warn("User denied location access");
+        setLocationError("Location access denied. Please fill the address manually.");
+        setLocating(false);
       },
       { enableHighAccuracy: false, timeout: 8000 },
     );
-  }, [currentUser.addresses.length]);
+  };
 
   const formatAddress = (addr = {}) => ({
     id: addr._id,
@@ -386,12 +399,47 @@ export default function Payment() {
       addr.city,
       addr.state,
       addr.zipCode || addr.postalCode,
-      addr.country,
+      addr.country || "India", // select shows India by default
     ];
 
     return requiredFields.every(
       (field) => String(field ?? "").trim().length > 0,
     );
+  };
+
+  const getContactEmailError = () => {
+    if (isAuthenticated) return "";
+    const value = contactValue.trim();
+    if (!value) return "Email is required";
+    if (!/\S+@\S+\.\S+/.test(value)) return "Please enter a valid email";
+    return "";
+  };
+
+  // Logged in → nothing to do. Otherwise create/reuse a guest session from the email.
+  const ensureCheckoutSession = async () => {
+    if (isAuthenticated) return true;
+
+    const emailError = getContactEmailError();
+    if (emailError) {
+      setContactError(emailError);
+      return false;
+    }
+    const value = contactValue.trim();
+
+    // Same email as the current guest session → reuse it
+    if (isGuest && guest?.email === value) return true;
+
+    const res = await startGuestSession({
+      email: value,
+      firstName: selectedAddress?.firstName?.trim(),
+      lastName: selectedAddress?.lastName?.trim(),
+    });
+    if (!res.success) {
+      setContactError(res.error);
+      return false;
+    }
+    setContactError("");
+    return true;
   };
 
   const handleApplyCoupon = async () => {
@@ -409,6 +457,12 @@ export default function Payment() {
 
     setCouponLoading(true);
     setCouponError("");
+
+    if (!(await ensureCheckoutSession())) {
+      setCouponError("Enter your email or phone above to apply a coupon.");
+      setCouponLoading(false);
+      return;
+    }
 
     try {
       const orderItems = items.map((item) => ({
@@ -448,6 +502,29 @@ export default function Payment() {
     }
   };
 
+  // Remove an item straight from the order summary
+  const handleRemoveItem = async (item) => {
+    if (removingItem || isProcessing) return;
+    const isLastItem = items.length === 1;
+    setRemovingItem(item._id);
+    setItemErrors((prev) => ({ ...prev, [item._id]: "" }));
+    try {
+      const res = await removeFromCart(item.product._id, item.size || item.selectedSize);
+      if (!res?.success) {
+        setItemErrors((prev) => ({ ...prev, [item._id]: res?.error || "Failed to remove item" }));
+        return;
+      }
+      // Coupon was calculated on the old cart — let the user re-apply it
+      if (appliedCoupon) {
+        handleRemoveCoupon();
+        setCouponError("Cart changed — please apply your coupon again.");
+      }
+      if (isLastItem) navigate("/checkout"); // shows "Your bag is empty"
+    } finally {
+      setRemovingItem(null);
+    }
+  };
+
   const handleRemoveCoupon = () => {
     setAppliedCoupon(null);
     setCouponDiscount(0);
@@ -455,35 +532,36 @@ export default function Payment() {
     setCouponError("");
   };
 
+  // Scroll to the first field showing an inline error
+  const scrollToFirstError = () => {
+    setTimeout(() => {
+      document
+        .querySelector('[data-invalid="true"]')
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 0);
+  };
+
   const handlePayment = async () => {
-    if (!isAddressValid(selectedAddress)) {
-      const requiredAddressFields = {
-        "first name": selectedAddress?.firstName,
-        "last name": selectedAddress?.lastName,
-        phone: selectedAddress?.phone,
-        "street address": selectedAddress?.street || selectedAddress?.address,
-        city: selectedAddress?.city,
-        state: selectedAddress?.state,
-        "postal code": selectedAddress?.zipCode || selectedAddress?.postalCode,
-        country: selectedAddress?.country,
-      };
-      const missingFields = Object.entries(requiredAddressFields)
-        .filter(([, value]) => !String(value ?? "").trim())
-        .map(([label]) => label);
+    setShowErrors(true);
+    setPaymentError("");
+    const emailError = getContactEmailError();
+    setContactError(emailError);
 
-      alert(`Please complete your delivery address: ${missingFields.join(", ")}.`);
-      return;
-    }
-
-    if (!selectedPaymentMethod) {
-      alert("Please select a payment method.");
+    if (emailError || !isAddressValid(selectedAddress) || !selectedPaymentMethod) {
+      scrollToFirstError();
       return;
     }
 
     setIsProcessing(true);
 
+    if (!(await ensureCheckoutSession())) {
+      setIsProcessing(false);
+      scrollToFirstError();
+      return;
+    }
+
     try {
-      if (saveInfo) {
+      if (saveInfo && isAuthenticated) {
         const newAddress = {
           label: "home",
           firstName: selectedAddress.firstName,
@@ -500,7 +578,7 @@ export default function Payment() {
         try {
           await addAddress(newAddress);
         } catch {
-          console.log("Address save failed... continuing with payment.");
+          // Address save failed — continue with payment anyway
         }
       }
       const itemsPrice = totalPrice;
@@ -537,7 +615,6 @@ export default function Payment() {
           ...orderPayload,
           paymentMethod: "cod",
         });
-        console.log(orderRes);
         if (orderRes.success) {
           setShowModal(true); // ✅ UI reacts immediately
 
@@ -567,7 +644,7 @@ export default function Payment() {
         order_id: rzOrder.id,
         prefill: {
           name: `${currentUser.firstName} ${currentUser.lastName}`,
-          email: currentUser.email,
+          email: currentUser.email || "",
           contact: "91" + selectedAddress.phone.replace(/\D/g, "").slice(-10),
         },
         theme: { color: BRAND_COLOR },
@@ -596,18 +673,25 @@ export default function Payment() {
                 })),
               });
 
+              // Guests can't open /orders — keep the order from the verify response
+              setPlacedOrder(captureRes.data.order || captureRes.data.data || null);
               setShowModal(true);
               clearCart().catch((err) =>
                 console.error("Clear cart failed after confirmed payment:", err),
               );
             } else {
-              alert("Payment succeeded but order not confirmed.");
+              setNotice({
+                type: "error",
+                title: "Order Not Confirmed",
+                message: `Your payment went through but we couldn't confirm the order. Please contact support with Payment ID: ${response.razorpay_payment_id}`,
+              });
             }
           } catch {
-            alert(
-              "Order confirmation failed. Contact support with Payment ID: " +
-                response.razorpay_payment_id,
-            );
+            setNotice({
+              type: "error",
+              title: "Order Confirmation Failed",
+              message: `Please contact support with Payment ID: ${response.razorpay_payment_id}`,
+            });
           } finally {
             setIsConfirmingPayment(false);
             setIsProcessing(false);
@@ -616,20 +700,36 @@ export default function Payment() {
 
         modal: {
           ondismiss: function () {
-            alert("Payment cancelled");
+            setPaymentError("Payment was cancelled. You can try again whenever you're ready.");
             setIsProcessing(false);
           },
         },
       };
 
+      if (!window.Razorpay) {
+        setPaymentError("Payment window is still loading. Please try again in a moment.");
+        setIsProcessing(false);
+        return;
+      }
       const rzp = new window.Razorpay(options);
       rzp.open();
-    } catch {
-      alert("Payment failed. Please try again.");
+    } catch (error) {
+      const status = error.response?.status;
+      if (error.response?.data?.code === "GUEST_OR_LOGIN_REQUIRED") {
+        // Guest session expired — ask for contact again
+        clearGuest();
+        setContactError("Your session expired. Please enter your email again.");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else if (status === 503) {
+        setPaymentError(error.response?.data?.message || "Online payments are unavailable right now. Please try again later.");
+      } else {
+        setPaymentError(error.response?.data?.message || "Payment failed. Please try again.");
+      }
       setIsProcessing(false);
     }
   };
   const onAddAddress = async (data) => {
+    setAddressModalError("");
     try {
       const newAddress = {
         label: data.label,
@@ -659,10 +759,34 @@ export default function Payment() {
         );
         setShowAddressModal(false);
         reset();
+      } else {
+        setAddressModalError(res.error || "Failed to add address");
       }
     } catch {
-      alert("Failed to add address");
+      setAddressModalError("Failed to add address");
     }
+  };
+
+  // Plain render function (not a component) so inputs keep focus while typing
+  const renderAddressInput = (field, placeholder, { type = "text", optional = false } = {}) => {
+    const invalid =
+      showErrors && !optional && !String(selectedAddress?.[field] ?? "").trim();
+    return (
+      <div data-invalid={invalid}>
+        <input
+          type={type}
+          value={selectedAddress?.[field] || ""}
+          onChange={(e) =>
+            setSelectedAddress((prev) => ({ ...prev, [field]: e.target.value }))
+          }
+          className={`luxInput w-full p-2 border rounded-md ${
+            invalid ? "border-[#9a6b5a]" : "border-[#e5e4da]"
+          }`}
+          placeholder={placeholder}
+        />
+        {invalid && <p className="mt-1 text-xs text-[#9a6b5a]">Required</p>}
+      </div>
+    );
   };
 
   return (
@@ -689,13 +813,51 @@ export default function Payment() {
               </div>
 
               <div className="p-6 space-y-4">
-                <input
-                  type="email"
-                  value={currentUser.email}
-                  readOnly
-                  className="w-full px-4 py-3 border border-[#d6d4c2] rounded-md bg-white text-[#555]
-                  focus:ring-2 focus:ring-[#737144]/30 focus:border-[#737144]"
-                />
+                {isAuthenticated ? (
+                  <input
+                    type="email"
+                    value={currentUser.email || ""}
+                    readOnly
+                    className="w-full px-4 py-3 border border-[#d6d4c2] rounded-md bg-white text-[#555]
+                    focus:ring-2 focus:ring-[#737144]/30 focus:border-[#737144]"
+                  />
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between gap-3 text-sm">
+                      <span className="text-[#777]">Email</span>
+                      <button
+                        type="button"
+                        onClick={() => navigate("/login", { state: { from: "/payment" } })}
+                        className="text-xs text-[#737144] underline underline-offset-2"
+                      >
+                        Login / Sign up
+                      </button>
+                    </div>
+
+                    <div data-invalid={!!contactError}>
+                      <input
+                        type="email"
+                        value={contactValue}
+                        onChange={(e) => {
+                          setContactValue(e.target.value);
+                          setContactError("");
+                        }}
+                        placeholder="Email address"
+                        className={`w-full px-4 py-3 border rounded-md bg-white text-[#555]
+                        focus:ring-2 focus:ring-[#737144]/30 focus:border-[#737144] ${
+                          contactError ? "border-[#9a6b5a]" : "border-[#d6d4c2]"
+                        }`}
+                      />
+                      {contactError ? (
+                        <p className="mt-1 text-xs text-[#9a6b5a]">{contactError}</p>
+                      ) : (
+                        <p className="mt-1 text-xs text-[#777]">
+                          Checking out as guest — we’ll send order updates here.
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
 
                 <label className="flex items-start space-x-3 cursor-pointer">
                   <input
@@ -720,6 +882,22 @@ export default function Payment() {
               </div>
 
               <div className="p-6 space-y-4">
+                {/* Optional: autofill city/state/postal code */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={handleUseLocation}
+                    disabled={locating}
+                    className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.1em] text-[#737144] hover:text-[#5f5d3d] disabled:opacity-50"
+                  >
+                    <MapPin size={14} />
+                    {locating ? "Getting location..." : "Use my location"}
+                  </button>
+                  {locationError && (
+                    <p className="mt-1 text-xs text-[#9a6b5a]">{locationError}</p>
+                  )}
+                </div>
+
                 {/* Country */}
                 <div>
                   <label className="block text-sm text-[#777] mb-1">
@@ -746,76 +924,25 @@ export default function Payment() {
 
                 {/* Editable Address Inputs */}
                 <div className="grid grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    value={selectedAddress?.firstName || ""}
-                    onChange={(e) => setSelectedAddress((prev) => ({ ...prev, firstName: e.target.value }))}
-                    className="luxInput p-2 border border-[#e5e4da] rounded-md"
-                    placeholder="First Name"
-                  />
-
-                  <input
-                    type="text"
-                    value={selectedAddress?.lastName || ""}
-                    onChange={(e) => setSelectedAddress((prev) => ({ ...prev, lastName: e.target.value }))}
-                    className="luxInput p-2 border border-[#e5e4da] rounded-md"
-                    placeholder="Last Name"
-                  />
+                  {renderAddressInput("firstName", "First Name")}
+                  {renderAddressInput("lastName", "Last Name")}
                 </div>
                 <div className="flex flex-col gap-4">
-                  <input
-                    type="text"
-                    value={selectedAddress?.street || ""}
-                    onChange={(e) => setSelectedAddress((prev) => ({ ...prev, street: e.target.value }))}
-                    className="luxInput p-2 border border-[#e5e4da] "
-                    placeholder="Street Address"
-                  />
-
-                  <input
-                    type="text"
-                    value={selectedAddress?.addressLine2 || ""}
-                    onChange={(e) => setSelectedAddress((prev) => ({ ...prev, addressLine2: e.target.value }))}
-                    className="luxInput p-2 border border-[#e5e4da]"
-                    placeholder="Address Line 2 (Optional)"
-                  />
+                  {renderAddressInput("street", "Street Address")}
+                  {renderAddressInput("addressLine2", "Address Line 2 (Optional)", { optional: true })}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    value={selectedAddress?.city || ""}
-                    onChange={(e) => setSelectedAddress((prev) => ({ ...prev, city: e.target.value }))}
-                    className="luxInput p-2 border border-[#e5e4da]"
-                    placeholder="City"
-                  />
-
-                  <input
-                    type="text"
-                    value={selectedAddress?.state || ""}
-                    onChange={(e) => setSelectedAddress((prev) => ({ ...prev, state: e.target.value }))}
-                    className="luxInput p-2 border border-[#e5e4da]"
-                    placeholder="State"
-                  />
+                  {renderAddressInput("city", "City")}
+                  {renderAddressInput("state", "State")}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <input
-                    type="tel"
-                    value={selectedAddress?.phone || ""}
-                    onChange={(e) => setSelectedAddress((prev) => ({ ...prev, phone: e.target.value }))}
-                    className="luxInput p-2 border border-[#e5e4da] "
-                    placeholder="Phone Number"
-                  />
-
-                  <input
-                    type="text"
-                    value={selectedAddress?.zipCode || ""}
-                    onChange={(e) => setSelectedAddress((prev) => ({ ...prev, zipCode: e.target.value }))}
-                    className="luxInput p-2 border border-[#e5e4da] "
-                    placeholder="Postal Code"
-                  />
+                  {renderAddressInput("phone", "Phone Number", { type: "tel" })}
+                  {renderAddressInput("zipCode", "Postal Code")}
                 </div>
 
-                {/* Save for Next Time checkbox */}
+                {/* Save for Next Time checkbox (logged-in users only) */}
+                {isAuthenticated && (
                 <label className="flex items-center space-x-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -827,6 +954,7 @@ export default function Payment() {
                     Save this address for next time
                   </span>
                 </label>
+                )}
               </div>
             </div>
 
@@ -841,7 +969,10 @@ export default function Payment() {
                 </p>
               </div>
 
-              <div className="p-6 space-y-4">
+              <div
+                className="p-6 space-y-4"
+                data-invalid={showErrors && !selectedPaymentMethod}
+              >
                 {/* PAYMENT METHODS */}
                 {paymentMethods.map((pm) => (
                   <div
@@ -879,6 +1010,9 @@ export default function Payment() {
                     </div>
                   </div>
                 ))}
+                {showErrors && !selectedPaymentMethod && (
+                  <p className="text-xs text-[#9a6b5a]">Please select a payment method</p>
+                )}
               </div>
             </div>
 
@@ -931,27 +1065,6 @@ export default function Payment() {
               </div>
             </div>
 
-            {/* PAY NOW BUTTON */}
-            <button
-              onClick={handlePayment}
-              disabled={isProcessing}
-              className={`w-full py-4 px-6 text-sm tracking-[0.2em] uppercase font-light
-              transition-all duration-300 
-              ${
-                isProcessing
-                  ? "bg-[#737144]/30 text-gray-400 cursor-not-allowed"
-                  : "bg-[#737144] text-white hover:bg-[#5f5d3d] hover:shadow-[0_4px_10px_rgba(0,0,0,0.15)]"
-              }`}
-            >
-              {isProcessing ? (
-                <span className="inline-flex items-center justify-center gap-3">
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                  Processing payment...
-                </span>
-              ) : (
-                "Complete Your Experience"
-              )}
-            </button>
           </div>
 
           {/* RIGHT SIDE - ORDER SUMMARY */}
@@ -964,7 +1077,13 @@ export default function Payment() {
               {/* ITEMS */}
               <div className="space-y-4 mb-6">
                 {items.map((item) => (
-                  <div key={item._id} className="flex gap-4">
+                  <div
+                    key={item._id}
+                    className={`transition-opacity ${
+                      removingItem === item._id ? "opacity-50" : ""
+                    }`}
+                  >
+                  <div className="flex gap-4">
                     <div className="relative">
                       <img
                         src={cloudinaryOptimize(
@@ -984,18 +1103,35 @@ export default function Payment() {
                         {item.product.name}
                       </h3>
                       <p className="text-xs text-[#777] mt-1">
-                        {item.size || item.selectedSize} /{" "}
-                        {item.color || item.selectedColor}
+                        {[item.size || item.selectedSize, item.color || item.selectedColor]
+                          .filter(Boolean)
+                          .join(" / ")}
                       </p>
                     </div>
 
-                    <div className="font-medium text-[#555]">
-                      ₹
-                      {(
-                        (item.product.discountPrice || item.product.price) *
-                        item.quantity
-                      ).toFixed(2)}
+                    <div className="flex flex-col items-end justify-between">
+                      <div className="font-medium text-[#555]">
+                        ₹
+                        {(
+                          (item.product.discountPrice || item.product.price) *
+                          item.quantity
+                        ).toFixed(2)}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveItem(item)}
+                        disabled={!!removingItem || isProcessing}
+                        aria-label={`Remove ${item.product.name}`}
+                        className="inline-flex items-center gap-1 text-xs uppercase tracking-wide text-[#8a6658] hover:text-[#6f5045] disabled:opacity-50 transition-colors"
+                      >
+                        <Trash2 size={13} />
+                        {removingItem === item._id ? "Removing..." : "Remove"}
+                      </button>
                     </div>
+                  </div>
+                  {itemErrors[item._id] && (
+                    <p className="mt-1 text-xs text-[#9a6b5a] text-right">{itemErrors[item._id]}</p>
+                  )}
                   </div>
                 ))}
               </div>
@@ -1107,6 +1243,35 @@ export default function Payment() {
               </div>
             </div>
           </div>
+
+          {/* PAY NOW BUTTON — always at the very bottom (below order summary) */}
+          <div className="lg:col-span-2">
+            {paymentError && (
+              <p className="mb-3 text-sm text-center text-[#9a6b5a]" role="alert">
+                {paymentError}
+              </p>
+            )}
+              <button
+                onClick={handlePayment}
+                disabled={isProcessing}
+                className={`w-full py-4 px-6 text-sm tracking-[0.2em] uppercase font-light
+                transition-all duration-300 
+                ${
+                  isProcessing
+                    ? "bg-[#737144]/30 text-gray-400 cursor-not-allowed"
+                    : "bg-[#737144] text-white hover:bg-[#5f5d3d] hover:shadow-[0_4px_10px_rgba(0,0,0,0.15)]"
+                }`}
+              >
+                {isProcessing ? (
+                  <span className="inline-flex items-center justify-center gap-3">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                    Processing payment...
+                  </span>
+                ) : (
+                  "Complete Your Experience"
+                )}
+              </button>
+          </div>
         </div>
       </div>
 
@@ -1140,13 +1305,64 @@ export default function Payment() {
               Thank you for your purchase. Your order has been confirmed.
             </p>
 
-            <button
-              onClick={() => (window.location.href = "/orders")}
-              className="w-full py-3 bg-[#737144] text-white rounded-md uppercase tracking-[0.15em] font-light
-                hover:bg-[#5f5d3d] hover:shadow-md transition-all"
-            >
-              View Order Details
-            </button>
+            {isAuthenticated ? (
+              <button
+                onClick={() => navigate("/orders")}
+                className="w-full py-3 bg-[#737144] text-white rounded-md uppercase tracking-[0.15em] font-light
+                  hover:bg-[#5f5d3d] hover:shadow-md transition-all"
+              >
+                View Order Details
+              </button>
+            ) : (
+              <>
+                {placedOrder && (
+                  <div className="text-left text-sm text-[#555] border border-[#e5e4da] rounded-md p-4 mb-6 space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-[#777]">Order</span>
+                      <span>#{placedOrder.orderNumber || placedOrder._id}</span>
+                    </div>
+                    {placedOrder.orderItems?.map((it, i) => (
+                      <div key={i} className="flex justify-between">
+                        <span>
+                          {it.name} × {it.quantity}
+                        </span>
+                        <span>₹{Number(it.price * it.quantity || 0).toFixed(2)}</span>
+                      </div>
+                    ))}
+                    {placedOrder.totalPrice != null && (
+                      <div className="flex justify-between pt-2 border-t border-[#e5e4da] font-medium">
+                        <span>Total</span>
+                        <span>₹{Number(placedOrder.totalPrice).toFixed(2)}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+                <button
+                  onClick={() =>
+                    navigate("/signup", {
+                      state: {
+                        prefill: {
+                          email: currentUser.email,
+                          phone: currentUser.phone,
+                          firstName: selectedAddress?.firstName,
+                          lastName: selectedAddress?.lastName,
+                        },
+                      },
+                    })
+                  }
+                  className="w-full py-3 bg-[#737144] text-white rounded-md uppercase tracking-[0.15em] font-light text-xs
+                    hover:bg-[#5f5d3d] hover:shadow-md transition-all"
+                >
+                  Create an account with the same email/phone to track your order
+                </button>
+                <button
+                  onClick={() => navigate("/")}
+                  className="w-full mt-3 py-3 border border-[#737144]/40 text-[#737144] rounded-md uppercase tracking-[0.15em] font-light text-xs hover:bg-[#737144]/10 transition-all"
+                >
+                  Continue Shopping
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -1166,6 +1382,9 @@ export default function Payment() {
             </div>
 
             <form onSubmit={handleSubmit(onAddAddress)} className="space-y-4">
+              {addressModalError && (
+                <p className="text-sm text-[#9a6b5a]">{addressModalError}</p>
+              )}
               <input
                 {...register("label")}
                 placeholder="Label (e.g., Home)"
@@ -1319,6 +1538,7 @@ export default function Payment() {
           </div>
         </div>
       )}
+      <NoticeModal notice={notice} onClose={() => setNotice(null)} />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
   Eye,
@@ -11,17 +11,20 @@ import {
   AlertCircle,
   CheckCircle2,
 } from "lucide-react";
-import logo from "../assets/SignInPage4-01.png";
+import logo from "../assets/SignInPage4-01.webp";
 import { FcGoogle } from "react-icons/fc";
 import favicon from "../assets/logo.png";
 // import bakgroundPattern from "../assets/bakgroundPattern.png";
 
 const Signup = () => {
+  const location = useLocation();
+  // Prefill from guest checkout / guest-account login (email or phone)
+  const prefill = location.state?.prefill || {};
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
+    firstName: prefill.firstName || "",
+    lastName: prefill.lastName || "",
+    email: prefill.email || "",
+    phone: prefill.phone || "",
     password: "",
     confirmPassword: "",
   });
@@ -33,12 +36,20 @@ const Signup = () => {
   const { register, isAuthenticated, loading, error, clearError } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect if already authenticated
-  // useEffect(() => {
-  //   if (isAuthenticated) {
-  //     navigate("/");
-  //   }
-  // }, [isAuthenticated, navigate]);
+  // Where to go after auth: page that sent us here > saved redirect > home
+  const getRedirectTarget = () => {
+    const target =
+      location.state?.from || localStorage.getItem("redirectAfterLogin") || "/";
+    localStorage.removeItem("redirectAfterLogin");
+    return ["/login", "/signup"].includes(target) ? "/" : target;
+  };
+
+  // Redirect if already authenticated (skip while submitting — handleSubmit redirects)
+  useEffect(() => {
+    if (isAuthenticated && !isSubmitting) {
+      navigate(getRedirectTarget(), { replace: true });
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     clearError();
@@ -112,9 +123,7 @@ const Signup = () => {
       const result = await register(registrationData);
 
       if (result.success) {
-        const redirectTo = localStorage.getItem("redirectAfterLogin") || "/";
-        localStorage.removeItem("redirectAfterLogin");
-        navigate(redirectTo, { replace: true });
+        navigate(getRedirectTarget(), { replace: true });
       }
     } catch (err) {
       console.error("Registration error:", err);
@@ -177,6 +186,13 @@ const Signup = () => {
                 <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center space-x-2">
                   <AlertCircle className="h-5 w-5 text-red-500" />
                   <span className="text-red-700 text-sm">{error}</span>
+                </div>
+              )}
+
+              {!error && location.state?.message && (
+                <div className="bg-[#f4f3ed] border border-[#d6d4c2] rounded-md p-3 flex items-center space-x-2">
+                  <AlertCircle className="h-5 w-5 text-[#737144]" />
+                  <span className="text-[#555] text-sm">{location.state.message}</span>
                 </div>
               )}
 

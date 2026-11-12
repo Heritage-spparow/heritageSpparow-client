@@ -1,10 +1,9 @@
 // src/pages/GoogleAuthCallback.tsx
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { authAPI } from '../services/api';
 
 export default function GoogleAuthCallback() {
-  const { login } = useAuth(); // ← we won't use login directly
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,7 +17,10 @@ export default function GoogleAuthCallback() {
         // Optional: you can dispatch manually if you want
         // but usually not needed if AuthProvider already handles it
 
-        navigate('/', { replace: true });
+        const saved = localStorage.getItem('redirectAfterLogin');
+        localStorage.removeItem('redirectAfterLogin');
+        // hard reload so AuthContext picks up the new session
+        window.location.replace(saved && !['/login', '/signup'].includes(saved) ? saved : '/');
       } catch (err) {
         console.error('Google auth verification failed', err);
         navigate('/login?error=google_auth_failed', { replace: true });

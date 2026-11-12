@@ -198,7 +198,7 @@ export default function FashionLanding() {
     const loadCatalog = async () => {
       try {
         if (!products.length && fetchProducts) {
-          await fetchProducts({ limit: 12 });
+          await fetchProducts({ inStock: true });
         }
 
         if (mounted && !collections.length && fetchCollections) {
@@ -257,7 +257,7 @@ const heroSlides = useMemo(() => {
       id: data.id || `hero-${slides.length}`,
       image,
       href: data.href || HERITAGE_ROUTES.search,
-      cta: data.cta || "Shop the Sale",
+      cta: data.cta || "Shop Now",
       alt: data.alt || "Heritage Sparrow handcrafted juttis",
     });
   };
@@ -290,7 +290,7 @@ const heroSlides = useMemo(() => {
       href: sectionOne?.collection
         ? buildCollectionPath(sectionOne.collection)
         : HERITAGE_ROUTES.guldasta,
-      cta: sectionOne?.ctaLabel || "Shop the Sale",
+      cta: sectionOne?.ctaLabel || "Shop Now",
       alt:
         sectionOne?.collection
           ? `${sectionOne.collection} Collection`
@@ -299,45 +299,45 @@ const heroSlides = useMemo(() => {
   }
 
   // ---------------------------------------------------------
-  // SLIDES 2+ — SECTION 2 FEATURED PRODUCTS
+  // SLIDES 2+ — SECTION 2 FEATURED PRODUCTS (disabled: hero shows only the 1st image)
   // ---------------------------------------------------------
 
-  const featuredItems = Array.isArray(sectionTwo?.items)
-    ? sectionTwo.items
-    : [];
-
-  featuredItems.forEach((item, index) => {
-    /*
-     * The image MUST come from the Landing Page CMS.
-     * Do not fall back to products/featuredProducts.
-     */
-
-    const image = getImage(item);
-
-    if (!image) return;
-
-    const product =
-      typeof item?.productId === "object"
-        ? item.productId
-        : null;
-
-    let href = HERITAGE_ROUTES.search;
-
-    if (product) {
-      try {
-        href = buildProductPath(product);
-      } catch {
-        href = HERITAGE_ROUTES.search;
-      }
-    }
-
-    addSlide(image, {
-      id: `hero-featured-product-${getId(item) || index}`,
-      href,
-      cta: item?.ctaLabel || "Shop Now",
-      alt: getName(product, "Heritage Sparrow handcrafted jutti"),
-    });
-  });
+//   const featuredItems = Array.isArray(sectionTwo?.items)
+//     ? sectionTwo.items
+//     : [];
+// 
+//   featuredItems.forEach((item, index) => {
+//     /*
+//      * The image MUST come from the Landing Page CMS.
+//      * Do not fall back to products/featuredProducts.
+//      */
+// 
+//     const image = getImage(item);
+// 
+//     if (!image) return;
+// 
+//     const product =
+//       typeof item?.productId === "object"
+//         ? item.productId
+//         : null;
+// 
+//     let href = HERITAGE_ROUTES.search;
+// 
+//     if (product) {
+//       try {
+//         href = buildProductPath(product);
+//       } catch {
+//         href = HERITAGE_ROUTES.search;
+//       }
+//     }
+// 
+//     addSlide(image, {
+//       id: `hero-featured-product-${getId(item) || index}`,
+//       href,
+//       cta: item?.ctaLabel || "Shop Now",
+//       alt: getName(product, "Heritage Sparrow handcrafted jutti"),
+//     });
+//   });
 
   /*
    * IMPORTANT:
@@ -477,9 +477,10 @@ const heroSlides = useMemo(() => {
   */
 
   const homepageCollections = useMemo(() => {
+    // Order = display order (left → right / top → bottom on mobile)
     const result = {
-      guldasta: null,
       shringar: null,
+      guldasta: null,
     };
 
     collections.forEach((collection) => {
@@ -534,7 +535,35 @@ const heroSlides = useMemo(() => {
   */
 
   const homepageProducts = useMemo(() => {
-    const source = featuredProducts.length > 0 ? featuredProducts : products;
+    // Shop the Collection shows Shringar articles first;
+    // falls back to featured/all products if none are found.
+    const isShringar = (product) =>
+      getCollectionSlugFromProduct(product).includes("shringar");
+    // Hidden from this section, and products pinned to a fixed card position
+    const HIDDEN = [/dh?arpan/i, /chamba/i];
+    const PINNED = [
+      { match: /saleti\s*heer/i, position: 0 },
+      { match: /roop\s*di\s*rani/i, position: 2 },
+    ];
+    const nameOf = (product) => product?.name || "";
+
+    const candidates = [...featuredProducts, ...products]
+      .filter(isShringar)
+      .filter((product) => !HIDDEN.some((re) => re.test(nameOf(product))));
+
+    const shringar = candidates.filter(
+      (product) => !PINNED.some((p) => p.match.test(nameOf(product))),
+    );
+    PINNED.forEach(({ match, position }) => {
+      const pinned = candidates.find((product) => match.test(nameOf(product)));
+      if (pinned) shringar.splice(Math.min(position, shringar.length), 0, pinned);
+    });
+    const source =
+      shringar.length > 0
+        ? shringar
+        : featuredProducts.length > 0
+          ? featuredProducts
+          : products;
 
     const unique = [];
     const seen = new Set();
@@ -550,19 +579,6 @@ const heroSlides = useMemo(() => {
 
     return unique.slice(0, 4);
   }, [featuredProducts, products]);
-
-  /*
-  |--------------------------------------------------------------------------
-  | Product image for secondary campaign section
-  |--------------------------------------------------------------------------
-  */
-
-  const saleImage =
-    getImage(sectionTwo?.items?.[1]) ||
-    getImage(homepageProducts[1]) ||
-    getImage(homepageProducts[0]) ||
-    getImage(sectionOne) ||
-    "";
 
   /*
   |--------------------------------------------------------------------------
@@ -693,18 +709,7 @@ const heroSlides = useMemo(() => {
                 />
 
                 {/* Cinematic overlays */}
-                <div className="absolute inset-0 bg-black/10" />
-
-                <div
-                  className="
-                    absolute
-                    inset-0
-                    bg-gradient-to-r
-                    from-black/65
-                    via-black/30
-                    to-transparent
-                  "
-                />
+                <div className="absolute inset-0 bg-black/35" />
 
                 <div
                   className="
@@ -730,29 +735,18 @@ const heroSlides = useMemo(() => {
             h-full
             w-full
             flex
-            items-center
+            items-end
+            justify-center
             px-6
             sm:px-10
             md:px-16
             lg:px-24
+            pb-16
+            md:pb-20
             pointer-events-none
           "
         >
-          <div className="max-w-[700px] text-white">
-            <p
-              className="
-                mb-4
-                text-[9px]
-                sm:text-[10px]
-                md:text-xs
-                uppercase
-                tracking-[0.34em]
-                font-light
-              "
-            >
-              The Heritage Sale
-            </p>
-
+          <div className="max-w-[760px] text-white text-center flex flex-col items-center">
             <h1
               id="landing-heading"
               className="
@@ -775,20 +769,12 @@ const heroSlides = useMemo(() => {
               Brighter Days.
             </h1>
 
-            <p className="mt-6 text-2xl md:text-3xl font-light">
-              UP TO 50% OFF
-            </p>
-
-            <p className="mt-1 text-sm md:text-base text-white/85">
-              On our curated jutti collections
-            </p>
-
             {heroSlides[currentSlide] && (
               <Link
                 to={heroSlides[currentSlide].href}
                 className="
                   pointer-events-auto
-                  mt-7
+                  mt-9
                   inline-flex
                   items-center
                   border
@@ -940,153 +926,12 @@ const heroSlides = useMemo(() => {
       </section>
 
       {/* =========================================================
-          SALE BANNER
-          ========================================================= */}
-
-      <section
-        aria-label="Heritage Sparrow sale"
-        className="
-          relative
-          min-h-[330px]
-          md:min-h-[420px]
-          overflow-hidden
-        "
-      >
-        {saleImage ? (
-          <img
-            src={cloudinaryOptimize(saleImage, "detail")}
-            alt="Heritage Sparrow handcrafted juttis"
-            loading="lazy"
-            decoding="async"
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-[#3b3b22]" />
-        )}
-
-        <div className="absolute inset-0 bg-gradient-to-r from-[#252817]/90 via-[#35351f]/65 to-transparent" />
-
-        <div className="relative z-10 min-h-[330px] md:min-h-[420px] flex items-center px-7 sm:px-10 md:px-16 lg:px-24">
-          <div className="max-w-xl text-white">
-            <p className="text-[9px] uppercase tracking-[0.34em]">
-              The Heritage Sale
-            </p>
-
-            <h2
-              className="mt-3 text-5xl md:text-7xl leading-none font-light"
-              style={{
-                fontFamily: "' D-DIN', serif",
-              }}
-            >
-              UP TO 50% OFF
-            </h2>
-
-            <p className="mt-4 text-sm md:text-base text-white/85">
-              Handcrafted juttis, made to be worn,
-              <br className="hidden sm:block" />
-              remembered and celebrated.
-            </p>
-
-            <Link
-              to={HERITAGE_ROUTES.shringar}
-              className="
-                mt-7
-                inline-flex
-                border
-                border-white/80
-                px-7
-                py-3
-                text-[9px]
-                uppercase
-                tracking-[0.2em]
-                transition
-                hover:bg-white
-                hover:text-[#35321f]
-              "
-            >
-              Shop the Sale
-              <span className="ml-5">→</span>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================
-          CRAFT STORY
-          ========================================================= */}
-
-      <section className=" px-5 sm:px-8 md:px-12 lg:px-16 py-12 md:py-16"
-       style={{
-              backgroundImage: "url('./sparrow.png')",
-              backgroundRepeat: "no-repeat",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              backgroundBlendMode: "lighten",
-            }}>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          <div className="overflow-hidden">
-              <img
-                src="/Campaign/DSC_5618.jpg"
-                alt="Heritage Sparrow craftsmanship"
-                loading="lazy"
-                decoding="async"
-                className="w-full aspect-[4/3] object-cover"
-              />
-          </div>
-
-          <div className="lg:pr-10">
-            <p className="text-[9px] uppercase tracking-[0.34em] text-[#737144]">
-              The Craft
-            </p>
-
-            <h2
-              className="mt-3 text-4xl md:text-5xl leading-[0.95] font-light text-[#35321f]"
-              style={{
-                fontFamily: "' D-DIN', serif",
-              }}
-            >
-              More Than a Jutti.
-              <br />A Piece of Heritage.
-            </h2>
-
-            <p className="mt-5 max-w-xl text-sm md:text-base leading-7 text-[#737144]/80">
-              Each pair is thoughtfully handcrafted by skilled artisans,
-              carrying forward traditions, techniques and stories that have
-              lived for generations.
-            </p>
-
-            <Link
-              to={HERITAGE_ROUTES.about}
-              className="
-                mt-6
-                inline-flex
-                border
-                border-[#737144]/60
-                px-6
-                py-3
-                text-[9px]
-                uppercase
-                tracking-[0.22em]
-                text-[#737144]
-                transition
-                hover:bg-[#737144]
-                hover:text-white
-              "
-            >
-              Our Story
-              <span className="ml-5">→</span>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================
           PRODUCT GRID
           ========================================================= */}
 
       <section
         aria-labelledby="products-heading"
-        className=" px-5 sm:px-8 md:px-12 lg:px-16 pb-12 md:pb-16"
+        className=" px-5 sm:px-8 md:px-12 lg:px-16 pt-12 md:pt-16 pb-12 md:pb-16"
          style={{
               backgroundImage: "url('./sparrow.png')",
               backgroundRepeat: "no-repeat",
@@ -1191,6 +1036,75 @@ const heroSlides = useMemo(() => {
             Discover our handcrafted collections.
           </div>
         )}
+      </section>
+
+      {/* =========================================================
+          CRAFT STORY
+          ========================================================= */}
+
+      <section className=" px-5 sm:px-8 md:px-12 lg:px-16 py-12 md:py-16"
+       style={{
+              backgroundImage: "url('./sparrow.png')",
+              backgroundRepeat: "no-repeat",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundBlendMode: "lighten",
+            }}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          <div className="overflow-hidden">
+              <img
+                src={cloudinaryOptimize("https://res.cloudinary.com/drcy8edfo/image/upload/v1794483167/landing/DSC_5670.jpg", "detail")}
+                alt="Heritage Sparrow craftsmanship"
+                loading="lazy"
+                decoding="async"
+                className="w-full aspect-[4/3] object-cover"
+              />
+          </div>
+
+          <div className="lg:pr-10">
+            <p className="text-[9px] uppercase tracking-[0.34em] text-[#737144]">
+              The Craft
+            </p>
+
+            <h2
+              className="mt-3 text-4xl md:text-5xl leading-[0.95] font-light text-[#35321f]"
+              style={{
+                fontFamily: "' D-DIN', serif",
+              }}
+            >
+              More Than a Jutti.
+              <br />A Piece of Heritage.
+            </h2>
+
+            <p className="mt-5 max-w-xl text-sm md:text-base leading-7 text-[#737144]/80">
+              Each pair is thoughtfully handcrafted by skilled artisans,
+              carrying forward traditions, techniques and stories that have
+              lived for generations.
+            </p>
+
+            <Link
+              to={HERITAGE_ROUTES.about}
+              className="
+                mt-6
+                inline-flex
+                border
+                border-[#737144]/60
+                px-6
+                py-3
+                text-[9px]
+                uppercase
+                tracking-[0.22em]
+                text-[#737144]
+                transition
+                hover:bg-[#737144]
+                hover:text-white
+              "
+            >
+              Our Story
+              <span className="ml-5">→</span>
+            </Link>
+          </div>
+        </div>
       </section>
 
       {/* =========================================================

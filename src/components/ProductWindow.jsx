@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import banner from "../assets/DSC_5888.jpg";
+import banner from "../assets/DSC_5888.webp";
 import { motion } from "framer-motion";
 import { useProduct } from "../context/ProductContext";
 import { cloudinaryOptimize } from "../utils/loudinary";
