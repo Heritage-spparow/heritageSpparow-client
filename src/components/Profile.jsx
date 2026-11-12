@@ -2,12 +2,15 @@ import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useForm } from "react-hook-form";
 import { User, Lock, MapPin } from "lucide-react";
+import NoticeModal from "../shared/NoticeModal";
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
   const [formErrors, setFormErrors] = useState([]);
+  const [notice, setNotice] = useState(null); // success popup
+  const [serverError, setServerError] = useState(""); // inline form error
 
   const {
     user,
@@ -24,6 +27,7 @@ const Profile = () => {
     handleSubmit,
     formState: { errors },
     reset,
+    setError,
   } = useForm();
 
   const currentUser = {
@@ -36,25 +40,29 @@ const Profile = () => {
 
   // ─── Profile Update ─────────────────────────────
   const onUpdateProfile = async (data) => {
+    setServerError("");
     const response = await updateProfile(data);
     if (response.success) {
-      alert("Profile updated successfully!");
+      setNotice({ type: "success", title: "Profile Updated", message: "Your details have been saved." });
       reset();
-    } else alert(response.error || "Failed to update profile");
+    } else setServerError(response.error || "Failed to update profile");
   };
 
   // ─── Password Change ────────────────────────────
   const onChangePassword = async (data) => {
-    if (data.newPassword !== data.confirmPassword)
-      return alert("New password and confirmation do not match");
+    setServerError("");
+    if (data.newPassword !== data.confirmPassword) {
+      setError("confirmPassword", { message: "Passwords do not match" });
+      return;
+    }
     const response = await changePassword({
       currentPassword: data.currentPassword,
       newPassword: data.newPassword,
     });
     if (response.success) {
-      alert("Password changed successfully!");
+      setNotice({ type: "success", title: "Password Changed", message: "Your password has been updated." });
       reset();
-    } else alert(response.error || "Failed to change password");
+    } else setServerError(response.error || "Failed to change password");
   };
 
   // ─── Address Add / Update ───────────────────────
@@ -83,11 +91,10 @@ const Profile = () => {
         : await addAddress(addressData);
 
       if (response.success) {
-        alert(
-          editingAddress
-            ? "Address updated successfully!"
-            : "Address added successfully!"
-        );
+        setNotice({
+          type: "success",
+          title: editingAddress ? "Address Updated" : "Address Added",
+        });
         setShowAddressForm(false);
         setEditingAddress(null);
         reset(); 
@@ -123,7 +130,10 @@ const Profile = () => {
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                setActiveTab(tab.id);
+                setServerError("");
+              }}
               className={`w-full flex items-center gap-3 px-4 py-3    -xl text-sm font-medium transition-all ${
                 activeTab === tab.id
                   ? "bg-[#737144] text-white shadow"
@@ -193,6 +203,7 @@ const Profile = () => {
               </div>
             ))}
           </div>
+          {serverError && <p className="text-red-500 text-sm">{serverError}</p>}
           <div className="flex justify-end">
             <button
               type="submit"
@@ -231,6 +242,7 @@ const Profile = () => {
               )}
             </div>
           ))}
+          {serverError && <p className="text-red-500 text-sm">{serverError}</p>}
           <div className="flex justify-end">
             <button
               type="submit"
@@ -372,6 +384,7 @@ const Profile = () => {
           {activeTab === "addresses" && <AddressSection />}
         </div>
       </div>
+      <NoticeModal notice={notice} onClose={() => setNotice(null)} />
     </div>
   );
 };

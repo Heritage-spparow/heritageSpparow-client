@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from "lucide-react";
-import logo from "../assets/SignUpPage4.png";
+import logo from "../assets/SignUpPage4.webp";
 import { FcGoogle } from "react-icons/fc";
 import favicon from "../assets/logo.png";
 
@@ -17,13 +17,22 @@ const Login = () => {
 
   const { login, isAuthenticated, loading, error, clearError } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Redirect if already authenticated
-  // useEffect(() => {
-  //   if (isAuthenticated) {
-  //     navigate("/");
-  //   }
-  // }, [isAuthenticated, navigate]);
+  // Where to go after auth: page that sent us here > saved redirect > home
+  const getRedirectTarget = () => {
+    const target =
+      location.state?.from || localStorage.getItem("redirectAfterLogin") || "/";
+    localStorage.removeItem("redirectAfterLogin");
+    return ["/login", "/signup"].includes(target) ? "/" : target;
+  };
+
+  // Redirect if already authenticated (skip while submitting — handleSubmit redirects)
+  useEffect(() => {
+    if (isAuthenticated && !isSubmitting) {
+      navigate(getRedirectTarget(), { replace: true });
+    }
+  }, [isAuthenticated]);
 
   // Clear errors when component mounts
   useEffect(() => {
@@ -80,11 +89,17 @@ const Login = () => {
       const result = await login(formData);
 
       if (result.success) {
-    const redirectTo =
-  localStorage.getItem("redirectAfterLogin") || "/";
-localStorage.removeItem("redirectAfterLogin");
-navigate(redirectTo, { replace: true });
-  }
+        navigate(getRedirectTarget(), { replace: true });
+      } else if (result.code === "GUEST_ACCOUNT") {
+        // Guest account (no password yet) → sign up with the same email
+        navigate("/signup", {
+          state: {
+            prefill: { email: formData.email },
+            message: result.error,
+            from: location.state?.from,
+          },
+        });
+      }
     } catch (err) {
       console.error("Login error:", err);
     } finally {

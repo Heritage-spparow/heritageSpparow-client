@@ -13,8 +13,15 @@ import { useAuth } from "./AuthContext";
 // --------------------
 const GUEST_CART_KEY = "guest_cart";
 
+// Guest items have no backend _id — give each a stable one (product + size)
+// so quantity updates / keys target only that item
+const withGuestId = (item) => ({
+  ...item,
+  _id: item._id || `guest-${item.product?._id}-${item.size}`,
+});
+
 const getGuestCart = () =>
-  JSON.parse(localStorage.getItem(GUEST_CART_KEY)) || [];
+  (JSON.parse(localStorage.getItem(GUEST_CART_KEY)) || []).map(withGuestId);
 
 const setGuestCart = (items) =>
   localStorage.setItem(GUEST_CART_KEY, JSON.stringify(items));
@@ -57,12 +64,16 @@ const CART_ACTIONS = {
 // --------------------
 const cartReducer = (state, action) => {
   switch (action.type) {
+    // Full-page loading only for the initial cart fetch
     case CART_ACTIONS.FETCH_CART_START:
+      return { ...state, loading: true, error: null };
+
+    // Add / remove / qty / clear → background "updating", page stays visible
     case CART_ACTIONS.ADD_TO_CART_START:
     case CART_ACTIONS.REMOVE_FROM_CART_START:
     case CART_ACTIONS.UPDATE_QUANTITY_START:
     case CART_ACTIONS.CLEAR_CART_START:
-      return { ...state, loading: true, error: null };
+      return { ...state, updating: true };
 
     case CART_ACTIONS.FETCH_CART_SUCCESS:
     case CART_ACTIONS.ADD_TO_CART_SUCCESS:
@@ -71,6 +82,7 @@ const cartReducer = (state, action) => {
       return {
         ...state,
         loading: false,
+        updating: false,
         error: null,
         items: action.payload.items,
         totalItems: action.payload.totalItems,
@@ -81,17 +93,22 @@ const cartReducer = (state, action) => {
       return {
         ...state,
         loading: false,
+        updating: false,
         items: [],
         totalItems: 0,
         totalPrice: 0,
       };
 
     case CART_ACTIONS.FETCH_CART_FAILURE:
+      return { ...state, loading: false, error: action.payload };
+
+    // Mutation errors are shown inline by the caller (returned value),
+    // so they don't replace the whole cart page
     case CART_ACTIONS.ADD_TO_CART_FAILURE:
     case CART_ACTIONS.REMOVE_FROM_CART_FAILURE:
     case CART_ACTIONS.UPDATE_QUANTITY_FAILURE:
     case CART_ACTIONS.CLEAR_CART_FAILURE:
-      return { ...state, loading: false, error: action.payload };
+      return { ...state, updating: false };
 
     case CART_ACTIONS.CLEAR_ERROR:
       return { ...state, error: null };
@@ -111,7 +128,8 @@ const initialState = {
   items: [],
   totalItems: 0,
   totalPrice: 0,
-  loading: false,
+  loading: true, // until the first cart load finishes (avoids "bag is empty" flash)
+  updating: false,
   error: null,
 };
 
@@ -167,11 +185,13 @@ export const CartProvider = ({ children }) => {
       if (existing) {
         existing.quantity += quantity;
       } else {
-        guestItems.push({
-          product,
-          size: selectedSize,
-          quantity,
-        });
+        guestItems.push(
+          withGuestId({
+            product,
+            size: selectedSize,
+            quantity,
+          })
+        );
       }
 
       setGuestCart(guestItems);
@@ -212,11 +232,9 @@ export const CartProvider = ({ children }) => {
         return { success: true };
       }
     } catch (error) {
-      dispatch({
-        type: CART_ACTIONS.ADD_TO_CART_FAILURE,
-        payload: error.response?.data?.message || "Failed to add to cart",
-      });
-      return { success: false };
+      const message = error.response?.data?.message || "Failed to add to cart";
+      dispatch({ type: CART_ACTIONS.ADD_TO_CART_FAILURE, payload: message });
+      return { success: false, message };
     }
   }, []);
 
@@ -253,20 +271,26 @@ export const CartProvider = ({ children }) => {
     }
 
     // Backend
-    const response = await cartAPI.remove({ productId, size });
+    try {
+      const response = await cartAPI.remove({ productId, size });
 
-    if (response.data.success) {
-      dispatch({
-        type: CART_ACTIONS.REMOVE_FROM_CART_SUCCESS,
-        payload: {
-          items: response.data.cart.items,
-          totalItems: response.data.cart.totalItems,
-          totalPrice: response.data.cart.totalPrice,
-        },
-      });
+      if (response.data.success) {
+        dispatch({
+          type: CART_ACTIONS.REMOVE_FROM_CART_SUCCESS,
+          payload: {
+            items: response.data.cart.items,
+            totalItems: response.data.cart.totalItems,
+            totalPrice: response.data.cart.totalPrice,
+          },
+        });
+      }
+
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.message || "Failed to remove item";
+      dispatch({ type: CART_ACTIONS.REMOVE_FROM_CART_FAILURE, payload: message });
+      return { success: false, error: message };
     }
-
-    return { success: true };
   };
 
   // --------------------
@@ -315,11 +339,9 @@ export const CartProvider = ({ children }) => {
       }
       return { success: true };
     } catch (error) {
-      dispatch({
-        type: CART_ACTIONS.UPDATE_QUANTITY_FAILURE,
-        payload: error.response?.data?.message || "Failed to update quantity",
-      });
-      return { success: false };
+      const message = error.response?.data?.message || "Failed to update quantity";
+      dispatch({ type: CART_ACTIONS.UPDATE_QUANTITY_FAILURE, payload: message });
+      return { success: false, error: message };
     }
   }, []);
 
@@ -365,7 +387,7 @@ useEffect(() => {
     }
   } else {
     // 🟢 GUEST MODE: This will now run because cartMerged is true
-    const guestItems = JSON.parse(localStorage.getItem(GUEST_CART_KEY)) || [];
+    const guestItems = getGuestCart();
     dispatch({
       type: CART_ACTIONS.FETCH_CART_SUCCESS,
       payload: {

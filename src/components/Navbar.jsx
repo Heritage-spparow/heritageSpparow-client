@@ -84,10 +84,8 @@ const Navbar = () => {
   };
 
   const handleCartClick = () => {
-    if (error) {
-      alert(error);
-      clearError();
-    }
+    // Stale cart error shouldn't block opening the bag — checkout reloads it
+    if (error) clearError();
     setIsProfileDropdownOpen(false);
     navigate("/checkout");
   };
@@ -107,7 +105,12 @@ const Navbar = () => {
     navigate("/profile");
     setIsProfileDropdownOpen(false);
   };
-  const uniqueCollections = collections;
+  // Shringar first, then Guldasta (same order as the home page)
+  const uniqueCollections = [...(collections || [])].sort(
+    (a, b) =>
+      Number(!/shringar/i.test(a?.name || "")) -
+      Number(!/shringar/i.test(b?.name || "")),
+  );
 
   return (
     <nav
@@ -269,17 +272,30 @@ const Navbar = () => {
                 )}
               </>
             ) : (
-              <button
-                onClick={handleCartClick}
-                className="relative text-white hover:opacity-90 transition"
-              >
-                <ShoppingBag size={20} />
-                {totalItems > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-white text-[var(--color-bg)] text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {totalItems}
-                  </span>
-                )}
-              </button>
+              <div className="flex items-center gap-6">
+                <button
+                  onClick={handleLogin}
+                  className="hover:underline font-medium flex items-center gap-1 cursor-pointer"
+                >
+                  <User size={20} />
+                  <span className="hidden lg:block">LOGIN</span>
+                </button>
+                <button
+                  onClick={handleCartClick}
+                  aria-label="Bag"
+                  className="relative text-white hover:opacity-90 transition cursor-pointer"
+                >
+                  <ShoppingBag size={20} />
+                  {totalItems > 0 && (
+                    <span
+                      key={totalItems}
+                      className="cart-pop absolute -top-2 -right-2 bg-white text-[var(--color-bg)] text-xs rounded-full h-5 w-5 flex items-center justify-center"
+                    >
+                      {totalItems}
+                    </span>
+                  )}
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -379,7 +395,10 @@ const Navbar = () => {
             <button onClick={handleCartClick} className="text-white relative">
               <ShoppingBag size={20} />
               {totalItems > 0 && (
-                <span className="absolute -top-2 -right-2 bg-white text-[var(--color-bg)] text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <span
+                  key={totalItems}
+                  className="cart-pop absolute -top-2 -right-2 bg-white text-[var(--color-bg)] text-xs rounded-full h-5 w-5 flex items-center justify-center"
+                >
                   {totalItems}
                 </span>
               )}
@@ -457,7 +476,8 @@ const Navbar = () => {
             >
               <span className="text-white">BAG</span>
               <span
-                className={`text-white border px-3 py-1 ${
+                key={totalItems}
+                className={`cart-pop text-white border px-3 py-1 ${
                   totalItems > 0 ? "bg-white text-[var(--color-bg)]" : ""
                 }`}
               >
